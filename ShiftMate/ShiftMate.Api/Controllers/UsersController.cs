@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using ShiftMate.Application.Users.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.Users.Queries; // Se till att denna matchar din namespace
 
@@ -25,6 +26,22 @@ namespace ShiftMate.Api.Controllers
             var result = await _mediator.Send(query);
 
             return Ok(result);
+        }
+
+        // POST: api/Users/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginCommand command)
+        {
+            try
+            {
+                var token = await _mediator.Send(command);
+                // Vi returnerar token i ett JSON-objekt
+                return Ok(new { Token = token });
+            }
+            catch (Exception ex)
+            {
+                return Unauthorized(ex.Message); // Returnera 401 om inloggningen misslyckas
+            }
         }
     }
 }
