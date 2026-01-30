@@ -24,6 +24,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // ---------------------------------------------------------
 var app = builder.Build();
 
+// Skapa en tillfällig "Scope" för att hämta databasen och köra seedern
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+
+        // Kör seedern!
+        DbInitializer.Initialize(context);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ett fel inträffade när databasen skulle fyllas med data.");
+    }
+}
+
 // ---------------------------------------------------------
 // 3. KONFIGURERA HTTP-PIPELINE (HUR ANROP HANTERAS)
 // ---------------------------------------------------------
