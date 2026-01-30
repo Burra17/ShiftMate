@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36915.13 d17.14
+VisualStudioVersion = 17.14.36915.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShiftMate.Domain", "ShiftMate.Domain\ShiftMate.Domain.csproj", "{389EC222-54F1-41D8-9200-6D3B1FED5CA5}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShiftMate.Infrastructure", "ShiftMate.Infrastructure\ShiftMate.Infrastructure.csproj", "{25E9E3AE-85A4-4CF0-9495-CF14B7A4E072}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShiftMate.Api", "ShiftMate.Api\ShiftMate.Api.csproj", "{F7013C00-877D-4052-9653-1A1D733A3A0D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShiftMate.Tests", "ShiftMate.Tests\ShiftMate.Tests.csproj", "{7BCC45D5-3DEA-4611-874F-EF5E233C69EE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{F7013C00-877D-4052-9653-1A1D733A3A0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F7013C00-877D-4052-9653-1A1D733A3A0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F7013C00-877D-4052-9653-1A1D733A3A0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7BCC45D5-3DEA-4611-874F-EF5E233C69EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7BCC45D5-3DEA-4611-874F-EF5E233C69EE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7BCC45D5-3DEA-4611-874F-EF5E233C69EE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7BCC45D5-3DEA-4611-874F-EF5E233C69EE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
