@@ -2,10 +2,11 @@
 using ShiftMate.Domain;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Infrastructure
 {
-    public class AppDbContext : DbContext
+    public class AppDbContext : DbContext, IAppDbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
