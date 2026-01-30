@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.SwapRequests.Commands;
+using ShiftMate.Application.SwapRequests.Queries;
 
 namespace ShiftMate.Api.Controllers
 {
@@ -29,6 +30,16 @@ namespace ShiftMate.Api.Controllers
                 // Om något gick fel (t.ex. fel användare), returnera 400 Bad Request
                 return BadRequest(ex.Message);
             }
+        }
+
+        // GET: api/SwapRequests/available
+        [HttpGet("available")]
+        public async Task<IActionResult> GetAvailableSwaps()
+        {
+            var query = new GetAvailableSwapsQuery();
+            var result = await _mediator.Send(query);
+
+            return Ok(result);
         }
     }
 }

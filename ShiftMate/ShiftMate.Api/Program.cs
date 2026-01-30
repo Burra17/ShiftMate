@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using ShiftMate.Infrastructure;          // För AppDbContext och DbInitializer
 using ShiftMate.Application;             // För AddApplication (MediatR)
 using ShiftMate.Application.Interfaces;  // <--- VIKTIGT: För IAppDbContext
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // ---------------------------------------------------------
 
 // Lägg till Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Om vi stöter på en loop, ignorera den istället för att krascha
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
 // Lägg till Swagger
 builder.Services.AddEndpointsApiExplorer();
