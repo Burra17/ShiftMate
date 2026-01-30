@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain;
+using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.Shifts.Commands
 {
@@ -8,6 +9,7 @@ namespace ShiftMate.Application.Shifts.Commands
     // Vi returnerar Guid (det nya passets ID)
     public record CreateShiftCommand : IRequest<Guid>
     {
+        [JsonIgnore] // Vi vill inte att klienten skickar med detta
         public Guid UserId { get; set; } // Vem ska jobba?
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

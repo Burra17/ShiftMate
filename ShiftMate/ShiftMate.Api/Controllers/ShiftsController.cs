@@ -9,7 +9,7 @@ namespace ShiftMate.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize] // <--- Låset gäller nu för HELA controllern
     public class ShiftsController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -23,19 +23,37 @@ namespace ShiftMate.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateShiftCommand command)
         {
-            // Skicka kommandot till Application-lagret
-            var shiftId = await _mediator.Send(command);
+            try
+            {
+                // 1. Hämta ID från den inloggades Token
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Returnera 200 OK med det nya ID:t
-            return Ok(shiftId);
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Unauthorized("Kunde inte identifiera användaren.");
+                }
+
+                // 2. Tvinga in ID:t i kommandot automatiskt
+                // Användaren skickade bara tid, vi fyller i "vem".
+                command.UserId = Guid.Parse(userIdString);
+
+                // 3. Skicka vidare till Application-lagret
+                var shiftId = await _mediator.Send(command);
+
+                // Returnera snyggt meddelande
+                return Ok(new { Id = shiftId, Message = "Passet skapat åt dig!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // GET: api/Shifts/mine
         [HttpGet("mine")]
         public async Task<IActionResult> GetMyShifts()
         {
-            // 1. Läs ut UserID från Token (Detta är det magiska steget!)
-            // "NameIdentifier" är standardnamnet för ID i JWT-världen.
+            // 1. Läs ut UserID från Token
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userIdString))
