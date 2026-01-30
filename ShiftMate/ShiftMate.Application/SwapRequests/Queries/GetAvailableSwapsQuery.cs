@@ -1,14 +1,13 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ShiftMate.Application.DTOs; // <--- Använd våra nya DTOs
+using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.SwapRequests.Queries
 {
-    // 1. Request: Nu returnerar vi en lista av DTOs!
+    // Returnera en lista av SwapRequestDto
     public record GetAvailableSwapsQuery : IRequest<List<SwapRequestDto>>;
 
-    // 2. Handler
     public class GetAvailableSwapsHandler : IRequestHandler<GetAvailableSwapsQuery, List<SwapRequestDto>>
     {
         private readonly IAppDbContext _context;
@@ -20,33 +19,36 @@ namespace ShiftMate.Application.SwapRequests.Queries
 
         public async Task<List<SwapRequestDto>> Handle(GetAvailableSwapsQuery request, CancellationToken cancellationToken)
         {
-            // Här gör vi "mappningen" (översättningen) från Databas -> DTO
-            return await _context.SwapRequests
-                .Include(sq => sq.Shift)
-                .Include(sq => sq.RequestingUser)
-                .Where(sq => sq.Status == "Pending")
-                .Select(sq => new SwapRequestDto // <--- VIKTIGT: Här väljer vi vad som ska visas
-                {
-                    Id = sq.Id,
-                    Status = sq.Status,
-                    CreatedAt = sq.CreatedAt,
-
-                    Shift = new ShiftDto
-                    {
-                        Id = sq.Shift.Id,
-                        StartTime = sq.Shift.StartTime,
-                        EndTime = sq.Shift.EndTime
-                    },
-
-                    RequestingUser = new UserDto
-                    {
-                        Id = sq.RequestingUser.Id,
-                        FirstName = sq.RequestingUser.FirstName,
-                        LastName = sq.RequestingUser.LastName,
-                        Email = sq.RequestingUser.Email
-                    }
-                })
+            var swaps = await _context.SwapRequests
+                .Include(sr => sr.Shift)           // Hämta passet
+                .Include(sr => sr.RequestingUser)  // <--- VIKTIGT: Hämta användaren också!
+                .Where(sr => sr.Status == "Pending")
                 .ToListAsync(cancellationToken);
+
+            // Mappa om till DTOs
+            var dtos = swaps.Select(sr => new SwapRequestDto
+            {
+                Id = sr.Id,
+                Status = sr.Status,
+                CreatedAt = sr.CreatedAt, // <--- Nu tar vi med datumet
+
+                Shift = new ShiftDto
+                {
+                    Id = sr.Shift.Id,
+                    StartTime = sr.Shift.StartTime,
+                    EndTime = sr.Shift.EndTime,
+                    IsUpForSwap = sr.Shift.IsUpForSwap
+                },
+
+                RequestingUser = new UserDto // <--- Nu fyller vi i användaren
+                {
+                    Id = sr.RequestingUser.Id,
+                    Email = sr.RequestingUser.Email
+                    // Lägg till Name här om du har lagt till det i UserDto och User-modellen
+                }
+            }).ToList();
+
+            return dtos;
         }
     }
 }
