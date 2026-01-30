@@ -1,7 +1,8 @@
-﻿using ShiftMate.Application.Users.Commands;
-using MediatR;
+﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using ShiftMate.Application.Users.Commands;
 using ShiftMate.Application.Users.Queries; // Se till att denna matchar din namespace
+using System.Security.Claims;
 
 namespace ShiftMate.Api.Controllers
 {
@@ -41,6 +42,25 @@ namespace ShiftMate.Api.Controllers
             catch (Exception ex)
             {
                 return Unauthorized(ex.Message); // Returnera 401 om inloggningen misslyckas
+            }
+        }
+
+        [HttpPut("profile")]
+        public async Task<IActionResult> UpdateProfile(UpdateProfileCommand command)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+            command.UserId = Guid.Parse(userIdString);
+
+            try
+            {
+                await _mediator.Send(command);
+                return Ok(new { Message = "Profilen har uppdaterats!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
             }
         }
     }
