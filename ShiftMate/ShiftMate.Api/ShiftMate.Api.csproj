@@ -15,10 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\ShiftMate.Application\ShiftMate.Application.csproj" />
     <ProjectReference Include="..\ShiftMate.Infrastructure\ShiftMate.Infrastructure.csproj" />
   </ItemGroup>
