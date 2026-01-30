@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Microsoft.AspNetCore.Authorization;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.Shifts.Commands;
 
@@ -6,6 +7,7 @@ namespace ShiftMate.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ShiftsController : ControllerBase
     {
         private readonly IMediator _mediator;

@@ -1,7 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer; // <--- NY: För JWT
 using Microsoft.EntityFrameworkCore;
-using ShiftMate.Infrastructure;          // För AppDbContext och DbInitializer
-using ShiftMate.Application;             // För AddApplication (MediatR)
-using ShiftMate.Application.Interfaces;  // <--- VIKTIGT: För IAppDbContext
+using Microsoft.IdentityModel.Tokens;                // <--- NY: För Token-validering
+using Microsoft.OpenApi.Models;
+using ShiftMate.Application;
+using ShiftMate.Application.Interfaces;
+using ShiftMate.Infrastructure;
+using System.Text;                                   // <--- NY: För att läsa nyckeln (Encoding)
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,27 +14,79 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. KONFIGURERA TJÄNSTER (DEPENDENCY INJECTION)
 // ---------------------------------------------------------
 
-// Lägg till Controllers
+// Lägg till Controllers + Hantera JSON-loopar
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Om vi stöter på en loop, ignorera den istället för att krascha
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
 // Lägg till Swagger
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
-// 1. Registrera den "riktiga" databasen (AppDbContext)
+// --- JWT KONFIGURATION (LÖSNINGEN PÅ FELET) ---
+// Här berättar vi för API:et att vi använder JWT som standard
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
+// ------------------------------------------------
+
+// Konfigurera Swagger för att hantera JWT-tokens (Hänglåset)
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ShiftMate API", Version = "v1" });
+
+    // Definiera säkerhetsschemat
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "Klistra in din token så här: Bearer {din token}",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    // Kräv säkerhet globalt
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+// Koppla in databasen
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Registrera interfacet (IAppDbContext)
-// Detta säger: "Om någon ber om IAppDbContext, ge dem den AppDbContext vi skapade ovan."
+// Registrera interfacet IAppDbContext
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
-// 3. Registrera Application-lagret (MediatR)
+// Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
 // ---------------------------------------------------------
@@ -38,16 +94,12 @@ builder.Services.AddApplication();
 // ---------------------------------------------------------
 var app = builder.Build();
 
-// Skapa en tillfällig "Scope" för att hämta databasen och köra seedern
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
-        // Hämta databasen
         var context = services.GetRequiredService<AppDbContext>();
-
-        // Kör seedern (fyller på med data om det är tomt)
         DbInitializer.Initialize(context);
     }
     catch (Exception ex)
@@ -69,7 +121,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+// --- VIKTIGT: Authentication måste ligga FÖRE Authorization ---
+app.UseAuthentication(); // <--- Kollar VEM du är (Har du biljett?)
+app.UseAuthorization();  // <--- Kollar VAD du får göra (Får du komma in?)
 
 app.MapControllers();
 
