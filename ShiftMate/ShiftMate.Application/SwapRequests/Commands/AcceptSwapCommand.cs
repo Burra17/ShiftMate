@@ -1,18 +1,21 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization; // <--- Behövs för [JsonIgnore]
 
 namespace ShiftMate.Application.SwapRequests.Commands
 {
-    // 1. DATA: Vad behövs? "Vilket byte gäller det och vem tar över?"
-    public record AcceptSwapCommand : IRequest<bool>
+    // 1. HÄR ÄR FIXEN: Vi lägger till CurrentUserId i kommandot
+    public record AcceptSwapCommand : IRequest
     {
         public Guid SwapRequestId { get; set; }
-        public Guid NewUserId { get; set; }
+
+        [JsonIgnore] // Vi hämtar detta från token, så Swagger ska inte visa det
+        public Guid CurrentUserId { get; set; }
     }
 
-    // 2. LOGIK
-    public class AcceptSwapHandler : IRequestHandler<AcceptSwapCommand, bool>
+    // 2. HANDLERN (Logiken)
+    public class AcceptSwapHandler : IRequestHandler<AcceptSwapCommand>
     {
         private readonly IAppDbContext _context;
 
@@ -21,32 +24,39 @@ namespace ShiftMate.Application.SwapRequests.Commands
             _context = context;
         }
 
-        public async Task<bool> Handle(AcceptSwapCommand request, CancellationToken cancellationToken)
+        public async Task Handle(AcceptSwapCommand request, CancellationToken cancellationToken)
         {
-            // A. Hämta bytesförfrågan OCH passet det gäller
+            // A. Hämta bytet och passet
             var swapRequest = await _context.SwapRequests
-                .Include(sq => sq.Shift)
-                .FirstOrDefaultAsync(sq => sq.Id == request.SwapRequestId, cancellationToken);
+                .Include(sr => sr.Shift)
+                .FirstOrDefaultAsync(sr => sr.Id == request.SwapRequestId, cancellationToken);
 
-            // B. Validering
-            if (swapRequest == null)
-                throw new Exception("Hittade inte bytesförfrågan.");
+            if (swapRequest == null) throw new Exception("Bytet hittades inte.");
+            if (swapRequest.Status != "Pending") throw new Exception("Det här bytet är inte längre tillgängligt.");
 
-            if (swapRequest.Status != "Pending")
-                throw new Exception("Det här bytet är inte längre tillgängligt.");
+            var newShift = swapRequest.Shift;
 
-            // C. GENOMFÖR BYTET (Här händer magin!)
-            // 1. Byt ägare på passet
-            swapRequest.Shift.UserId = request.NewUserId;
-            // 2. Markera att passet inte längre är till salu
-            swapRequest.Shift.IsUpForSwap = false;
-            // 3. Uppdatera status på förfrågan
-            swapRequest.Status = "Approved";
+            // --- NYTT: KROCK-KONTROLL 💥 ---
+            // Vi kollar om du har något pass som överlappar med det nya
+            var hasOverlap = await _context.Shifts.AnyAsync(s =>
+                s.UserId == request.CurrentUserId && // Kolla BARA mina pass
+                s.StartTime < newShift.EndTime &&    // Mitt pass börjar innan det nya slutar
+                s.EndTime > newShift.StartTime,      // Mitt pass slutar efter det nya börjar
+                cancellationToken);
 
-            // D. Spara
+            if (hasOverlap)
+            {
+                throw new Exception("Du har redan ett pass som krockar med detta!");
+            }
+            // -------------------------------
+
+            // B. Genomför bytet
+            newShift.UserId = request.CurrentUserId;
+            newShift.IsUpForSwap = false;
+            swapRequest.Status = "Accepted";
+
+            // C. Spara
             await _context.SaveChangesAsync(cancellationToken);
-
-            return true;
         }
     }
 }
