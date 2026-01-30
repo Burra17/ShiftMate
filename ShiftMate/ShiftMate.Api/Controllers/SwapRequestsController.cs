@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using Microsoft.AspNetCore.Authorization;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.SwapRequests.Commands;
 using ShiftMate.Application.SwapRequests.Queries;
@@ -7,6 +8,7 @@ namespace ShiftMate.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SwapRequestsController : ControllerBase
     {
         private readonly IMediator _mediator;
