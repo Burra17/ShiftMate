@@ -63,6 +63,14 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
+                // 1. Hämta vem som är inloggad (NYTT)
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+                // 2. Fyll i kommandot
+                command.CurrentUserId = Guid.Parse(userIdString);
+
+                // 3. Skicka iväg
                 await _mediator.Send(command);
                 return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
             }
