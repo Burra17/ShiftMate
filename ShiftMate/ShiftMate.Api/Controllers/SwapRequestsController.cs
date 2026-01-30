@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.SwapRequests.Commands;
 using ShiftMate.Application.SwapRequests.Queries;
+using System.Security.Claims;
 
 namespace ShiftMate.Api.Controllers
 {
@@ -24,12 +25,24 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
+                // --- HÄR ÄR NYHETEN ---
+                // 1. Vi hämtar vem som är inloggad från Token
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Unauthorized("Kunde inte identifiera användaren.");
+                }
+
+                // 2. Vi stoppar in ID:t i kommandot "bakom kulisserna"
+                command.RequestingUserId = Guid.Parse(userIdString);
+                // -----------------------
+
                 var swapRequestId = await _mediator.Send(command);
                 return Ok(new { SwapRequestId = swapRequestId, Message = "Bytesförfrågan skapad!" });
             }
             catch (Exception ex)
             {
-                // Om något gick fel (t.ex. fel användare), returnera 400 Bad Request
                 return BadRequest(ex.Message);
             }
         }
@@ -52,6 +65,27 @@ namespace ShiftMate.Api.Controllers
             {
                 await _mediator.Send(command);
                 return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // DELETE: api/SwapRequests/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> CancelSwapRequest(Guid id)
+        {
+            try
+            {
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+
+                var userId = Guid.Parse(userIdString);
+
+                await _mediator.Send(new CancelSwapRequestCommand(id, userId));
+
+                return NoContent();
             }
             catch (Exception ex)
             {

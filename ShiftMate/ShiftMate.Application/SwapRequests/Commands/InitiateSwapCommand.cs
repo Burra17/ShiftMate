@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain;
+using System.Text.Json.Serialization; // <--- 1. VIKTIGT: Lägg till denna
 
 namespace ShiftMate.Application.SwapRequests.Commands
 {
@@ -9,6 +10,8 @@ namespace ShiftMate.Application.SwapRequests.Commands
     public record InitiateSwapCommand : IRequest<Guid>
     {
         public Guid ShiftId { get; set; }
+
+        [JsonIgnore] // <--- 2. VIKTIGT: Denna gömmer fältet i Swagger
         public Guid RequestingUserId { get; set; }
     }
 
