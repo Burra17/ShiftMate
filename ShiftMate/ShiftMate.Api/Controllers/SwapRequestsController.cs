@@ -41,5 +41,20 @@ namespace ShiftMate.Api.Controllers
 
             return Ok(result);
         }
+
+        // POST: api/SwapRequests/accept
+        [HttpPost("accept")]
+        public async Task<IActionResult> AcceptSwap(AcceptSwapCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+                return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
