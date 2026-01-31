@@ -1,25 +1,41 @@
 ﻿import { useState } from 'react'
 import Login from './Login'
+import ShiftList from './ShiftList' // <--- Importera den nya filen
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+    };
 
     if (!isLoggedIn) {
         return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 flex flex-col items-center justify-center">
-            <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 text-center max-w-sm w-full">
-                <h1 className="text-2xl font-bold mb-4 text-gray-900">Inloggad! 🎉</h1>
-                <p className="text-gray-600 mb-8">Vi har nu din JWT-token sparad i webbläsaren.</p>
+        <div className="min-h-screen bg-gray-50 pb-10">
+            {/* Header / App Bar */}
+            <header className="bg-white px-6 py-4 shadow-sm sticky top-0 z-10 flex justify-between items-center">
+                <h1 className="text-2xl font-black text-gray-900 tracking-tight">ShiftMate</h1>
                 <button
-                    onClick={() => { localStorage.removeItem('token'); setIsLoggedIn(false); }}
-                    className="w-full py-3 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all"
+                    onClick={handleLogout}
+                    className="text-sm font-bold text-gray-500 hover:text-red-600 transition-colors"
                 >
                     Logga ut
                 </button>
-            </div>
+            </header>
+
+            {/* Huvudinnehåll */}
+            <main className="max-w-md mx-auto p-6">
+                <div className="mb-6">
+                    <p className="text-gray-500">Välkommen tillbaka, André! 👋</p>
+                </div>
+
+                {/* Här laddar vi in listan! */}
+                <ShiftList />
+            </main>
         </div>
     );
 }

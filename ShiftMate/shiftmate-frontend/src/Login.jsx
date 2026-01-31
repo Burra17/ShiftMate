@@ -18,8 +18,8 @@ const Login = ({ onLoginSuccess }) => {
                 password: password
             });
 
-            // Hämta token från svaret
-            const token = response.data;
+            // Vi plockar UT token ur objektet
+            const token = response.data.token;
 
             // 1. Spara polletten säkert
             localStorage.setItem('token', token);
