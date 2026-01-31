@@ -89,6 +89,15 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
+// --- NYTT: Tillåt React-appen att prata med API:et ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp",
+        policy => policy.WithOrigins("http://localhost:5173") // Vites standard-port
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+});
+
 // ---------------------------------------------------------
 // 2. BYGG APPLIKATIONEN & KÖR SEEDER
 // ---------------------------------------------------------
@@ -120,6 +129,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowReactApp"); // <--- Denna måste ligga här!
 
 // --- VIKTIGT: Authentication måste ligga FÖRE Authorization ---
 app.UseAuthentication(); // <--- Kollar VEM du är (Har du biljett?)
