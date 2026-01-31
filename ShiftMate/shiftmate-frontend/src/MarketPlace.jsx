@@ -2,6 +2,7 @@
 import axios from 'axios';
 
 const MarketPlace = () => {
+    // --- BEHÅLLEN LOGIK (Rör ej) ---
     const [availableSwaps, setAvailableSwaps] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -25,24 +26,18 @@ const MarketPlace = () => {
     const handleAcceptSwap = async (swapId) => {
         try {
             const token = localStorage.getItem('token');
-
-            // Här matchar vi exakt vad Swagger visar
             const url = 'https://localhost:7215/api/SwapRequests/accept';
-            const body = { swapRequestId: swapId }; // Swagger-namnet på fältet
+            const body = { swapRequestId: swapId };
 
             await axios.post(url, body, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
             alert("Passet är nu ditt! Snyggt jobbat! 🤝");
-
-            // Ta bort från listan direkt
             setAvailableSwaps(prev => prev.filter(s => s.id !== swapId));
         } catch (err) {
             const errorMessage = err.response?.data || "Okänt fel";
             console.error("Fel vid accept:", errorMessage);
-
-            // Nu när vi har rätt URL kommer vi se det riktiga felet om det nekas
             alert(`Kunde inte ta passet: ${errorMessage}`);
         }
     };
@@ -62,47 +57,56 @@ const MarketPlace = () => {
         return `${start} - ${end}`;
     };
 
-    if (loading) return <div className="p-10 text-center text-gray-500 font-medium italic">Letar efter lediga pass... 🔍</div>;
+    if (loading) return <div className="p-10 text-center text-green-400 font-bold animate-pulse tracking-widest">HÄMTAR MARKNADEN...</div>;
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-black text-gray-900 mb-6 text-center tracking-tight">Lediga pass</h2>
 
             {availableSwaps.length === 0 ? (
-                <div className="bg-white p-12 rounded-3xl shadow-sm text-center border-2 border-dashed border-gray-100">
-                    <p className="text-gray-400 font-medium">Det finns inga lediga pass att ta just nu. ✨</p>
+                <div className="bg-slate-900/50 p-12 rounded-3xl text-center border-2 border-dashed border-slate-800">
+                    <p className="text-4xl mb-4">🌴</p>
+                    <p className="text-slate-400 font-medium">Inga lediga pass just nu.</p>
+                    <p className="text-slate-600 text-sm mt-2">Njut av ledigheten!</p>
                 </div>
             ) : (
                 availableSwaps.map((swap) => (
-                    <div key={swap.id} className="bg-white p-6 rounded-3xl shadow-xl shadow-gray-100/50 border border-gray-50 flex flex-col relative overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98]">
-                        <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500"></div>
+                    <div key={swap.id} className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 flex flex-col relative overflow-hidden transition-all hover:bg-slate-800 hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(74,222,128,0.1)] group">
 
-                        <div className="flex flex-col items-center text-center">
-                            <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-widest mb-3">
+                        {/* Neon-kant */}
+                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-green-400 shadow-[0_0_20px_#4ade80]"></div>
+
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <span className="text-[10px] font-black text-green-300 bg-green-500/10 px-4 py-1.5 rounded-full uppercase tracking-widest mb-4 border border-green-400/30 shadow-[0_0_10px_rgba(74,222,128,0.2)]">
                                 {swap.shift?.durationHours} TIMMARS PASS
                             </span>
 
-                            <h3 className="text-3xl font-black text-gray-900 tracking-tighter">
+                            <h3 className="text-3xl font-black text-white tracking-tight mb-1">
                                 {formatTime(swap)}
                             </h3>
 
-                            <p className="text-sm font-bold text-gray-400 mt-1 uppercase">
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
                                 {formatDate(swap)}
                             </p>
 
-                            {/* Visa vem som vill byta om namnet finns med i datan */}
                             {swap.requestingUser?.email && (
-                                <p className="text-xs text-gray-400 mt-4 italic">
-                                    Upplagt av: {swap.requestingUser.email.split('@')[0]}
-                                </p>
+                                <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-700/50">
+                                    <span>👤</span>
+                                    <span className="italic">Från: {swap.requestingUser.email.split('@')[0]}</span>
+                                </div>
                             )}
                         </div>
 
+                        {/* KNAPP MED FILL-EFFECT */}
                         <button
                             onClick={() => handleAcceptSwap(swap.id)}
-                            className="mt-6 py-4 bg-blue-600 hover:bg-blue-700 text-white text-md font-black rounded-2xl shadow-lg shadow-blue-200 transition-all uppercase tracking-wider"
+                            className="w-full py-3 
+                            bg-green-500/10 border border-green-500/30 text-green-400 
+                            hover:bg-green-500 hover:text-white hover:border-green-400 hover:shadow-[0_0_30px_rgba(74,222,128,0.4)]
+                            text-xs font-black rounded-xl transition-all duration-300 active:scale-[0.98] 
+                            uppercase tracking-widest flex justify-center items-center gap-2 
+                            shadow-[0_0_15px_rgba(74,222,128,0.1)]"
                         >
-                            TA PASSET
+                            <span>🚀</span> TA PASSET
                         </button>
                     </div>
                 ))
