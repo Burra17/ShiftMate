@@ -2,15 +2,17 @@
 import axios from 'axios';
 
 const ShiftList = () => {
+    // --- BEHÅLLEN LOGIK (Rör ej) ---
     const [shifts, setShifts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [actionLoading, setActionLoading] = useState(null); // För att visa laddning på specifik knapp
+    const [actionLoading, setActionLoading] = useState(null);
 
     useEffect(() => {
         const fetchShifts = async () => {
             try {
                 const token = localStorage.getItem('token');
+                // Behåll din fungerande URL
                 const response = await axios.get('https://localhost:7215/api/Shifts/mine', {
                     headers: { Authorization: `Bearer ${token}` }
                 });
@@ -22,7 +24,6 @@ const ShiftList = () => {
                 setLoading(false);
             }
         };
-
         fetchShifts();
     }, []);
 
@@ -30,7 +31,6 @@ const ShiftList = () => {
         setActionLoading(shiftId);
         try {
             const token = localStorage.getItem('token');
-            // Anrop till din SwapRequest-endpoint
             await axios.post('https://localhost:7215/api/SwapRequests/initiate',
                 { shiftId: shiftId },
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -38,7 +38,6 @@ const ShiftList = () => {
 
             alert("Passet ligger nu ute för byte! 🎉");
 
-            // Uppdatera listan lokalt så gränssnittet reagerar direkt
             setShifts(prevShifts =>
                 prevShifts.map(s => s.id === shiftId ? { ...s, isUpForSwap: true } : s)
             );
@@ -61,54 +60,79 @@ const ShiftList = () => {
         return new Date(dateString).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
     };
 
-    if (loading) return <div className="p-10 text-center text-gray-500 font-medium">Hämtar dina pass... ⏳</div>;
-    if (error) return <div className="p-10 text-center text-red-500 font-bold">{error}</div>;
+    // --- NY DESIGN (Dark Mode) ---
+
+    if (loading) return <div className="p-10 text-center text-blue-400 font-bold animate-pulse tracking-widest">HÄMTAR SCHEMA...</div>;
+    if (error) return <div className="p-6 bg-red-900/20 border border-red-800 rounded-2xl text-center text-red-400 font-bold">{error}</div>;
 
     return (
-        <div className="space-y-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-4 px-1">Mina Arbetspass</h2>
+        <div className="space-y-6">
 
             {shifts.length === 0 ? (
-                <div className="bg-white p-8 rounded-2xl shadow-sm text-center text-gray-500 border border-dashed border-gray-200">
-                    Inga inbokade pass hittades.
+                <div className="bg-slate-900/50 p-12 rounded-3xl text-center border-2 border-dashed border-slate-800">
+                    <p className="text-4xl mb-4">💤</p>
+                    <p className="text-slate-400 font-medium">Du har inga inbokade pass just nu.</p>
                 </div>
             ) : (
                 shifts.map((shift) => (
-                    <div key={shift.id} className="bg-white p-5 rounded-2xl shadow-md border border-gray-100 flex flex-col relative overflow-hidden transition-all hover:shadow-lg">
-                        {/* Dynamisk dekorationskant baserat på status */}
-                        <div className={`absolute left-0 top-0 bottom-0 w-2 ${shift.isUpForSwap ? 'bg-yellow-400' : 'bg-orange-500'}`}></div>
+                    <div
+                        key={shift.id}
+                        className="bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-slate-800 flex flex-col relative overflow-hidden transition-all hover:bg-slate-800/80 hover:border-slate-700 hover:scale-[1.01] hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group"
+                    >
+                        {/* Neon-kant (Blå för vanliga, Gul för de som byts bort) */}
+                        <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${shift.isUpForSwap ? 'bg-yellow-500 shadow-[0_0_15px_#eab308]' : 'bg-blue-500 shadow-[0_0_15px_#3b82f6]'}`}></div>
 
                         <div className="flex justify-between items-start pl-4">
                             <div className="flex-1">
-                                <p className="text-xs font-bold text-gray-400 mb-1 tracking-wider">
-                                    {formatDate(shift.startTime)}
-                                </p>
-                                <h3 className="text-xl font-black text-gray-900 leading-tight">
-                                    {formatTime(shift.startTime)} — {formatTime(shift.endTime)}
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                        {formatDate(shift.startTime)}
+                                    </span>
+                                </div>
+
+                                <h3 className="text-2xl font-black text-white leading-tight tracking-tight flex items-center gap-2">
+                                    {formatTime(shift.startTime)}
+                                    <span className="text-slate-600 font-normal text-lg">→</span>
+                                    {formatTime(shift.endTime)}
                                 </h3>
 
-                                <div className="flex flex-wrap items-center gap-2 mt-3">
-                                    <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-lg">
-                                        {shift.durationHours} timmar
+                                <div className="flex flex-wrap items-center gap-2 mt-4">
+                                    <span className="text-xs font-bold text-slate-300 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+                                        ⏱ {shift.durationHours}h
                                     </span>
+
                                     {shift.isUpForSwap && (
-                                        <span className="text-xs font-bold text-yellow-700 bg-yellow-100 px-2.5 py-1 rounded-lg flex items-center gap-1">
-                                            Ligger ute till byte 🔄
+                                        <span className="text-xs font-bold text-yellow-400 bg-yellow-500/10 px-3 py-1.5 rounded-lg border border-yellow-500/20 flex items-center gap-1 shadow-[0_0_10px_rgba(234,179,8,0.1)]">
+                                            🔄 Ute för byte
                                         </span>
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        {/* Knapp som bara visas om passet inte redan är ute för byte */}
+                        {/* Knapp - Bara synlig om passet inte ligger ute */}
                         {!shift.isUpForSwap && (
-                            <div className="mt-5 pl-4">
+                            <div className="mt-6 pl-4">
                                 <button
                                     onClick={() => handleInitiateSwap(shift.id)}
                                     disabled={actionLoading === shift.id}
-                                    className="w-full py-3 bg-orange-50 hover:bg-orange-100 text-orange-600 text-sm font-extrabold rounded-xl border border-orange-200 transition-all active:scale-[0.98] disabled:opacity-50"
+                                    className="w-full py-3 
+                                    bg-green-500/10 border border-green-500/30 text-green-400 
+                                    hover:bg-green-500 hover:text-white hover:border-green-400 hover:shadow-[0_0_30px_rgba(74,222,128,0.4)]
+                                    text-xs font-black rounded-xl transition-all duration-300 active:scale-[0.98] 
+                                    uppercase tracking-widest flex justify-center items-center gap-2 
+                                    shadow-[0_0_15px_rgba(74,222,128,0.1)] disabled:opacity-50"
                                 >
-                                    {actionLoading === shift.id ? 'Publicerar...' : 'LÄGG UT PASS'}
+                                    {actionLoading === shift.id ? (
+                                        <>
+                                            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                                            Publicerar...
+                                        </>
+                                    ) : (
+                                        <>
+                                            📤 LÄGG UT PASS
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         )}
