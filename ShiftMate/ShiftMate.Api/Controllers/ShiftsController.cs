@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using MediatR;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Shifts.Commands;
-using System.Security.Claims; // <--- Behövs för att läsa "Claims" (IDt i token)
 using ShiftMate.Application.Shifts.Queries;
+using System.Security.Claims; // <--- Behövs för att läsa "Claims" (IDt i token)
 
 namespace ShiftMate.Api.Controllers
 {
@@ -68,6 +69,15 @@ namespace ShiftMate.Api.Controllers
             var result = await _mediator.Send(query);
 
             return Ok(result);
+        }
+
+        // Lägg in denna i ShiftsController-klassen
+
+        [HttpGet] // Svarar på GET /api/Shifts
+        public async Task<ActionResult<List<ShiftDto>>> GetAll()
+        {
+            var shifts = await _mediator.Send(new GetAllShiftsQuery());
+            return Ok(shifts);
         }
     }
 }
