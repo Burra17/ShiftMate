@@ -2,6 +2,7 @@
 import Login from './Login';
 import ShiftList from './ShiftList';
 import MarketPlace from './MarketPlace';
+import Schedule from './Schedule';
 
 // Enkla ikoner (så vi slipper installera bibliotek just nu)
 const Icons = {
@@ -96,12 +97,14 @@ function App() {
                         {activeTab === 'mine' && <ShiftList />}
                         {activeTab === 'market' && <MarketPlace />}
 
-                        {/* Placeholders för kommande sidor */}
-                        {(activeTab === 'schedule' || activeTab === 'profile') && (
+                        {/* HÄR ÄR DEN NYA VYN: */}
+                        {activeTab === 'schedule' && <Schedule />}
+
+                        {/* Profil är fortfarande placeholder */}
+                        {activeTab === 'profile' && (
                             <div className="p-12 border border-dashed border-slate-800 rounded-3xl text-center bg-slate-900/30">
                                 <p className="text-4xl mb-4">🚧</p>
-                                <h3 className="text-xl font-bold text-white mb-2">Kommer snart</h3>
-                                <p className="text-slate-400">Vi bygger fortfarande på denna funktion!</p>
+                                <h3 className="text-xl font-bold text-white mb-2">Profil kommer snart</h3>
                             </div>
                         )}
                     </div>
