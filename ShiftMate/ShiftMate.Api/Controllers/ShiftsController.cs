@@ -111,5 +111,38 @@ namespace ShiftMate.Api.Controllers
                 return BadRequest(new { Message = ex.Message });
             }
         }
+                
+        // Låter en användare ångra att de lagt ut sitt pass för byte.
+        // id: ID för det pass som ska återkallas.
+        // PUT: api/shifts/{id}/cancel-swap
+        [HttpPut("{id}/cancel-swap")]
+        public async Task<IActionResult> CancelSwap(Guid id)
+        {
+            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                return Unauthorized("Användare inte identifierad.");
+            }
+        
+            var command = new CancelShiftSwapCommand
+            {
+                ShiftId = id,
+                UserId = Guid.Parse(userIdString)
+            };
+        
+            try
+            {
+                var result = await _mediator.Send(command);
+                if (result)
+                {
+                    return Ok(new { Message = "Ditt pass är inte längre tillgängligt för byte." });
+                }
+                return NotFound(new { Message = "Kunde inte ångra bytet." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+        }
     }
 }

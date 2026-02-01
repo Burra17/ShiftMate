@@ -49,6 +49,31 @@ const ShiftList = () => {
         }
     };
 
+    // Funktion för att ångra att ett pass ligger ute för byte
+    const handleCancelSwap = async (shiftId) => {
+        setActionLoading(shiftId);
+        try {
+            const token = localStorage.getItem('token');
+            // Anropa den nya endpointen för att ångra
+            await axios.put(`https://localhost:7215/api/Shifts/${shiftId}/cancel-swap`,
+                {}, // Ingen body behövs
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+
+            alert("Ditt pass är inte längre ute för byte.");
+
+            // Uppdatera state för att reflektera ändringen direkt i UI
+            setShifts(prevShifts =>
+                prevShifts.map(s => s.id === shiftId ? { ...s, isUpForSwap: false } : s)
+            );
+        } catch (err) {
+            console.error("Kunde inte ångra bytet:", err);
+            alert("Något gick fel när bytet skulle ångras.");
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const formatDate = (dateString) => {
         if (!dateString) return "";
         const options = { weekday: 'short', day: 'numeric', month: 'short' };
@@ -110,7 +135,7 @@ const ShiftList = () => {
                             </div>
                         </div>
 
-                        {/* Knapp - Bara synlig om passet inte ligger ute */}
+                        {/* Knapp - Byt ut pass */}
                         {!shift.isUpForSwap && (
                             <div className="mt-6 pl-4">
                                 <button
@@ -131,6 +156,33 @@ const ShiftList = () => {
                                     ) : (
                                         <>
                                             📤 LÄGG UT PASS
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        )}
+                        
+                        {/* Knapp - Ångra byte */}
+                        {shift.isUpForSwap && (
+                            <div className="mt-6 pl-4">
+                                <button
+                                    onClick={() => handleCancelSwap(shift.id)}
+                                    disabled={actionLoading === shift.id}
+                                    className="w-full py-3 
+                                    bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 
+                                    hover:bg-yellow-500 hover:text-white hover:border-yellow-400 hover:shadow-[0_0_30px_rgba(234,179,8,0.4)]
+                                    text-xs font-black rounded-xl transition-all duration-300 active:scale-[0.98] 
+                                    uppercase tracking-widest flex justify-center items-center gap-2 
+                                    shadow-[0_0_15px_rgba(234,179,8,0.1)] disabled:opacity-50"
+                                >
+                                    {actionLoading === shift.id ? (
+                                        <>
+                                            <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></span>
+                                            Ångrar...
+                                        </>
+                                    ) : (
+                                        <>
+                                            ↩️ ÅNGRA
                                         </>
                                     )}
                                 </button>
