@@ -16,27 +16,30 @@ namespace ShiftMate.Application.Shifts.Queries
 
         public async Task<List<ShiftDto>> Handle(GetAllShiftsQuery request, CancellationToken cancellationToken)
         {
-            // 1. Hämta alla pass och INKLUDERA User-tabellen
+            // 1. Hämta alla pass och inkludera användardata
             var shifts = await _context.Shifts
-                .Include(s => s.User) // <--- Detta är nyckeln!
+                .Include(s => s.User) // Viktigt: Hämtar User-tabellen
                 .OrderBy(s => s.StartTime)
                 .ToListAsync(cancellationToken);
 
-            // 2. Gör om databas-raderna till våra DTO-paket
+            // 2. Mappa till DTOer
             var dtos = shifts.Select(s => new ShiftDto
             {
                 Id = s.Id,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
                 IsUpForSwap = s.IsUpForSwap,
-                // DurationHours räknas ut automatiskt i din DTO
+                // DurationHours räknas ut automatiskt i DTO:n
 
-                // Mappa användaren om den finns
+                // 3. Mappa User-objektet (Nu med namn!)
                 User = s.User != null ? new UserDto
                 {
-                    Email = s.User.Email
-                    // Lägg till fler fält här om UserDto har dem (t.ex. Id)
+                    Id = s.User.Id,
+                    Email = s.User.Email,
+                    FirstName = s.User.FirstName, // <--- NYTT: Förnamn
+                    LastName = s.User.LastName    // <--- NYTT: Efternamn
                 } : null
+
             }).ToList();
 
             return dtos;
