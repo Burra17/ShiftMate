@@ -3,8 +3,9 @@ import Login from './Login';
 import ShiftList from './ShiftList';
 import MarketPlace from './MarketPlace';
 import Schedule from './Schedule';
+import Profile from './Profile';
 
-// Enkla ikoner (så vi slipper installera bibliotek just nu)
+// Enkla ikoner
 const Icons = {
     Home: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
     Swap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>,
@@ -15,9 +16,9 @@ const Icons = {
 
 function App() {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-    const [activeTab, setActiveTab] = useState('mine'); // 'mine', 'market', 'schedule', 'profile'
+    const [activeTab, setActiveTab] = useState('mine');
 
-    // Hantera utloggning med full reload för att rensa cache
+    // Hantera utloggning med full reload
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
@@ -26,18 +27,17 @@ function App() {
 
     if (!isLoggedIn) return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
 
-    // Menyvalen
     const navItems = [
         { id: 'mine', label: 'Mina Pass', icon: Icons.Home },
         { id: 'market', label: 'Lediga Pass', icon: Icons.Swap },
-        { id: 'schedule', label: 'Schema', icon: Icons.Calendar }, // Placeholder för framtiden
-        { id: 'profile', label: 'Profil', icon: Icons.User },      // Placeholder för framtiden
+        { id: 'schedule', label: 'Schema', icon: Icons.Calendar },
+        { id: 'profile', label: 'Profil', icon: Icons.User },
     ];
 
     return (
         <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
 
-            {/* --- DESKTOP SIDEBAR (Gömd på mobil) --- */}
+            {/* --- DESKTOP SIDEBAR --- */}
             <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6">
                 <div className="flex items-center gap-3 mb-10 px-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -52,8 +52,8 @@ function App() {
                             key={item.id}
                             onClick={() => setActiveTab(item.id)}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-bold ${activeTab === item.id
-                                    ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                                 }`}
                         >
                             <item.icon />
@@ -96,17 +96,10 @@ function App() {
                     <div className="animate-in fade-in zoom-in-95 duration-300">
                         {activeTab === 'mine' && <ShiftList />}
                         {activeTab === 'market' && <MarketPlace />}
-
-                        {/* HÄR ÄR DEN NYA VYN: */}
                         {activeTab === 'schedule' && <Schedule />}
 
-                        {/* Profil är fortfarande placeholder */}
-                        {activeTab === 'profile' && (
-                            <div className="p-12 border border-dashed border-slate-800 rounded-3xl text-center bg-slate-900/30">
-                                <p className="text-4xl mb-4">🚧</p>
-                                <h3 className="text-xl font-bold text-white mb-2">Profil kommer snart</h3>
-                            </div>
-                        )}
+                        {/* HÄR ÄR RÄTT KOD FÖR PROFILEN: */}
+                        {activeTab === 'profile' && <Profile onLogout={handleLogout} />}
                     </div>
                 </div>
             </main>

@@ -1,22 +1,22 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration; // För att läsa "Secret Key"
-using Microsoft.IdentityModel.Tokens;     // För att skapa Token
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using ShiftMate.Application.Interfaces;
-using System.IdentityModel.Tokens.Jwt;    // För att hantera JWT
-using System.Security.Claims;             // För att lägga info i Token (Claims)
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Text;
 
 namespace ShiftMate.Application.Users.Commands
 {
-    // 1. DATA: Vad skickar användaren in?
+    // 1. DATA
     public record LoginCommand : IRequest<string>
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 
-    // 2. LOGIK: Validera och skapa nyckel
+    // 2. LOGIK
     public class LoginHandler : IRequestHandler<LoginCommand, string>
     {
         private readonly IAppDbContext _context;
@@ -34,34 +34,39 @@ namespace ShiftMate.Application.Users.Commands
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
 
-            // B. Enkel kontroll (I framtiden kör vi riktig Hash-koll här)
+            // B. Validera lösenord (Enkelt för nu)
             if (user == null || user.PasswordHash != request.Password)
             {
                 throw new Exception("Fel e-post eller lösenord.");
             }
 
-            // C. Skapa Token (Nyckeln)
-            // Vi lägger in ID, Email och Roll i nyckeln så API:et vet vem det är.
+            // C. Skapa Token (Nyckeln) 🔑
+            // Här lägger vi in informationen som frontend behöver!
             var claims = new[]
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                
+                // NYTT: Vi lägger till namnen här! 👇
+                new Claim("FirstName", user.FirstName),
+                new Claim("LastName", user.LastName)
             };
 
-            // Hämta vår hemliga kod från appsettings.json
+            // Hämta hemlig nyckel
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+            // Skapa själva token-objektet
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],
                 audience: _configuration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddHours(1), // Nyckeln gäller i 1 timme
+                expires: DateTime.Now.AddHours(1),
                 signingCredentials: creds
             );
 
-            // Gör om objektet till en sträng (t.ex. "eyJhbGciOi...")
+            // Returnera som textsträng
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

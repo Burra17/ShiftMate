@@ -1,4 +1,5 @@
 ﻿using ShiftMate.Domain;
+using ShiftMate.Infrastructure;
 
 namespace ShiftMate.Infrastructure
 {
@@ -6,66 +7,130 @@ namespace ShiftMate.Infrastructure
     {
         public static void Initialize(AppDbContext context)
         {
-            // 1. Kolla om det redan finns användare. I så fall: gör ingenting.
-            if (context.Users.Any())
+            context.Database.EnsureCreated();
+
+            // 1. Rensa gamla pass så vi ser nya fräscha datum 🧹
+            // Detta är viktigt för att inte fylla databasen med dubbletter varje gång vi startar om.
+            if (context.Shifts.Any())
             {
-                return; // Databasen är redan seedad (fylld)
+                context.Shifts.RemoveRange(context.Shifts);
+                context.SaveChanges();
             }
 
-            // 2. Skapa användare
-            var adminUser = new User
-            {
-                Id = Guid.NewGuid(),
-                FirstName = "Boss",
-                LastName = "Bossman",
-                Email = "admin@shiftmate.com",
-                Role = "Admin",
-                PasswordHash = "dummy_hash_123" // Vi fixar riktig hashning senare
-            };
+            // 2. SKAPA ELLER UPPDATERA ANVÄNDARE 👤
 
-            var employeeUser = new User
+            // Fixa Admin (Boss)
+            var admin = context.Users.FirstOrDefault(u => u.Email == "admin@shiftmate.com");
+            if (admin == null)
             {
-                Id = Guid.NewGuid(),
-                FirstName = "André",
-                LastName = "Pettersson",
-                Email = "andre@shiftmate.com",
-                Role = "Employee",
-                PasswordHash = "dummy_hash_123"
-            };
+                admin = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "admin@shiftmate.com",
+                    FirstName = "Boss",
+                    LastName = "Bossman",
+                    Role = "Admin",
+                    PasswordHash = "dummy_hash_123"
+                };
+                context.Users.Add(admin);
+            }
+            else
+            {
+                admin.FirstName = "Boss"; admin.LastName = "Bossman";
+            }
 
-            // 3. Spara användarna först (så vi har deras IDn)
-            context.Users.AddRange(adminUser, employeeUser);
+            // Fixa André (Employee)
+            var andre = context.Users.FirstOrDefault(u => u.Email == "andre@shiftmate.com");
+            if (andre == null)
+            {
+                andre = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "andre@shiftmate.com",
+                    FirstName = "André",
+                    LastName = "Pettersson",
+                    Role = "Employee",
+                    PasswordHash = "dummy_hash_123"
+                };
+                context.Users.Add(andre);
+            }
+            else
+            {
+                andre.FirstName = "André"; andre.LastName = "Pettersson";
+            }
+
             context.SaveChanges();
 
-            // 4. Skapa arbetspass (Shifts) kopplade till André
+            // 3. SKAPA EN REJÄL VECKA MED PASS 📅
+            var today = DateTime.Now.Date;
+
             var shifts = new List<Shift>
             {
-                // Ett pass som var igår (historik)
+                // --- IGÅR (Historik) ---
                 new Shift
                 {
-                    Id = Guid.NewGuid(),
-                    UserId = employeeUser.Id,
-                    StartTime = DateTime.Now.AddDays(-1).Date.AddHours(8), // Igår 08:00
-                    EndTime = DateTime.Now.AddDays(-1).Date.AddHours(17),  // Igår 17:00
+                    Id = Guid.NewGuid(), UserId = andre.Id,
+                    StartTime = today.AddDays(-1).AddHours(8),
+                    EndTime = today.AddDays(-1).AddHours(16),
                     IsUpForSwap = false
                 },
-                // Ett pass imorgon (som vi kan jobba på)
+
+                // --- IDAG ---
+                // André kör morgon
                 new Shift
                 {
-                    Id = Guid.NewGuid(),
-                    UserId = employeeUser.Id,
-                    StartTime = DateTime.Now.AddDays(1).Date.AddHours(12), // Imorgon 12:00
-                    EndTime = DateTime.Now.AddDays(1).Date.AddHours(20),   // Imorgon 20:00
+                    Id = Guid.NewGuid(), UserId = andre.Id,
+                    StartTime = today.AddHours(7),
+                    EndTime = today.AddHours(15),
                     IsUpForSwap = false
                 },
-                // Ett pass på fredag (som vi vill byta bort!)
+
+                // --- IMORGON (Båda jobbar!) ---
+                // Boss kör "kontorstid"
                 new Shift
                 {
-                    Id = Guid.NewGuid(),
-                    UserId = employeeUser.Id,
-                    StartTime = DateTime.Now.AddDays(3).Date.AddHours(07), // Om 3 dagar 07:00
-                    EndTime = DateTime.Now.AddDays(3).Date.AddHours(16),   // Om 3 dagar 16:00
-                    IsUpForSwap = true // <--- Denna är öppen för byte!
+                    Id = Guid.NewGuid(), UserId = admin.Id,
+                    StartTime = today.AddDays(1).AddHours(8),
+                    EndTime = today.AddDays(1).AddHours(17),
+                    IsUpForSwap = false
+                },
+                // André kör kvällspass samma dag
+                new Shift
+                {
+                    Id = Guid.NewGuid(), UserId = andre.Id,
+                    StartTime = today.AddDays(1).AddHours(15),
+                    EndTime = today.AddDays(1).AddHours(23),
+                    IsUpForSwap = false
+                },
+
+                // --- I ÖVERMORGON (Byte) ---
+                // André vill byta bort sitt pass
+                new Shift
+                {
+                    Id = Guid.NewGuid(), UserId = andre.Id,
+                    StartTime = today.AddDays(2).AddHours(7),
+                    EndTime = today.AddDays(2).AddHours(16),
+                    IsUpForSwap = true // <--- Ute på torget! 🔄
+                },
+
+                // --- OM 3 DAGAR ---
+                // Boss jobbar kort dag
+                new Shift
+                {
+                    Id = Guid.NewGuid(), UserId = admin.Id,
+                    StartTime = today.AddDays(3).AddHours(10),
+                    EndTime = today.AddDays(3).AddHours(14),
+                    IsUpForSwap = false
+                },
+
+                // --- OM 4 DAGAR (Helg?) ---
+                // André kör stängning
+                new Shift
+                {
+                    Id = Guid.NewGuid(), UserId = andre.Id,
+                    StartTime = today.AddDays(4).AddHours(16),
+                    EndTime = today.AddDays(4).AddHours(23).AddMinutes(30),
+                    IsUpForSwap = false
                 }
             };
 
