@@ -62,7 +62,7 @@ namespace ShiftMate.Infrastructure
             context.SaveChanges();
 
             // 3. SKAPA EN REJÄL VECKA MED PASS 📅
-            var today = DateTime.Now.Date;
+            var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
 
             var shifts = new List<Shift>
             {
