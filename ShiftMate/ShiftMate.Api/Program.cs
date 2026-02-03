@@ -1,31 +1,31 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer; // <--- NY: Fˆr JWT
+Ôªøusing Microsoft.AspNetCore.Authentication.JwtBearer; // <--- NY: F√∂r JWT
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;                // <--- NY: Fˆr Token-validering
+using Microsoft.IdentityModel.Tokens;                // <--- NY: F√∂r Token-validering
 using Microsoft.OpenApi.Models;
 using ShiftMate.Application;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Infrastructure;
-using System.Text;                                   // <--- NY: Fˆr att l‰sa nyckeln (Encoding)
+using System.Text;                                   // <--- NY: F√∂r att l√§sa nyckeln (Encoding)
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------------------------------------------------------
-// 1. KONFIGURERA TJƒNSTER (DEPENDENCY INJECTION)
+// 1. KONFIGURERA TJ√ÑNSTER (DEPENDENCY INJECTION)
 // ---------------------------------------------------------
 
-// L‰gg till Controllers + Hantera JSON-loopar
+// L√§gg till Controllers + Hantera JSON-loopar
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     });
 
-// L‰gg till Swagger
+// L√§gg till Swagger
 builder.Services.AddEndpointsApiExplorer();
 
-// --- JWT KONFIGURATION (L÷SNINGEN P≈ FELET) ---
-// H‰r ber‰ttar vi fˆr API:et att vi anv‰nder JWT som standard
+// --- JWT KONFIGURATION (L√ñSNINGEN P√Ö FELET) ---
+// H√§r ber√§ttar vi f√∂r API:et att vi anv√§nder JWT som standard
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -47,22 +47,22 @@ builder.Services.AddAuthentication(options =>
 });
 // ------------------------------------------------
 
-// Konfigurera Swagger fˆr att hantera JWT-tokens (H‰nglÂset)
+// Konfigurera Swagger f√∂r att hantera JWT-tokens (H√§ngl√•set)
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "ShiftMate API", Version = "v1" });
 
-    // Definiera s‰kerhetsschemat
+    // Definiera s√§kerhetsschemat
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Klistra in din token sÂ h‰r: Bearer {din token}",
+        Description = "Klistra in din token s√• h√§r: Bearer {din token}",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
 
-    // Kr‰v s‰kerhet globalt
+    // Kr√§v s√§kerhet globalt
     c.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -89,7 +89,7 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
-// --- CORS: TillÂt React-appen (BÂde lokalt och pÂ Vercel) ---
+// --- CORS: Till√•t React-appen (B√•de lokalt och p√• Vercel) ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
@@ -102,7 +102,7 @@ builder.Services.AddCors(options =>
 });
 
 // ---------------------------------------------------------
-// 2. BYGG APPLIKATIONEN & K÷R SEEDER
+// 2. BYGG APPLIKATIONEN & K√ñR SEEDER
 // ---------------------------------------------------------
 var app = builder.Build();
 
@@ -117,7 +117,7 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ett fel intr‰ffade n‰r databasen skulle fyllas med data.");
+        logger.LogError(ex, "Ett fel intr√§ffade n√§r databasen skulle fyllas med data.");
     }
 }
 
@@ -133,12 +133,17 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseCors("AllowReactApp"); // <--- Denna mÂste ligga h‰r!
+app.UseCors("AllowReactApp"); // <--- Denna m√•ste ligga h√§r!
 
-// --- VIKTIGT: Authentication mÂste ligga F÷RE Authorization ---
-app.UseAuthentication(); // <--- Kollar VEM du ‰r (Har du biljett?)
-app.UseAuthorization();  // <--- Kollar VAD du fÂr gˆra (FÂr du komma in?)
+// --- VIKTIGT: Authentication m√•ste ligga F√ñRE Authorization ---
+app.UseAuthentication(); // <--- Kollar VEM du √§r (Har du biljett?)
+app.UseAuthorization();  // <--- Kollar VAD du f√•r g√∂ra (F√•r du komma in?)
 
 app.MapControllers();
+
+// --- HEALTH CHECK (F√∂r UptimeRobot) ---
+// En enkel endpoint som bara svarar 200 OK.
+// Anv√§nds f√∂r att h√•lla Render-servern vaken.
+app.MapGet("/health", () => Results.Ok("ShiftMate is alive! ü§ñ"));
 
 app.Run();
