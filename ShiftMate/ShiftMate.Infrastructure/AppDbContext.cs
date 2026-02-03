@@ -1,7 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using ShiftMate.Domain;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Infrastructure
@@ -19,6 +17,11 @@ namespace ShiftMate.Infrastructure
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // 👇 DETTA ÄR RADEN SOM SAKNADES! (Fixar kraschen)
+            modelBuilder.Entity<User>()
+                .Property(u => u.Role)
+                .HasConversion<string>();
 
             // Konfigurera relationen för den som SKAPAR förfrågan
             modelBuilder.Entity<SwapRequest>()

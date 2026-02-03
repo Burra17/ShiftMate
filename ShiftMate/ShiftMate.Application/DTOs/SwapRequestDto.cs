@@ -7,7 +7,7 @@
         public DateTime CreatedAt { get; set; }
 
         // Vi bakar in de andra DTO:erna här
-        public ShiftDto Shift { get; set; }
-        public UserDto RequestingUser { get; set; }
+        public ShiftDto? Shift { get; set; }
+        public UserDto? RequestingUser { get; set; }
     }
 }

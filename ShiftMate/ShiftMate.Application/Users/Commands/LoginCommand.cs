@@ -30,12 +30,12 @@ namespace ShiftMate.Application.Users.Commands
 
         public async Task<string> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            // A. Hitta användaren
+            // A. Hitta användaren (skiftlägesokänsligt)
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+                .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant(), cancellationToken);
 
-            // B. Validera lösenord (Enkelt för nu)
-            if (user == null || user.PasswordHash != request.Password)
+            // B. Validera lösenord med BCrypt
+            if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
                 throw new Exception("Fel e-post eller lösenord.");
             }
@@ -46,7 +46,7 @@ namespace ShiftMate.Application.Users.Commands
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.Role, user.Role.ToString()), // Konvertera enum till string
                 
                 // NYTT: Vi lägger till namnen här! 👇
                 new Claim("FirstName", user.FirstName),
