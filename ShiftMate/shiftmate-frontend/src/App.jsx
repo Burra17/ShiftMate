@@ -1,11 +1,93 @@
-﻿import { useState, useEffect } from 'react';
+﻿// importera nödvändiga funktioner och komponenter från react och react-router-dom
+import { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
+
+// importera sid-komponenter
 import Login from './Login';
+import Register from './Register';
 import ShiftList from './ShiftList';
 import MarketPlace from './MarketPlace';
 import Schedule from './Schedule';
 import Profile from './Profile';
 
-// Enkla ikoner
+// Huvudkomponent för applikationen när en användare är inloggad.
+// Den hanterar layout, navigation och rendering av olika vyer.
+const MainApp = ({ onLogout }) => {
+    const location = useLocation();
+    // Bestämmer den aktiva fliken baserat på nuvarande URL.
+    // Detta gör det möjligt att direktlänka till olika sektioner.
+    const [activeTab, setActiveTab] = useState(location.pathname.substring(1) || 'mine');
+
+    // Definition av navigeringselement. Varje objekt innehåller id, etikett, sökväg,
+    // komponent att rendera och en ikon.
+    const navItems = [
+        { id: 'mine', label: 'Mina Pass', path: '/mine', component: <ShiftList />, icon: Icons.Home },
+        { id: 'market', label: 'Lediga Pass', path: '/market', component: <MarketPlace />, icon: Icons.Swap },
+        { id: 'schedule', label: 'Schema', path: '/schedule', component: <Schedule />, icon: Icons.Calendar },
+        { id: 'profile', label: 'Profil', path: '/profile', component: <Profile onLogout={onLogout} />, icon: Icons.User },
+    ];
+    
+    // Hittar den komponent som motsvarar den aktiva fliken.
+    // Om ingen matchning hittas, visas ShiftList som standard.
+    const ActiveComponent = navItems.find(item => item.id === activeTab)?.component || <ShiftList />;
+
+    return (
+        <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
+             {/* Sidomeny för desktop, fullt synlig på medelstora skärmar och uppåt. */}
+             <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6">
+                <div className="flex items-center gap-3 mb-10 px-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                        <span className="text-sm">⛽</span>
+                    </div>
+                    <h1 className="text-xl font-black tracking-tight text-white">ShiftMate</h1>
+                </div>
+
+                {/* Navigationslänkar som genereras från navItems-arrayen. */}
+                <nav className="flex-1 space-y-2">
+                    {navItems.map((item) => (
+                        <Link to={item.path} key={item.id} onClick={() => setActiveTab(item.id)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-bold ${activeTab === item.id
+                                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                                }`}
+                        >
+                            <item.icon />
+                            <span>{item.label}</span>
+                            {/* Visar en indikator för den aktiva fliken. */}
+                            {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_currentColor]"></div>}
+                        </Link>
+                    ))}
+                </nav>
+
+                {/* Knapp för att logga ut, anropar onLogout-funktionen som skickats via props. */}
+                <button onClick={onLogout} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-400 transition-colors mt-auto text-sm font-bold">
+                    <Icons.LogOut />
+                    <span>Logga ut</span>
+                </button>
+            </aside>
+
+            {/* Huvudinnehållsområde som är scrollbart. */}
+            <main className="flex-1 overflow-y-auto relative h-screen">
+                <div className="p-6 md:p-12 max-w-5xl mx-auto pb-32 md:pb-12">
+                    <header className="mb-8">
+                         {/* Rubrik som visar den aktiva flikens etikett. */}
+                         <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            {navItems.find(n => n.id === activeTab)?.label}
+                        </h2>
+                        <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
+                    </header>
+                     {/* Renderar den aktiva komponenten med en animering. */}
+                     <div className="animate-in fade-in zoom-in-95 duration-300">
+                        {ActiveComponent}
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};
+
+
+// SVG-ikoner för navigationslänkarna.
 const Icons = {
     Home: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
     Swap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>,
@@ -14,116 +96,43 @@ const Icons = {
     LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
 };
 
-function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-    const [activeTab, setActiveTab] = useState('mine');
 
-    // Hantera utloggning med full reload
+// Huvudkomponent som hanterar routing och autentiseringsstatus.
+function App() {
+    // Kontrollerar om en token finns i localStorage för att avgöra om användaren är inloggad.
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+    const navigate = useNavigate();
+
+    // Funktion som anropas vid lyckad inloggning.
+    // Sätter isLoggedIn till true och navigerar användaren till startsidan.
+    const handleLoginSuccess = () => {
+        setIsLoggedIn(true);
+        navigate('/');
+    };
+
+    // Funktion för att hantera utloggning.
+    // Tar bort token från localStorage och sätter isLoggedIn till false.
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
-        window.location.reload();
     };
 
-    if (!isLoggedIn) return <Login onLoginSuccess={() => setIsLoggedIn(true)} />;
-
-    const navItems = [
-        { id: 'mine', label: 'Mina Pass', icon: Icons.Home },
-        { id: 'market', label: 'Lediga Pass', icon: Icons.Swap },
-        { id: 'schedule', label: 'Schema', icon: Icons.Calendar },
-        { id: 'profile', label: 'Profil', icon: Icons.User },
-    ];
-
     return (
-        <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
-
-            {/* --- DESKTOP SIDEBAR --- */}
-            <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6">
-                <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <span className="text-sm">⛽</span>
-                    </div>
-                    <h1 className="text-xl font-black tracking-tight text-white">ShiftMate</h1>
-                </div>
-
-                <nav className="flex-1 space-y-2">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-bold ${activeTab === item.id
-                                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                                }`}
-                        >
-                            <item.icon />
-                            <span>{item.label}</span>
-                            {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_currentColor]"></div>}
-                        </button>
-                    ))}
-                </nav>
-
-                <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-400 transition-colors mt-auto text-sm font-bold">
-                    <Icons.LogOut />
-                    <span>Logga ut</span>
-                </button>
-            </aside>
-
-            {/* --- MAIN CONTENT AREA --- */}
-            <main className="flex-1 overflow-y-auto relative h-screen">
-
-                {/* Mobil Header */}
-                <div className="md:hidden sticky top-0 z-20 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                        <span className="text-xl">⛽</span>
-                        <h1 className="text-lg font-black tracking-tight text-white">ShiftMate</h1>
-                    </div>
-                    <button onClick={handleLogout} className="text-slate-400 hover:text-white">
-                        <Icons.LogOut />
-                    </button>
-                </div>
-
-                <div className="p-6 md:p-12 max-w-5xl mx-auto pb-32 md:pb-12">
-                    {/* Dynamisk Rubrik */}
-                    <header className="mb-8">
-                        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            {navItems.find(n => n.id === activeTab)?.label}
-                        </h2>
-                        <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
-                    </header>
-
-                    {/* Innehåll */}
-                    <div className="animate-in fade-in zoom-in-95 duration-300">
-                        {activeTab === 'mine' && <ShiftList />}
-                        {activeTab === 'market' && <MarketPlace />}
-                        {activeTab === 'schedule' && <Schedule />}
-
-                        {/* HÄR ÄR RÄTT KOD FÖR PROFILEN: */}
-                        {activeTab === 'profile' && <Profile onLogout={handleLogout} />}
-                    </div>
-                </div>
-            </main>
-
-            {/* --- MOBIL BOTTOM NAV --- */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800 px-6 py-2 z-50 pb-6">
-                <div className="flex justify-between items-center">
-                    {navItems.map((item) => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`flex flex-col items-center gap-1 p-2 rounded-2xl transition-all duration-300 ${activeTab === item.id ? 'text-blue-400 scale-105' : 'text-slate-500'
-                                }`}
-                        >
-                            <div className={`p-1.5 rounded-xl transition-all ${activeTab === item.id ? 'bg-blue-500/10' : ''}`}>
-                                <item.icon />
-                            </div>
-                            <span className="text-[10px] font-bold uppercase tracking-widest">{item.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </div>
-
-        </div>
+        // Använder Routes för att definiera applikationens olika vägar.
+        <Routes>
+            {isLoggedIn ? (
+                // Om användaren är inloggad, rendera MainApp för alla sökvägar.
+                <Route path="/*" element={<MainApp onLogout={handleLogout} />} />
+            ) : (
+                // Om användaren inte är inloggad, visa endast inloggnings- och registreringssidorna.
+                <>
+                    <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
+                    <Route path="/register" element={<Register />} />
+                    {/* Omdirigerar alla andra sökvägar till inloggningssidan. */}
+                    <Route path="*" element={<Navigate to="/login" />} />
+                </>
+            )}
+        </Routes>
     );
 }
 
