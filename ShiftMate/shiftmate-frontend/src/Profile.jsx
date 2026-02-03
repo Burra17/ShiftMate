@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const Profile = ({ onLogout }) => {
     const [stats, setStats] = useState({ totalShifts: 0, totalHours: 0 });
@@ -41,9 +41,7 @@ const Profile = ({ onLogout }) => {
         // 2. Hämta statistik (samma som förut)
         const fetchStats = async () => {
             try {
-                const response = await axios.get('https://localhost:7215/api/Shifts/mine', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await api.get('/Shifts/mine');
 
                 const shifts = response.data;
                 const hours = shifts.reduce((sum, shift) => sum + shift.durationHours, 0);

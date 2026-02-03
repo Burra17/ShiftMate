@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const Login = ({ onLoginSuccess }) => {
     // UI-state för att växla mellan login/register i designen
@@ -15,14 +15,12 @@ const Login = ({ onLoginSuccess }) => {
         setLoading(true);
 
         // Välj rätt URL beroende på om vi loggar in eller registrerar
-        // OBS: Login-URL:en är nu exakt den som fungerade förut!
-        const baseUrl = 'https://localhost:7215/api';
         const url = isRegistering
-            ? `${baseUrl}/Users/register` // Antagen register-endpoint (kan behöva ändras om den heter annat)
-            : `${baseUrl}/Users/login`;   // DIN FUNGERANDE LOGIN-URL
+            ? '/Users/register' // Antagen register-endpoint (kan behöva ändras om den heter annat)
+            : '/Users/login';   // DIN FUNGERANDE LOGIN-URL
 
         try {
-            const response = await axios.post(url, {
+            const response = await api.post(url, {
                 email: email.trim(), // Tar bort mellanslag precis som i din fungerande kod
                 password: password
             });

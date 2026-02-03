@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const Schedule = () => {
     const [schedule, setSchedule] = useState({}); // Vi sparar passen grupperade på datum
@@ -8,12 +8,9 @@ const Schedule = () => {
     useEffect(() => {
         const fetchSchedule = async () => {
             try {
-                const token = localStorage.getItem('token');
                 // OBS: Vi antar att denna endpoint hämtar ALLA pass för veckan
                 // Om den inte finns än, så bygger vi den i backenden sen!
-                const response = await axios.get('https://localhost:7215/api/Shifts', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await api.get('/Shifts');
 
                 // Gruppera passen baserat på datum
                 const grouped = groupShiftsByDate(response.data);
