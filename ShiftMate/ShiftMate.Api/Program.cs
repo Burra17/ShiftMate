@@ -89,13 +89,16 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
-// --- NYTT: Tillåt React-appen att prata med API:et ---
+// --- CORS: Tillåt React-appen (Både lokalt och på Vercel) ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
-        policy => policy.WithOrigins("http://localhost:5173") // Vites standard-port
-                        .AllowAnyMethod()
-                        .AllowAnyHeader());
+        policy => policy.WithOrigins(
+            "http://localhost:5173",                 // Din lokala dator
+            "https://shiftmate-ruby.vercel.app"      // Din nya Vercel-adress
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader());
 });
 
 // ---------------------------------------------------------
