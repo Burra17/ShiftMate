@@ -1,123 +1,113 @@
-﻿import { useState } from 'react';
-import api from './api';
+﻿// importera nödvändiga funktioner och komponenter
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import api from './api'; // Api-instans för att göra anrop till backend
+import AuthLayout from './components/AuthLayout'; // Gemensam layout för autentiseringssidor
 
+// Komponent för inloggningssidan.
+// Tar emot onLoginSuccess som en prop, vilken anropas vid lyckad inloggning.
 const Login = ({ onLoginSuccess }) => {
-    // UI-state för att växla mellan login/register i designen
-    const [isRegistering, setIsRegistering] = useState(false);
-
-    // Dina fungerande states
+    // State-variabler för att hantera formulärdata, laddningsstatus och felmeddelanden.
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
+    // Funktion som hanterar formulärinskickning.
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        setLoading(true);
+        e.preventDefault(); // Förhindrar standardbeteendet för formuläret (att ladda om sidan).
+        setLoading(true); // Indikerar att en process har startat.
+        setError(''); // Återställer eventuella tidigare felmeddelanden.
 
-        // Välj rätt URL beroende på om vi loggar in eller registrerar
-        const url = isRegistering
-            ? '/Users/register' // Antagen register-endpoint (kan behöva ändras om den heter annat)
-            : '/Users/login';   // DIN FUNGERANDE LOGIN-URL
+        // Förbereder payload med användardata.
+        // E-post trimmas och konverteras till gemener för konsekvens.
+        const payload = { 
+            email: email.trim().toLowerCase(), 
+            password 
+        };
 
         try {
-            const response = await api.post(url, {
-                email: email.trim(), // Tar bort mellanslag precis som i din fungerande kod
-                password: password
-            });
+            // Skickar en POST-förfrågan till /Users/login-slutpunkten med användardata.
+            const response = await api.post('/Users/login', payload);
+            const token = response.data.token; // Extraherar JWT-token från svaret.
+            
+            // Sparar token i webbläsarens localStorage för att bibehålla inloggningsstatus.
+            localStorage.setItem('token', token);
+            
+            // Anropar onLoginSuccess för att meddela förälderkomponenten om lyckad inloggning.
+            onLoginSuccess();
 
-            if (!isRegistering) {
-                // Spara token och logga in (precis som förut)
-                const token = response.data.token;
-                localStorage.setItem('token', token);
-                onLoginSuccess();
+        } catch (err) {
+            // Loggar felet till konsolen för felsökning.
+            console.error("Inloggningsfel:", err.response || err);
+
+            // Hanterar olika typer av fel för att ge användaren relevant feedback.
+            if (err.code === "ERR_NETWORK") {
+                setError("Kunde inte nå servern. Kontrollera att den är igång.");
+            } else if (err.response?.status === 401) {
+                setError("Fel e-post eller lösenord."); // Felaktiga inloggningsuppgifter.
             } else {
-                alert("Konto skapat! Byt till 'Logga in' för att komma in.");
-                setIsRegistering(false);
-            }
-
-        } catch (error) {
-            console.error("Inloggningsfel:", error.response || error);
-
-            // Din specifika felhantering för certifikat (viktigt för localhost)
-            if (error.code === "ERR_NETWORK") {
-                alert("Kunde inte nå servern! \n\nTIPS: Öppna https://localhost:7215/api/Users i en ny flik och godkänn säkerhetscertifikatet.");
-            } else if (error.response?.status === 400 || error.response?.status === 401) {
-                alert("Fel e-post eller lösenord.");
-            } else {
-                alert(`Något gick fel: ${error.response?.data || error.message}`);
+                setError("Något gick fel vid inloggning."); // Generiskt felmeddelande.
             }
         } finally {
+            // Återställer laddningsstatus oavsett om inloggningen lyckades eller misslyckades.
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-slate-950 relative overflow-hidden font-sans selection:bg-purple-500 selection:text-white">
+        // Använder AuthLayout för en konsekvent design på autentiseringssidor.
+        <AuthLayout title="ShiftMate" subtitle="Välkommen tillbaka!">
+            <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Visar felmeddelande om ett sådant finns. */}
+                {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold p-3 rounded-lg text-center">{error}</div>}
 
-            {/* Bakgrunds-effekter (Futuristiska blobs) */}
-            <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse duration-[4000ms]"></div>
-            <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px] animate-pulse duration-[5000ms]"></div>
-
-            {/* Själva kortet med glas-effekt */}
-            <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-2xl border border-slate-800 p-8 md:p-12 rounded-3xl shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500 mx-4">
-
-                <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl mb-6 shadow-lg shadow-purple-500/30 animate-bounce duration-[3000ms]">
-                        <span className="text-3xl filter drop-shadow-md">⛽</span>
-                    </div>
-                    <h1 className="text-4xl font-black text-white tracking-tight mb-2">ShiftMate</h1>
-                    <p className="text-slate-400 text-sm font-medium tracking-wide">
-                        {isRegistering ? 'Skapa konto för att komma igång' : 'Välkommen tillbaka!'}
-                    </p>
+                {/* Fält för e-post. */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-post</label>
+                    <input
+                        type="email"
+                        required
+                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                        placeholder="namn@okq8.se"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                    />
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-post</label>
-                        <input
-                            type="email"
-                            required
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
-                            placeholder="namn@okq8.se"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lösenord</label>
-                        <input
-                            type="password"
-                            required
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
-                    </div>
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full py-4 mt-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black rounded-xl shadow-lg shadow-purple-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 tracking-wide uppercase text-sm"
-                    >
-                        {loading ? 'Jobbar...' : isRegistering ? 'SKAPA KONTO' : 'LOGGA IN'}
-                    </button>
-                </form>
-
-                <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-                    <p className="text-slate-500 text-xs mb-3 font-medium">
-                        {isRegistering ? 'Har du redan ett konto?' : 'Ny på macken?'}
-                    </p>
-                    <button
-                        onClick={() => setIsRegistering(!isRegistering)}
-                        className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest"
-                    >
-                        {isRegistering ? 'Logga in här' : 'Registrera nytt konto'}
-                    </button>
+                {/* Fält för lösenord. */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lösenord</label>
+                    <input
+                        type="password"
+                        required
+                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                    />
                 </div>
+
+                {/* Inloggningsknapp. Inaktiveras när laddningsstatus är true. */}
+                <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-4 mt-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black rounded-xl shadow-lg shadow-purple-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 tracking-wide uppercase text-sm"
+                >
+                    {loading ? 'Jobbar...' : 'Logga In'}
+                </button>
+            </form>
+
+            {/* Länk till registreringssidan för nya användare. */}
+            <div className="mt-8 pt-6 border-t border-slate-800 text-center">
+                <p className="text-slate-500 text-xs mb-3 font-medium">
+                    Ny på macken?
+                </p>
+                <Link to="/register" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest">
+                    Registrera nytt konto
+                </Link>
             </div>
-        </div>
+        </AuthLayout>
     );
 };
 
