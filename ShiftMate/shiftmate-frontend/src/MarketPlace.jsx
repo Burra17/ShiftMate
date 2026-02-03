@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const MarketPlace = () => {
     // State för att hålla listan över lediga pass
@@ -11,12 +11,8 @@ const MarketPlace = () => {
     useEffect(() => {
         const fetchAvailableShifts = async () => {
             try {
-                // Hämta JWT-token från webbläsarens lokala lagring
-                const token = localStorage.getItem('token');
                 // Gör ett API-anrop för att hämta alla pass
-                const response = await axios.get('https://localhost:7215/api/Shifts', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await api.get('/Shifts');
                 // Filtrera listan för att bara visa pass som är markerade som "lediga"
                 setAvailableShifts(response.data.filter(shift => shift.isUpForSwap));
             } catch (err) {
@@ -32,13 +28,10 @@ const MarketPlace = () => {
     // Funktion som anropas när en användare klickar på "Ta passet"-knappen
     const handleTakeShift = async (shiftId) => {
         try {
-            const token = localStorage.getItem('token');
-            const url = `https://localhost:7215/api/Shifts/${shiftId}/take`;
+            const url = `/Shifts/${shiftId}/take`;
 
             // Skicka en PUT-förfrågan för att meddela servern att passet ska tas
-            await axios.put(url, {}, { // Ingen data (body) behövs, bara ID i URL:en
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            await api.put(url, {}); // Ingen data (body) behövs, bara ID i URL:en
 
             // Visa en bekräftelse och uppdatera gränssnittet
             alert("Passet är nu ditt! Snyggt jobbat! 🤝");

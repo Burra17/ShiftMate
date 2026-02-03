@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from './api';
 
 const ShiftList = () => {
     // --- BEHÅLLEN LOGIK (Rör ej) ---
@@ -11,11 +11,7 @@ const ShiftList = () => {
     useEffect(() => {
         const fetchShifts = async () => {
             try {
-                const token = localStorage.getItem('token');
-                // Behåll din fungerande URL
-                const response = await axios.get('https://localhost:7215/api/Shifts/mine', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const response = await api.get('/Shifts/mine');
                 setShifts(response.data);
             } catch (err) {
                 console.error("Kunde inte hämta pass:", err);
@@ -30,11 +26,7 @@ const ShiftList = () => {
     const handleInitiateSwap = async (shiftId) => {
         setActionLoading(shiftId);
         try {
-            const token = localStorage.getItem('token');
-            await axios.post('https://localhost:7215/api/SwapRequests/initiate',
-                { shiftId: shiftId },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.post('/SwapRequests/initiate', { shiftId: shiftId });
 
             alert("Passet ligger nu ute för byte! 🎉");
 
@@ -53,12 +45,8 @@ const ShiftList = () => {
     const handleCancelSwap = async (shiftId) => {
         setActionLoading(shiftId);
         try {
-            const token = localStorage.getItem('token');
             // Anropa den nya endpointen för att ångra
-            await axios.put(`https://localhost:7215/api/Shifts/${shiftId}/cancel-swap`,
-                {}, // Ingen body behövs
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
+            await api.put(`/Shifts/${shiftId}/cancel-swap`, {});
 
             alert("Ditt pass är inte längre ute för byte.");
 
