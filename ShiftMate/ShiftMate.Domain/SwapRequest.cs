@@ -19,5 +19,9 @@ namespace ShiftMate.Domain
         // Foreign Key: Vem får frågan? (Kan vara null om frågan är öppen)
         public Guid? TargetUserId { get; set; }
         public virtual User? TargetUser { get; set; }
+
+        // Foreign Key: Gäller bytet ett specifikt pass? (Används för direktbyten)
+        public Guid? TargetShiftId { get; set; }
+        public virtual Shift? TargetShift { get; set; }
     }
 }

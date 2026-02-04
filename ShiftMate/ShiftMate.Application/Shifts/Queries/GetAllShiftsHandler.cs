@@ -1,10 +1,11 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Shifts.Queries
 {
+    // Handläggaren för GetAllShiftsQuery, som hämtar alla pass i systemet.
     public class GetAllShiftsHandler : IRequestHandler<GetAllShiftsQuery, List<ShiftDto>>
     {
         private readonly IAppDbContext _context;
@@ -16,28 +17,29 @@ namespace ShiftMate.Application.Shifts.Queries
 
         public async Task<List<ShiftDto>> Handle(GetAllShiftsQuery request, CancellationToken cancellationToken)
         {
-            // 1. Hämta alla pass och inkludera användardata
+            // Hämta alla pass från databasen, inklusive den användare som äger passet.
             var shifts = await _context.Shifts
-                .Include(s => s.User) // Viktigt: Hämtar User-tabellen
+                .Include(s => s.User) // Inkluderar User-objektet för att kunna mappa det till DTO:n.
                 .OrderBy(s => s.StartTime)
                 .ToListAsync(cancellationToken);
 
-            // 2. Mappa till DTOer
+            // Mappa de hämtade passen till ShiftDto-objekt.
             var dtos = shifts.Select(s => new ShiftDto
             {
                 Id = s.Id,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
                 IsUpForSwap = s.IsUpForSwap,
-                // DurationHours räknas ut automatiskt i DTO:n
+                UserId = s.UserId, // Lägg till UserId för frontend-filtrering/visning.
+                // DurationHours räknas ut automatiskt i DTO-klassen.
 
-                // 3. Mappa User-objektet (Nu med namn!)
+                // Mappa User-objektet till en UserDto, inklusive namn.
                 User = s.User != null ? new UserDto
                 {
                     Id = s.User.Id,
                     Email = s.User.Email,
-                    FirstName = s.User.FirstName, // <--- NYTT: Förnamn
-                    LastName = s.User.LastName    // <--- NYTT: Efternamn
+                    FirstName = s.User.FirstName,
+                    LastName = s.User.LastName
                 } : null
 
             }).ToList();
