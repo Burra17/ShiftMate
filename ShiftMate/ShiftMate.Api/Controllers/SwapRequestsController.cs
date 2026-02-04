@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.SwapRequests.Commands;
@@ -25,8 +25,7 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                // --- HÄR ÄR NYHETEN ---
-                // 1. Vi hämtar vem som är inloggad från Token
+                // Hämta vem som är inloggad från Token
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (string.IsNullOrEmpty(userIdString))
@@ -34,12 +33,34 @@ namespace ShiftMate.Api.Controllers
                     return Unauthorized("Kunde inte identifiera användaren.");
                 }
 
-                // 2. Vi stoppar in ID:t i kommandot "bakom kulisserna"
+                // Stoppa in ID:t i kommandot "bakom kulisserna"
                 command.RequestingUserId = Guid.Parse(userIdString);
-                // -----------------------
 
                 var swapRequestId = await _mediator.Send(command);
                 return Ok(new { SwapRequestId = swapRequestId, Message = "Bytesförfrågan skapad!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        // POST: api/SwapRequests/propose-direct
+        [HttpPost("propose-direct")]
+        public async Task<IActionResult> ProposeDirectSwap(ProposeDirectSwapCommand command)
+        {
+            try
+            {
+                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (string.IsNullOrEmpty(userIdString))
+                {
+                    return Unauthorized("Kunde inte identifiera användaren.");
+                }
+
+                command.RequestingUserId = Guid.Parse(userIdString);
+
+                var swapRequestId = await _mediator.Send(command);
+                return Ok(new { SwapRequestId = swapRequestId, Message = "Förslag om direktbyte har skickats!" });
             }
             catch (Exception ex)
             {
@@ -63,14 +84,11 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                // 1. Hämta vem som är inloggad (NYTT)
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
 
-                // 2. Fyll i kommandot
                 command.CurrentUserId = Guid.Parse(userIdString);
 
-                // 3. Skicka iväg
                 await _mediator.Send(command);
                 return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
             }
