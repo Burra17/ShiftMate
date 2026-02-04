@@ -14,3 +14,38 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Frontend File Structure
+
+```
+shiftmate-frontend/
+├── .env.development
+├── .env.production
+├── .gitignore
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── README.md
+├── tailwind.config.js
+├── vite.config.js
+├── public/
+│   └── vite.svg
+└── src/
+    ├── api.js
+    ├── App.css
+    ├── App.jsx
+    ├── index.css
+    ├── Login.jsx
+    ├── main.jsx
+    ├── MarketPlace.jsx
+    ├── Profile.jsx
+    ├── Register.jsx
+    ├── Schedule.jsx
+    ├── ShiftList.jsx
+    ├── assets/
+    │   └── react.svg
+    └── components/
+        └── AuthLayout.jsx
+```
