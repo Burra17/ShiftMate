@@ -9,16 +9,30 @@
 ﻿        {
 ﻿            context.Database.EnsureCreated();
 ﻿
-﻿            // 1. Rensa gamla pass så vi ser nya fräscha datum 🧹
-﻿            // Detta är viktigt för att inte fylla databasen med dubbletter varje gång vi startar om.
+﻿            // 1. Rensa gamla pass, bytesförfrågningar och användare så vi ser nya fräscha datum 🧹
+﻿            // Rensa i rätt ordning för att undvika Foreign Key-fel
+﻿            if (context.SwapRequests.Any())
+﻿            {
+﻿                context.SwapRequests.RemoveRange(context.SwapRequests);
+﻿                context.SaveChanges(); 
+﻿            }
+﻿            
 ﻿            if (context.Shifts.Any())
 ﻿            {
 ﻿                context.Shifts.RemoveRange(context.Shifts);
 ﻿                context.SaveChanges();
 ﻿            }
-﻿
+﻿            
+﻿            // Rensa användare sist, om det behövs (beroende på hur de hanteras)
+﻿            // Låter dem vara kvar då vi uppdaterar befintliga istället för att ta bort och lägga till
+﻿            // if (context.Users.Any())
+﻿            // {
+﻿            //     context.Users.RemoveRange(context.Users);
+﻿            //     context.SaveChanges();
+﻿            // }
+﻿            
 ﻿            // 2. SKAPA ELLER UPPDATERA ANVÄNDARE 👤
-﻿
+﻿            
 ﻿            // Fixa Admin (Boss)
 ﻿            var admin = context.Users.FirstOrDefault(u => u.Email == "admin@shiftmate.com");
 ﻿            if (admin == null)
@@ -34,12 +48,13 @@
 ﻿                };
 ﻿                context.Users.Add(admin);
 ﻿            }
-﻿                        else
-﻿                        {
-﻿                            admin.FirstName = "Boss"; 
-﻿                            admin.LastName = "Bossman";
-﻿                            admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword("password");
-﻿                        }﻿
+﻿            else
+﻿            {
+﻿                admin.FirstName = "Boss"; 
+﻿                admin.LastName = "Bossman";
+﻿                admin.PasswordHash = BCrypt.Net.BCrypt.HashPassword("password");
+﻿            }
+﻿            
 ﻿            // Fixa André (Employee)
 ﻿            var andre = context.Users.FirstOrDefault(u => u.Email == "andre@shiftmate.com");
 ﻿            if (andre == null)
@@ -55,12 +70,13 @@
 ﻿                };
 ﻿                context.Users.Add(andre);
 ﻿            }
-﻿                        else
-﻿                        {
-﻿                            andre.FirstName = "André"; 
-﻿                            andre.LastName = "Pettersson";
-﻿                            andre.PasswordHash = BCrypt.Net.BCrypt.HashPassword("dummy_hash_123");
-﻿                        }﻿
+﻿            else
+﻿            {
+﻿                andre.FirstName = "André"; 
+﻿                andre.LastName = "Pettersson";
+﻿                andre.PasswordHash = BCrypt.Net.BCrypt.HashPassword("dummy_hash_123");
+﻿            }
+﻿            
 ﻿            context.SaveChanges();
 ﻿
 ﻿            // 3. SKAPA EN REJÄL VECKA MED PASS 📅
