@@ -1,6 +1,7 @@
 ﻿// importera nödvändiga funktioner och komponenter från react och react-router-dom
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
+import { setLogoutCallback } from './api'; // Importera setLogoutCallback
 
 // importera sid-komponenter
 import Login from './Login';
@@ -115,7 +116,13 @@ function App() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         setIsLoggedIn(false);
+        navigate('/login'); // Omdirigera till login-sidan vid utloggning
     };
+
+    // Använd useEffect för att registrera handleLogout med api.js
+    useEffect(() => {
+      setLogoutCallback(handleLogout);
+    }, [handleLogout]); // Körs om handleLogout-funktionen ändras
 
     return (
         // Använder Routes för att definiera applikationens olika vägar.
