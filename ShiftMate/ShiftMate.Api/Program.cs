@@ -5,6 +5,8 @@ using Microsoft.OpenApi.Models;
 using ShiftMate.Application;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Infrastructure;
+using ShiftMate.Infrastructure.Services;
+using Microsoft.Extensions.Logging;
 using System.Text;                                   // <--- NY: För att läsa nyckeln (Encoding)
 using System.Text.Json.Serialization;
 
@@ -88,6 +90,9 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
+
+// Registrera e-posttjänsten
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
 // --- CORS: Tillåt React-appen (Både lokalt och på Vercel) ---
 builder.Services.AddCors(options =>

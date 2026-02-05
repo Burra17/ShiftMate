@@ -25,15 +25,13 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                // Hämta vem som är inloggad från Token
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (string.IsNullOrEmpty(userIdString))
                 {
-                    return Unauthorized("Kunde inte identifiera användaren.");
+                    return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
 
-                // Stoppa in ID:t i kommandot "bakom kulisserna"
                 command.RequestingUserId = Guid.Parse(userIdString);
 
                 var swapRequestId = await _mediator.Send(command);
@@ -41,7 +39,8 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // FIX: Skickar JSON-objekt så frontend kan läsa felet
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -54,7 +53,7 @@ namespace ShiftMate.Api.Controllers
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userIdString))
                 {
-                    return Unauthorized("Kunde inte identifiera användaren.");
+                    return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
 
                 command.RequestingUserId = Guid.Parse(userIdString);
@@ -64,7 +63,8 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // FIX: Skickar JSON-objekt så frontend kan läsa felet
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -78,7 +78,6 @@ namespace ShiftMate.Api.Controllers
             return Ok(result);
         }
 
-        // NYTT: Hämta förfrågningar som skickats TILL mig
         // GET: api/SwapRequests/received
         [HttpGet("received")]
         public async Task<IActionResult> GetReceivedSwapRequests()
@@ -86,7 +85,7 @@ namespace ShiftMate.Api.Controllers
             var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdString))
             {
-                return Unauthorized("Kunde inte identifiera användaren.");
+                return Unauthorized(new { message = "Kunde inte identifiera användaren." });
             }
 
             var query = new GetReceivedSwapRequestsQuery
@@ -104,7 +103,7 @@ namespace ShiftMate.Api.Controllers
             try
             {
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+                if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new { message = "Ingen behörighet." });
 
                 command.CurrentUserId = Guid.Parse(userIdString);
 
@@ -113,11 +112,11 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // FIX: Skickar JSON-objekt så frontend kan läsa felet
+                return BadRequest(new { message = ex.Message });
             }
         }
 
-        // NYTT: Neka en bytesförfrågan
         // POST: api/SwapRequests/{id}/decline
         [HttpPost("{id}/decline")]
         public async Task<IActionResult> DeclineSwapRequest(Guid id)
@@ -127,7 +126,7 @@ namespace ShiftMate.Api.Controllers
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userIdString))
                 {
-                    return Unauthorized("Kunde inte identifiera användaren.");
+                    return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
 
                 var command = new DeclineSwapRequestCommand
@@ -141,7 +140,8 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // FIX: Skickar JSON-objekt så frontend kan läsa felet
+                return BadRequest(new { message = ex.Message });
             }
         }
 
@@ -152,7 +152,7 @@ namespace ShiftMate.Api.Controllers
             try
             {
                 var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+                if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new { message = "Ingen behörighet." });
 
                 var userId = Guid.Parse(userIdString);
 
@@ -162,7 +162,8 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                // FIX: Skickar JSON-objekt så frontend kan läsa felet
+                return BadRequest(new { message = ex.Message });
             }
         }
     }
