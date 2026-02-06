@@ -83,7 +83,7 @@ namespace ShiftMate.Application.SwapRequests.Commands
             await _context.SaveChangesAsync(cancellationToken);
 
             // ---------------------------------------------------------
-            // 4. FÖRSÖK SKICKA MAIL (Med felhantering för Render Free Tier)
+            // 4. FÖRSÖK SKICKA MAIL (Med 2 sekunders timeout)
             // ---------------------------------------------------------
             try
             {
@@ -139,17 +139,36 @@ namespace ShiftMate.Application.SwapRequests.Commands
                     </body>
                     </html>";
 
-                // Skicka (fånga fel om det inte går)
+                // Skicka (med tidsbegränsning så det inte snurrar för evigt på Render Free)
                 if (!string.IsNullOrEmpty(toEmail))
                 {
-                    await _emailService.SendEmailAsync(toEmail, subject, message);
+                    // 1. Starta mailet (men vänta inte på det än)
+                    var emailTask = _emailService.SendEmailAsync(toEmail, subject, message);
+
+                    // 2. Starta en klocka på 2 sekunder
+                    var timeoutTask = Task.Delay(2000);
+
+                    // 3. Vänta på den som blir klar först
+                    var completedTask = await Task.WhenAny(emailTask, timeoutTask);
+
+                    if (completedTask == timeoutTask)
+                    {
+                        // Klockan vann = Det tog för lång tid (Render Free Tier blockerar)
+                        // Vi loggar bara info och går vidare direkt!
+                        Console.WriteLine("[MAIL INFO] Mailet tog för lång tid (Render Free Tier), vi hoppar över det.");
+                    }
+                    else
+                    {
+                        // Mailet hann skickas (eller kraschade snabbt)
+                        await emailTask;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // Detta block körs om Render blockerar mailet.
+                // Detta block körs om mailet kraschar snabbt.
                 // Vi loggar det som en varning, men kraschar inte appen!
-                Console.WriteLine($"[RENDER WARNING] Mail kunde inte skickas (Free Tier block): {ex.Message}");
+                Console.WriteLine($"[MAIL WARNING] Mail kunde inte skickas: {ex.Message}");
                 _logger.LogWarning(ex, "Kunde inte skicka mail till mottagaren, men bytet har sparats i databasen.");
             }
 
