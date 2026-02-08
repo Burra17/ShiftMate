@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Domain;
 using System;
+using System.Linq; // Behövs för .Any()
 
 namespace ShiftMate.Application.Shifts.Commands
 {
@@ -19,43 +20,53 @@ namespace ShiftMate.Application.Shifts.Commands
 
         public async Task<bool> Handle(TakeShiftCommand request, CancellationToken cancellationToken)
         {
-            // Hämta det specifika arbetspasset från databasen.
+            // 1. Hämta passet
             var shift = await _context.Shifts.FirstOrDefaultAsync(s => s.Id == request.ShiftId, cancellationToken);
 
-            // Om passet inte finns, kasta ett fel.
             if (shift == null)
             {
                 throw new Exception("Arbetspasset kunde inte hittas.");
             }
 
-            // Kontrollera om passet faktiskt är markerat som ledigt.
-            if (!shift.IsUpForSwap)
+            // 2. KONTROLLERA TILLGÄNGLIGHET (Här var felet!) 🛠️
+            // Vi kastar bara fel om passet INTE är för byte OCH det redan har en ägare.
+            // Om UserId är null (öppet pass) så är det fritt fram att ta!
+            if (!shift.IsUpForSwap && shift.UserId != null)
             {
                 throw new Exception("Detta pass är inte tillgängligt för att tas.");
             }
-            
-            // Hämta användaren som försöker ta passet, inkludera deras befintliga pass.
+
+            // 3. Hämta användaren
             var user = await _context.Users
-                .Include(u => u.Shifts) // Inkludera passen för att kunna kontrollera dem.
+                .Include(u => u.Shifts)
                 .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
+
             if (user == null)
             {
                 throw new Exception("Användaren kunde inte hittas.");
             }
 
+            // 4. KROCK-KONTROLL
             // Kontrollera om användaren redan har ett pass på samma dag.
+            // (Vi kollar dock inte mot passet vi försöker ta, ifall det av misstag redan står på oss)
             var newShiftDate = shift.StartTime.Date;
-            if (user.Shifts.Any(s => s.StartTime.Date == newShiftDate))
+
+            bool hasShiftOnSameDay = user.Shifts.Any(s =>
+                s.Id != shift.Id && // Ignorera passet vi försöker ta (om det mot förmodan redan var vårt)
+                s.StartTime.Date == newShiftDate
+            );
+
+            if (hasShiftOnSameDay)
             {
                 throw new Exception("Du kan inte ta ett pass på en dag där du redan har ett annat pass.");
             }
 
-            // Tilldela passet till den nya användaren.
+            // 5. UTFÖR UPPDATERINGEN
             shift.UserId = request.UserId;
-            shift.IsUpForSwap = false; // Markera passet som upptaget.
-            shift.User = user; // Uppdatera navigation property.
+            shift.IsUpForSwap = false; // Nollställ bytes-flaggan
+            shift.User = user;         // Uppdatera navigation property
 
-            // Spara ändringarna i databasen.
+            // Spara
             await _context.SaveChangesAsync(cancellationToken);
 
             return true;
