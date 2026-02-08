@@ -43,7 +43,7 @@ namespace ShiftMate.Tests
             {
                 Id = Guid.NewGuid(),
                 ShiftId = swapShift.Id,
-                RequestingUserId = swapShift.UserId,
+                RequestingUserId = swapShift.UserId.Value,
                 Status = "Pending"
             };
             context.SwapRequests.Add(swapRequest);

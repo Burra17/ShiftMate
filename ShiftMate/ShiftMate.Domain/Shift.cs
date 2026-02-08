@@ -11,7 +11,7 @@ namespace ShiftMate.Domain
         public bool IsUpForSwap { get; set; }
 
         // Foreign Key: Vem äger passet?
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
 
         // Navigation Property
         public virtual User User { get; set; } = null!;

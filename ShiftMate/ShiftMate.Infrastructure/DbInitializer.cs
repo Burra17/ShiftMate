@@ -7,65 +7,31 @@ namespace ShiftMate.Infrastructure
     {
         public static void Initialize(AppDbContext context)
         {
+            // Se till att databasen finns
             context.Database.EnsureCreated();
 
-            // 1. Rensa gamla pass och förfrågningar 🧹
+            // ==========================================
+            // 1. STÄDA BORT GAMLA PASS & FÖRFRÅGNINGAR 🧹
+            // ==========================================
+            // Vi rensar schemat varje gång vi startar (i dev-läge) så vi har färsk data.
             if (context.SwapRequests.Any())
             {
                 context.SwapRequests.RemoveRange(context.SwapRequests);
-                context.SaveChanges();
             }
 
             if (context.Shifts.Any())
             {
                 context.Shifts.RemoveRange(context.Shifts);
-                context.SaveChanges();
             }
 
-            // 2. SKAPA ELLER UPPDATERA ANVÄNDARE 👤
+            // Spara rensningen innan vi lägger till nytt
+            context.SaveChanges();
 
-            // --- USER 1: ADMIN (Boss) ---
-            var admin = context.Users.FirstOrDefault(u => u.Email == "admin@shiftmate.com");
-            if (admin == null)
-            {
-                admin = new User
-                {
-                    Id = Guid.NewGuid(),
-                    Email = "admin@shiftmate.com",
-                    FirstName = "Boss",
-                    LastName = "Bossman",
-                    Role = Role.Admin,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("password")
-                };
-                context.Users.Add(admin);
-            }
-            // Inget else behövs här om vi inte vill byta namn på Boss
+            // ==========================================
+            // 2. SKAPA ELLER UPPDATERA ANVÄNDARE 👥
+            // ==========================================
 
-            // --- USER 2: ERIK EXEMPEL (Tidigare Test-André) ---
-            // Vi byter namn på honom så det blir tydligt i schemat!
-            var testUser = context.Users.FirstOrDefault(u => u.Email == "andre@shiftmate.com");
-            if (testUser == null)
-            {
-                testUser = new User
-                {
-                    Id = Guid.NewGuid(),
-                    Email = "andre@shiftmate.com",
-                    FirstName = "Erik",     // <--- NYTT NAMN
-                    LastName = "Exempel",   // <--- NYTT NAMN
-                    Role = Role.Employee,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("dummy_hash_123")
-                };
-                context.Users.Add(testUser);
-            }
-            else
-            {
-                // Om han redan finns, uppdatera namnet till Erik!
-                testUser.FirstName = "Erik";
-                testUser.LastName = "Exempel";
-                testUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword("dummy_hash_123");
-            }
-
-            // --- USER 3: DIN RIKTIGA USER (Live) ---
+            // --- USER 1: ANDRÉ (Du / Live-användaren) ---
             var realUser = context.Users.FirstOrDefault(u => u.Email == "andre20030417@gmail.com");
             if (realUser == null)
             {
@@ -75,91 +41,97 @@ namespace ShiftMate.Infrastructure
                     Email = "andre20030417@gmail.com",
                     FirstName = "André",
                     LastName = "Pettersson",
-                    Role = Role.Employee,
+                    Role = Role.Employee, 
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Andre2003")
                 };
                 context.Users.Add(realUser);
             }
+
+            // --- USER 2: ERIK (Kollegan) ---
+            var erikUser = context.Users.FirstOrDefault(u => u.Email == "andre@shiftmate.com");
+            if (erikUser == null)
+            {
+                erikUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "andre@shiftmate.com", // Vi behåller mailen enligt önskemål
+                    FirstName = "Erik",
+                    LastName = "Exempel",
+                    Role = Role.Employee,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("dummy_hash_123")
+                };
+                context.Users.Add(erikUser);
+            }
             else
             {
-                // Se till att du heter André och har rätt lösen
-                realUser.FirstName = "André";
-                realUser.PasswordHash = BCrypt.Net.BCrypt.HashPassword("Andre2003");
+                // Uppdatera namnet om han hette "Test" förut
+                erikUser.FirstName = "Erik";
+                erikUser.LastName = "Exempel";
             }
 
-            context.SaveChanges();
-
-            // 3. SKAPA PASS (En mix för Erik, André och Boss) 📅
-            var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
-
-            var shifts = new List<Shift>
+            // --- USER 3: SARA (Ny kollega) ---
+            var saraUser = context.Users.FirstOrDefault(u => u.Email == "sara@shiftmate.com");
+            if (saraUser == null)
             {
-                // --- IDAG ---
-                // Erik (Kollegan) jobbar förmiddag
-                new Shift
+                saraUser = new User
                 {
-                    Id = Guid.NewGuid(), UserId = testUser.Id,
-                    StartTime = today.AddHours(7),
-                    EndTime = today.AddHours(15),
-                    IsUpForSwap = false
-                },
-                // Du (André) jobbar kväll
-                new Shift
-                {
-                    Id = Guid.NewGuid(), UserId = realUser.Id,
-                    StartTime = today.AddHours(15),
-                    EndTime = today.AddHours(23),
-                    IsUpForSwap = false
-                },
+                    Id = Guid.NewGuid(),
+                    Email = "sara@shiftmate.com",
+                    FirstName = "Sara",
+                    LastName = "Svensson",
+                    Role = Role.Employee,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Svensson123")
+                };
+                context.Users.Add(saraUser);
+            }
 
-                // --- IMORGON ---
-                // Boss jobbar dagtid
-                new Shift
+            // --- USER 4: MAHMOUD (Ny kollega) ---
+            var mahmoudUser = context.Users.FirstOrDefault(u => u.Email == "mahmoud@shiftmate.com");
+            if (mahmoudUser == null)
+            {
+                mahmoudUser = new User
                 {
-                    Id = Guid.NewGuid(), UserId = admin.Id,
-                    StartTime = today.AddDays(1).AddHours(8),
-                    EndTime = today.AddDays(1).AddHours(17),
-                    IsUpForSwap = false
-                },
-                // Du (André) jobbar också, men vill byta bort det?
-                new Shift
-                {
-                    Id = Guid.NewGuid(), UserId = realUser.Id,
-                    StartTime = today.AddDays(1).AddHours(12),
-                    EndTime = today.AddDays(1).AddHours(20),
-                    IsUpForSwap = true // <--- Ute på torget!
-                },
+                    Id = Guid.NewGuid(),
+                    Email = "mahmoud@shiftmate.com",
+                    FirstName = "Mahmoud",
+                    LastName = "Al-Sayed",
+                    Role = Role.Employee,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Mahmoud123")
+                };
+                context.Users.Add(mahmoudUser);
+            }
 
-                // --- I ÖVERMORGON ---
-                // Erik (Kollegan) har ett pass han vill bli av med
-                new Shift
-                {
-                    Id = Guid.NewGuid(), UserId = testUser.Id,
-                    StartTime = today.AddDays(2).AddHours(7),
-                    EndTime = today.AddDays(2).AddHours(16),
-                    IsUpForSwap = true // <--- Testa att ta detta!
-                },
+            context.SaveChanges(); // Spara alla användare så vi får deras IDn
 
-                // --- OM 3 DAGAR ---
-                // Boss jobbar lunch
-                new Shift
-                {
-                    Id = Guid.NewGuid(), UserId = admin.Id,
-                    StartTime = today.AddDays(3).AddHours(10),
-                    EndTime = today.AddDays(3).AddHours(14),
-                    IsUpForSwap = false
-                },
-                
-                // --- OM 4 DAGAR (Helg) ---
-                // Du (André) kör stängning
-                new Shift
-                {
-                    Id = Guid.NewGuid(), UserId = realUser.Id,
-                    StartTime = today.AddDays(4).AddHours(16),
-                    EndTime = today.AddDays(4).AddHours(23).AddMinutes(30),
-                    IsUpForSwap = false
-                }
-            };
+            // ==========================================
+            // 3. SKAPA PASS (Fyller schemat) 📅
+            // ==========================================
+            var today = DateTime.SpecifyKind(DateTime.UtcNow.Date, DateTimeKind.Utc);
+            var shifts = new List<Shift>();
+
+            // --- IDAG (Dag 0) ---
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = erikUser.Id, StartTime = today.AddHours(7), EndTime = today.AddHours(16), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = saraUser.Id, StartTime = today.AddHours(8), EndTime = today.AddHours(17), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = realUser.Id, StartTime = today.AddHours(15), EndTime = today.AddHours(23), IsUpForSwap = false }); // Du stänger
+
+            // --- IMORGON (Dag 1) ---
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = mahmoudUser.Id, StartTime = today.AddDays(1).AddHours(7), EndTime = today.AddDays(1).AddHours(15), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = realUser.Id, StartTime = today.AddDays(1).AddHours(12), EndTime = today.AddDays(1).AddHours(20), IsUpForSwap = true }); // Du vill byta detta! 🔄
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = erikUser.Id, StartTime = today.AddDays(1).AddHours(16), EndTime = today.AddDays(1).AddHours(23).AddMinutes(30), IsUpForSwap = false });
+
+            // --- I ÖVERMORGON (Dag 2) ---
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = saraUser.Id, StartTime = today.AddDays(2).AddHours(7), EndTime = today.AddDays(2).AddHours(16), IsUpForSwap = true }); // Sara vill byta 🔄
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = mahmoudUser.Id, StartTime = today.AddDays(2).AddHours(10), EndTime = today.AddDays(2).AddHours(19), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = null, StartTime = today.AddDays(2).AddHours(17), EndTime = today.AddDays(2).AddHours(22), IsUpForSwap = false }); // ÖPPET PASS (Ingen ägare) 🆓
+
+            // --- DAG 3 ---
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = realUser.Id, StartTime = today.AddDays(3).AddHours(8), EndTime = today.AddDays(3).AddHours(17), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = erikUser.Id, StartTime = today.AddDays(3).AddHours(10), EndTime = today.AddDays(3).AddHours(15), IsUpForSwap = false }); // Kort pass
+
+            // --- DAG 4 (Helg?) ---
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = saraUser.Id, StartTime = today.AddDays(4).AddHours(9), EndTime = today.AddDays(4).AddHours(18), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = mahmoudUser.Id, StartTime = today.AddDays(4).AddHours(16), EndTime = today.AddDays(4).AddHours(23), IsUpForSwap = false });
+            shifts.Add(new Shift { Id = Guid.NewGuid(), UserId = null, StartTime = today.AddDays(4).AddHours(12), EndTime = today.AddDays(4).AddHours(16), IsUpForSwap = false }); // ÖPPET EXTRA-PASS 🆓
 
             context.Shifts.AddRange(shifts);
             context.SaveChanges();
