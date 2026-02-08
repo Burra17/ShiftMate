@@ -2,112 +2,104 @@ import { useState, useEffect } from 'react';
 import api from './api';
 
 const MarketPlace = () => {
-    // State för att hålla listan över lediga pass
     const [availableShifts, setAvailableShifts] = useState([]);
-    // State för att visa ett laddningsmeddelande medan data hämtas
     const [loading, setLoading] = useState(true);
 
-    // useEffect körs när komponenten laddas första gången
     useEffect(() => {
         const fetchAvailableShifts = async () => {
             try {
-                // Gör ett API-anrop för att hämta alla pass
-                const response = await api.get('/Shifts');
-                // Filtrera listan för att bara visa pass som är markerade som "lediga"
-                setAvailableShifts(response.data.filter(shift => shift.isUpForSwap));
+                // Vi hämtar "claimable" som innehåller både öppna pass och bytes-pass
+                const response = await api.get('/Shifts/claimable');
+                setAvailableShifts(response.data);
             } catch (err) {
                 console.error("Kunde inte hämta lediga pass:", err);
             } finally {
-                // Dölj laddningsmeddelandet när hämtningen är klar (oavsett om det lyckades eller ej)
                 setLoading(false);
             }
         };
         fetchAvailableShifts();
-    }, []); // Den tomma arrayen [] betyder att effekten bara körs en gång
+    }, []);
 
-    // Funktion som anropas när en användare klickar på "Ta passet"-knappen
     const handleTakeShift = async (shiftId) => {
         try {
             const url = `/Shifts/${shiftId}/take`;
+            await api.put(url, {});
 
-            // Skicka en PUT-förfrågan för att meddela servern att passet ska tas
-            await api.put(url, {}); // Ingen data (body) behövs, bara ID i URL:en
-
-            // Visa en bekräftelse och uppdatera gränssnittet
-            alert("Passet är nu ditt! Snyggt jobbat! 🤝");
-            // Ta bort det tagna passet från listan i state för att UI:t ska uppdateras direkt
+            alert("Snyggt! Passet är nu ditt och syns i ditt schema. ✅");
+            // Uppdatera listan direkt utan att ladda om
             setAvailableShifts(prev => prev.filter(s => s.id !== shiftId));
         } catch (err) {
             const errorMessage = err.response?.data?.message || "Okänt fel";
-            console.error("Fel vid tagande av pass:", errorMessage);
             alert(`Kunde inte ta passet: ${errorMessage}`);
         }
     };
 
-    // Hjälpfunktioner för att formatera datum och tid snyggt
-    const formatDate = (shift) => {
-        const dateStr = shift.startTime;
+    const formatDate = (dateStr) => {
         if (!dateStr) return "OKÄNT DATUM";
         return new Date(dateStr).toLocaleDateString('sv-SE', { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
     };
 
-    const formatTime = (shift) => {
-        const startStr = shift.startTime;
-        const endStr = shift.endTime;
+    const formatTime = (startStr, endStr) => {
         if (!startStr || !endStr) return "--:--";
         const start = new Date(startStr).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
         const end = new Date(endStr).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
         return `${start} - ${end}`;
     };
 
-    // Visa laddningsmeddelande om datan fortfarande hämtas
     if (loading) return <div className="p-10 text-center text-green-400 font-bold animate-pulse tracking-widest">HÄMTAR MARKNADEN...</div>;
 
     return (
         <div className="space-y-6">
-            {/* Om det inte finns några lediga pass, visa ett meddelande */}
             {availableShifts.length === 0 ? (
                 <div className="bg-slate-900/50 p-12 rounded-3xl text-center border-2 border-dashed border-slate-800">
                     <p className="text-4xl mb-4">🌴</p>
                     <p className="text-slate-400 font-medium">Inga lediga pass just nu.</p>
-                    <p className="text-slate-600 text-sm mt-2">Njut av ledigheten!</p>
                 </div>
             ) : (
-                // Annars, mappa över och visa varje ledigt pass
-                availableShifts.map((shift) => (
-                    <div key={shift.id} className="bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 flex flex-col relative overflow-hidden transition-all hover:bg-slate-800 hover:scale-[1.01] hover:shadow-[0_0_30px_rgba(74,222,128,0.1)] group">
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {availableShifts.map((shift) => {
+                        // Logik: Om shift.userId är null så är det ett "Öppet pass".
+                        // Om det finns ett userId så är det en kollega som lagt ut det.
+                        const isOpenShift = !shift.userId;
 
-                        {/* Neon-kant för stil */}
-                        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-green-400 shadow-[0_0_20px_#4ade80]"></div>
+                        return (
+                            <div key={shift.id} className={`bg-slate-900/80 backdrop-blur-xl p-6 rounded-3xl border ${isOpenShift ? 'border-blue-500/30' : 'border-amber-500/30'} flex flex-col relative overflow-hidden transition-all hover:scale-[1.02] group`}>
 
-                        <div className="flex flex-col items-center text-center mb-6">
-                            <span className="text-[10px] font-black text-green-300 bg-green-500/10 px-4 py-1.5 rounded-full uppercase tracking-widest mb-4 border border-green-400/30 shadow-[0_0_10px_rgba(74,222,128,0.2)]">
-                                LEDIGT PASS
-                            </span>
+                                {/* Färgkodad kant: Blå för öppet, Bärnsten (Amber) för kollegor */}
+                                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${isOpenShift ? 'bg-blue-400 shadow-[0_0_20px_#60a5fa]' : 'bg-amber-400 shadow-[0_0_20px_#fbbf24]'}`}></div>
 
-                            <h3 className="text-3xl font-black text-white tracking-tight mb-1">
-                                {formatTime(shift)}
-                            </h3>
+                                <div className="flex flex-col items-center text-center mb-6">
+                                    {/* Etikett: Här ändrade vi texten! */}
+                                    <span className={`text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest mb-4 border shadow-sm ${isOpenShift
+                                            ? 'text-blue-300 bg-blue-500/10 border-blue-400/30'
+                                            : 'text-amber-300 bg-amber-500/10 border-amber-400/30'
+                                        }`}>
+                                        {isOpenShift ? '✨ NYTT PASS' : `👤 FRÅN ${shift.user?.firstName || 'KOLLEGA'}`}
+                                    </span>
 
-                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                                {formatDate(shift)}
-                            </p>
-                        </div>
+                                    <h3 className="text-2xl font-black text-white tracking-tight mb-1">
+                                        {formatTime(shift.startTime, shift.endTime)}
+                                    </h3>
 
-                        {/* Knapp för att ta passet */}
-                        <button
-                            onClick={() => handleTakeShift(shift.id)}
-                            className="w-full py-3 
-                            bg-green-500/10 border border-green-500/30 text-green-400 
-                            hover:bg-green-500 hover:text-white hover:border-green-400 hover:shadow-[0_0_30px_rgba(74,222,128,0.4)]
-                            text-xs font-black rounded-xl transition-all duration-300 active:scale-[0.98] 
-                            uppercase tracking-widest flex justify-center items-center gap-2 
-                            shadow-[0_0_15px_rgba(74,222,128,0.1)]"
-                        >
-                            <span>🚀</span> TA PASSET
-                        </button>
-                    </div>
-                ))
+                                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                        {formatDate(shift.startTime)}
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => handleTakeShift(shift.id)}
+                                    className={`w-full py-3 text-xs font-black rounded-xl transition-all uppercase tracking-widest flex justify-center items-center gap-2
+                                        ${isOpenShift
+                                            ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-500 hover:text-white hover:shadow-[0_0_20px_rgba(96,165,250,0.4)]'
+                                            : 'bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-white hover:shadow-[0_0_20px_rgba(251,191,36,0.4)]'
+                                        }`}
+                                >
+                                    <span>{isOpenShift ? '🙋‍♂️' : '🤝'}</span> {isOpenShift ? 'TA PASSET' : 'TA ÖVER'}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
             )}
         </div>
     );
