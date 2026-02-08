@@ -5,6 +5,7 @@ using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Shifts.Commands;
 using ShiftMate.Application.Shifts.Queries;
 using System.Security.Claims; // Behövs för att läsa "Claims" (IDt i token)
+using FluentValidation; // Added for ValidationException handling
 
 namespace ShiftMate.Api.Controllers
 {
@@ -42,10 +43,18 @@ namespace ShiftMate.Api.Controllers
 
                 return Ok(new { Id = shiftId, Message = "Passet har skapats!" });
             }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
+            catch (InvalidOperationException ioex)
+            {
+                return BadRequest(new { Error = true, Message = ioex.Message });
+            }
             catch (Exception ex)
             {
-                // Returnera ett mer informativt felmeddelande vid problem
-                return BadRequest($"Kunde inte skapa passet: {ex.Message}");
+                // Logga exception (ex.Message) för felsökning
+                return BadRequest(new { Error = true, Message = $"Ett oväntat fel uppstod vid skapande av pass: {ex.Message}" });
             }
         }
 
@@ -77,6 +86,15 @@ namespace ShiftMate.Api.Controllers
             return Ok(shifts);
         }
 
+        // Hämtar alla pass som är tillgängliga att "ta" (claim).
+        // GET: api/shifts/claimable
+        [HttpGet("claimable")]
+        public async Task<ActionResult<List<ShiftDto>>> GetClaimableShifts()
+        {
+            var shifts = await _mediator.Send(new GetClaimableShiftsQuery());
+            return Ok(shifts);
+        }
+
         // Låter en inloggad användare "ta" ett ledigt arbetspass.
         // id: ID för det pass som ska tas.
         // PUT: api/shifts/{id}/take
@@ -103,12 +121,16 @@ namespace ShiftMate.Api.Controllers
                     return Ok(new { Message = "Passet har tagits!" });
                 }
                 // Detta fall inträffar sällan om inte cachen är osynkad.
-                return NotFound(new { Message = "Kunde inte ta passet, det kanske redan är taget." });
+                return NotFound(new { Error = true, Message = "Kunde inte ta passet, det kanske redan är taget." });
+            }
+            catch (InvalidOperationException ioex)
+            {
+                return BadRequest(new { Error = true, Message = ioex.Message });
             }
             catch (Exception ex)
             {
-                // Generisk felhantering för t.ex. om passet inte finns eller inte är ledigt
-                return BadRequest(new { Message = ex.Message });
+                // Logga exception (ex.Message) för felsökning
+                return BadRequest(new { Error = true, Message = $"Ett oväntat fel uppstod vid försök att ta pass: {ex.Message}" });
             }
         }
                 
@@ -137,11 +159,42 @@ namespace ShiftMate.Api.Controllers
                 {
                     return Ok(new { Message = "Ditt pass är inte längre tillgängligt för byte." });
                 }
-                return NotFound(new { Message = "Kunde inte ångra bytet." });
+                return NotFound(new { Error = true, Message = "Kunde inte ångra bytet." });
+            }
+            catch (InvalidOperationException ioex)
+            {
+                return BadRequest(new { Error = true, Message = ioex.Message });
             }
             catch (Exception ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                // Logga exception (ex.Message) för felsökning
+                return BadRequest(new { Error = true, Message = $"Ett oväntat fel uppstod vid återkallande av byte: {ex.Message}" });
+            }
+        }
+
+        // Skapar ett nytt arbetspass som administratör, med möjlighet att tilldela en användare.
+        // POST: api/shifts/admin
+        [HttpPost("admin")]
+        [Authorize(Roles = "Admin")] // Endast administratörer får använda denna endpoint
+        public async Task<IActionResult> AdminCreate(CreateShiftCommand command)
+        {
+            try
+            {
+                var shiftId = await _mediator.Send(command);
+                return Ok(new { Id = shiftId, Message = "Administratör: Passet har skapats!" });
+            }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Administratör: Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
+            catch (InvalidOperationException ioex)
+            {
+                return BadRequest(new { Error = true, Message = ioex.Message });
+            }
+            catch (Exception ex)
+            {
+                // Logga exception (ex.Message) för felsökning
+                return BadRequest(new { Error = true, Message = $"Administratör: Ett oväntat fel uppstod vid skapande av pass: {ex.Message}" });
             }
         }
     }
