@@ -17,23 +17,31 @@ namespace ShiftMate.Application.Shifts.Queries
 
         public async Task<List<ShiftDto>> Handle(GetAllShiftsQuery request, CancellationToken cancellationToken)
         {
-            // Hämta alla pass från databasen, inklusive den användare som äger passet.
-            var shifts = await _context.Shifts
-                .Include(s => s.User) // Inkluderar User-objektet för att kunna mappa det till DTO:n.
+            // 1. Skapa en Queryable så vi kan bygga på filter dynamiskt
+            var query = _context.Shifts
+                .Include(s => s.User)
+                .AsQueryable();
+
+            // 2. Om OnlyWithUsers är true (t.ex. vid direktbyte), filtrera bort pass där UserId är null
+            if (request.OnlyWithUsers)
+            {
+                query = query.Where(s => s.UserId != null);
+            }
+
+            // 3. Hämta datan från databasen
+            var shifts = await query
                 .OrderBy(s => s.StartTime)
                 .ToListAsync(cancellationToken);
 
-            // Mappa de hämtade passen till ShiftDto-objekt.
+            // 4. Mappa de hämtade passen till ShiftDto-objekt.
             var dtos = shifts.Select(s => new ShiftDto
             {
                 Id = s.Id,
                 StartTime = s.StartTime,
                 EndTime = s.EndTime,
                 IsUpForSwap = s.IsUpForSwap,
-                UserId = s.UserId, // Lägg till UserId för frontend-filtrering/visning.
-                // DurationHours räknas ut automatiskt i DTO-klassen.
+                UserId = s.UserId,
 
-                // Mappa User-objektet till en UserDto, inklusive namn.
                 User = s.User != null ? new UserDto
                 {
                     Id = s.User.Id,
@@ -41,7 +49,6 @@ namespace ShiftMate.Application.Shifts.Queries
                     FirstName = s.User.FirstName,
                     LastName = s.User.LastName
                 } : null
-
             }).ToList();
 
             return dtos;
