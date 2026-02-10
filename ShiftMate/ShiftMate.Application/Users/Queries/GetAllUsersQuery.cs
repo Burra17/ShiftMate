@@ -1,25 +1,36 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ShiftMate.Application.Interfaces; // <--- Använd interfacet
+using ShiftMate.Application.DTOs; // <--- VIKTIG: Vi ska använda DTO
+using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain;
 
 namespace ShiftMate.Application.Users.Queries
 {
-    public record GetAllUsersQuery : IRequest<List<User>>;
+    // VIKTIGT: Returnera List<UserDto>, INTE List<User>
+    public record GetAllUsersQuery : IRequest<List<UserDto>>;
 
-    public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<User>>
+    public class GetAllUsersHandler : IRequestHandler<GetAllUsersQuery, List<UserDto>>
     {
-        private readonly IAppDbContext _context; // <--- Inte AppDbContext, utan IAppDbContext
+        private readonly IAppDbContext _context;
 
-        // Dependency Injection skickar in den riktiga databasen, men vi ser den bara som ett interface
         public GetAllUsersHandler(IAppDbContext context)
         {
             _context = context;
         }
 
-        public async Task<List<User>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+        public async Task<List<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            return await _context.Users.ToListAsync(cancellationToken);
+            // Vi använder .Select() för att plocka ut BARA det vi vill visa.
+            // På så sätt skickas inte PasswordHash med, och vi undviker kraschar.
+            return await _context.Users
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Email = u.Email,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName
+                })
+                .ToListAsync(cancellationToken);
         }
     }
 }
