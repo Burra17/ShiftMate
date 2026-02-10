@@ -73,4 +73,31 @@ export const proposeDirectSwap = async (myShiftId, targetShiftId) => {
     }
 };
 
+// --- NY FUNKTION: Hämta roll från token ---
+export const getUserRole = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+
+    try {
+        // 1. Dela upp token (Header.Payload.Signature)
+        const base64Url = token.split('.')[1];
+
+        // 2. Fixa Base64-formatet
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+        // 3. Avkoda till läsbar text
+        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        const payload = JSON.parse(jsonPayload);
+
+        // 4. Returnera rollen (hanterar både Microsoft-format och standard)
+        return payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || payload.role;
+    } catch (e) {
+        console.error("Kunde inte läsa roll från token:", e);
+        return null;
+    }
+};
+
 export default axiosInstance;
