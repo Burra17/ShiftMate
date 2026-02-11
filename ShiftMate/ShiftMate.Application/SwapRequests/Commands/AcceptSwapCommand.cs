@@ -55,16 +55,24 @@
 ﻿                var targetUserId = request.CurrentUserId;
 ﻿
 ﻿                // Krock-kontroll för BÅDA parter
-﻿                // Kollar om den som frågade krockar med passet de får
-﻿                if (swapRequest.RequestingUser == null) throw new Exception("Fel: Avsändarens användardata saknas."); 
+﻿                // Exkludera passet som varje person lämnar ifrån sig — det tillhör dem inte efter bytet
+﻿                if (swapRequest.RequestingUser == null) throw new Exception("Fel: Avsändarens användardata saknas.");
 ﻿                var requestorOverlap = await _context.Shifts.AnyAsync(s =>
-﻿                    s.UserId == requestingUserId && s.Id != targetShift.Id && s.StartTime < targetShift.EndTime && s.EndTime > targetShift.StartTime, cancellationToken);
+﻿                    s.UserId == requestingUserId &&
+﻿                    s.Id != targetShift.Id &&
+﻿                    s.Id != originalShift.Id &&
+﻿                    s.StartTime < targetShift.EndTime &&
+﻿                    s.EndTime > targetShift.StartTime, cancellationToken);
 ﻿                if (requestorOverlap) throw new Exception($"Bytet kan inte genomföras eftersom {swapRequest.RequestingUser.FirstName} skulle få en passkrock.");
-﻿
+
 ﻿                // Kollar om den som accepterar krockar med passet de får
-﻿                if (swapRequest.TargetUser == null) throw new Exception("Fel: Mottagarens användardata saknas."); 
+﻿                if (swapRequest.TargetUser == null) throw new Exception("Fel: Mottagarens användardata saknas.");
 ﻿                var acceptorOverlap = await _context.Shifts.AnyAsync(s =>
-﻿                    s.UserId == targetUserId && s.Id != originalShift.Id && s.StartTime < originalShift.EndTime && s.EndTime > originalShift.StartTime, cancellationToken);
+﻿                    s.UserId == targetUserId &&
+﻿                    s.Id != originalShift.Id &&
+﻿                    s.Id != targetShift.Id &&
+﻿                    s.StartTime < originalShift.EndTime &&
+﻿                    s.EndTime > originalShift.StartTime, cancellationToken);
 ﻿                if (acceptorOverlap) throw new Exception("Bytet kan inte genomföras eftersom du skulle få en passkrock.");
 ﻿
 ﻿                // Genomför bytet: Byt ägare på båda passen
