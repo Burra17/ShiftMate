@@ -7,13 +7,60 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `migration/claude`
+- **Active Branch:** `fix/post-cleanup-bugfixes`
 - **Last Updated:** 2026-02-11
-- **Project State:** Stable, all core features implemented
+- **Project State:** Bugfixar klara — tester fixade (4→13), direktbyte-logik fixad, admin-passkapning fixad
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-11 - Bugfixes & Tests (fix/post-cleanup-bugfixes)
+
+- **What was done:**
+  - **Fix 1 - Testsvit (4→13 tester, 0 failing):**
+    - `CreateShiftHandlerTests`: Seedade User-entitet i InMemory DB (handlern kontrollerar user-existens sedan krock-kontrollen lades till)
+    - `AcceptSwapHandlerTests`: Seedade User-entiteter för alla FK-relationer (Npgsql Include() kräver att refererade entiteter finns)
+    - Nya tester: öppet pass utan UserId, user-not-found, passkrock vid skapning, lyckat öppet byte, byte-ej-hittat, redan-accepterat byte, direktbyte samma dag, direktbyte med överlappande tider, avvisat byte vid tredje-pass-krock
+  - **Fix 2 - Direktbyte overlap-logik (`AcceptSwapCommand.cs`):**
+    - Bugg: Vid direktbyte (t.ex. onsdag-mot-onsdag) blockerades bytet felaktigt med "passkrock" eftersom overlap-checken räknade in passet som personen ger bort
+    - Fix: Lade till `s.Id != originalShift.Id` i requestor-checken och `s.Id != targetShift.Id` i acceptor-checken så att båda bytespassen exkluderas
+  - **Fix 3 - Admin kan inte skapa pass med tilldelad användare (`CreateShiftCommand.cs`):**
+    - Bugg: Npgsql 8 kräver `DateTimeKind.Utc` för queries mot `timestamptz`-kolumner. Frontend skickar `DateTimeKind.Unspecified` från `datetime-local`. Öppna pass fungerade (skippar overlap-query), tilldelade pass kraschade
+    - Fix: Normaliserar DateTime till UTC via `SpecifyKind` i början av handlern, före alla DB-queries
+
+- **Kända problem:**
+  - Swap accept/decline-regression från cleanup behöver fortfarande felsökas i browser (frontend-sidan)
+
+### 2026-02-11 - Code Cleanup (refactor/code-cleanup → merged to main)
+
+- **What was done:**
+  - **Group 1 - Dead Code Removal:**
+    - Tömde `App.css` (oanvänd Vite-template CSS)
+    - Tog bort oanvänd `fetchShifts`-import i `MarketPlace.jsx`
+    - Tog bort redundanta `using`-satser i `TakeShiftCommandHandler.cs` (täcks av .NET 8 implicit usings)
+  - **Group 2 - Kommentarer & Strängar:**
+    - Fixade encoding-korruption (`√∂` → `ö`) i `IEmailService.cs` och `CreateShiftCommandValidatorTests.cs`
+    - Översatte valideringsmeddelanden i `RegisterUserCommandValidator.cs` till svenska
+    - Översatte loggmeddelande i `SmtpEmailService.cs` och `api.js` till svenska
+  - **Group 3 - DRY Frontend (dateUtils):**
+    - Skapade `src/utils/dateUtils.js` med `formatDate()`, `formatTime()`, `formatTimeRange()`
+    - Uppdaterade `ShiftList.jsx`, `MarketPlace.jsx`, `Schedule.jsx` att använda delade utils
+  - **Group 4 - DRY Backend (JWT Extension):**
+    - Skapade `ShiftMate.Api/Extensions/ClaimsPrincipalExtensions.cs` med `GetUserId()`
+    - Uppdaterade alla tre controllers att använda extension-metoden
+  - **Group 5 - Frontend API-centralisering:**
+    - Lade till 8 centraliserade funktioner i `api.js` (fetchMyShifts, fetchClaimableShifts, takeShift, cancelShiftSwap, initiateSwap, fetchReceivedSwapRequests, acceptSwapRequest, declineSwapRequest)
+    - Lade till delad `decodeToken()` hjälpfunktion, refaktorerade `getUserRole()` att använda den
+    - Uppdaterade `ShiftList.jsx`, `MarketPlace.jsx`, `Schedule.jsx`, `Profile.jsx`
+  - **Group 6 - Performance:**
+    - Lade till `.AsNoTracking()` på alla 6 read-only query handlers
+
+- **Kända problem (att felsöka nästa session):**
+  - Swap-logiken (godkänn/neka bytesförfrågan) slutade fungera efter cleanup
+  - Troligen relaterat till Group 5 (API-centralisering i ShiftList.jsx) eller Group 4 (controller-refaktorering)
+  - Koden ser korrekt ut vid granskning — behöver köras med browser devtools för att se exakt felmeddelande
+  - 2 pre-existing testfel finns (CreateShiftHandlerTests, AcceptSwapHandlerTests) — ej relaterade till cleanup
 
 ### 2026-02-11 - Migration to Claude Code
 
@@ -45,7 +92,9 @@ Update this file at the end of each significant work session.
   - Seed data with 4 test users
 
 - **Known areas for future work:**
-  - (To be filled as work continues)
+  - Felsöka swap accept/decline i frontend (browser devtools)
+  - Status magic strings ("Pending", "Accepted") → enum + migration
+  - Error response format-konsistens
 
 ---
 
@@ -57,6 +106,12 @@ Track important architectural or design decisions here.
 |------|----------|--------|
 | 2026-02-11 | Switched from Gemini CLI to Claude Code | Better developer experience |
 | 2026-02-11 | Created CLAUDE.md + MEMORY.md | Consistent context across sessions |
+| 2026-02-11 | Skapade `utils/dateUtils.js` | DRY — duplicerad datumformatering i 3 komponenter |
+| 2026-02-11 | Skapade `ClaimsPrincipalExtensions.cs` | DRY — JWT-userId-parsning duplicerad i 3 controllers |
+| 2026-02-11 | Centraliserade API-anrop i `api.js` | DRY — direkta axios-anrop i komponenter → delade funktioner |
+| 2026-02-11 | `.AsNoTracking()` på alla read-only queries | Prestandaoptimering |
+| 2026-02-11 | UTC-normalisering tidigt i handlers | Npgsql 8 kräver `DateTimeKind.Utc` för `timestamptz`-queries |
+| 2026-02-11 | Exkludera båda bytespass i overlap-check | Direktbyten blockerades felaktigt vid överlapp |
 
 ---
 

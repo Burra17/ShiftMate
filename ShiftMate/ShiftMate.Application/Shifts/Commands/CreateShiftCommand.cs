@@ -31,6 +31,11 @@ namespace ShiftMate.Application.Shifts.Commands
 
         public async Task<Guid> Handle(CreateShiftCommand request, CancellationToken cancellationToken)
         {
+            // Normalisera tiderna till UTC direkt — Npgsql 8 kräver DateTimeKind.Utc
+            // för alla queries mot timestamptz-kolumner i PostgreSQL
+            var startTimeUtc = DateTime.SpecifyKind(request.StartTime, DateTimeKind.Utc);
+            var endTimeUtc = DateTime.SpecifyKind(request.EndTime, DateTimeKind.Utc);
+
             // 1. VALIDERING
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
 
@@ -39,7 +44,7 @@ namespace ShiftMate.Application.Shifts.Commands
                 throw new ValidationException(validationResult.Errors);
             }
 
-            // 2. KROCK-KONTROLL 🛑
+            // 2. KROCK-KONTROLL
             // Vi kollar bara krockar om passet faktiskt ska tilldelas någon (UserId är inte null)
             if (request.UserId.HasValue)
             {
@@ -49,15 +54,14 @@ namespace ShiftMate.Application.Shifts.Commands
 
                 if (!userExists)
                 {
-                    // Man kan kasta ValidationException eller NotFound, här kör vi en Exception för enkelhetens skull
                     throw new InvalidOperationException("Användaren hittades inte.");
                 }
 
                 // Kolla krockar för just denna användare
                 var hasOverlap = await _context.Shifts.AnyAsync(s =>
                     s.UserId == request.UserId &&
-                    s.StartTime < request.EndTime &&
-                    s.EndTime > request.StartTime,
+                    s.StartTime < endTimeUtc &&
+                    s.EndTime > startTimeUtc,
                     cancellationToken
                 );
 
@@ -71,12 +75,9 @@ namespace ShiftMate.Application.Shifts.Commands
             var shift = new Shift
             {
                 Id = Guid.NewGuid(),
-                UserId = request.UserId, // Kan vara null (Öppet pass) eller ett ID (Tilldelat)
-
-                // VIKTIGT: Tvinga tiderna till UTC så PostgreSQL blir nöjd 🌍
-                StartTime = DateTime.SpecifyKind(request.StartTime, DateTimeKind.Utc),
-                EndTime = DateTime.SpecifyKind(request.EndTime, DateTimeKind.Utc),
-
+                UserId = request.UserId,
+                StartTime = startTimeUtc,
+                EndTime = endTimeUtc,
                 IsUpForSwap = false
             };
 
