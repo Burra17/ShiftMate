@@ -74,10 +74,9 @@ const MainApp = ({ onLogout }) => {
 
             {/* Huvudinnehåll */}
             <main className="flex-1 overflow-y-auto relative h-screen">
-                <div className="p-6 md:p-12 max-w-5xl mx-auto pb-32 md:pb-12">
+                <div className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12">
                     <header className="mb-8">
                         <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            {/* Visa rätt rubrik eller fallback */}
                             {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
                         </h2>
                         <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
@@ -88,6 +87,30 @@ const MainApp = ({ onLogout }) => {
                     </div>
                 </div>
             </main>
+
+            {/* Mobil bottenmeny — visas bara på små skärmar */}
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 z-50">
+                <div className="flex justify-around items-center h-16 px-1">
+                    {navItems.map((item) => (
+                        <Link
+                            to={item.path}
+                            key={item.id}
+                            onClick={() => setActiveTab(item.id)}
+                            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200
+                                ${activeTab === item.id
+                                    ? 'text-blue-400'
+                                    : 'text-slate-500'
+                                }`}
+                        >
+                            <item.icon />
+                            <span className="text-[10px] font-bold mt-1 tracking-tight">{item.label}</span>
+                            {activeTab === item.id && (
+                                <div className="w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_6px_#3b82f6] mt-0.5"></div>
+                            )}
+                        </Link>
+                    ))}
+                </div>
+            </nav>
         </div>
     );
 };
