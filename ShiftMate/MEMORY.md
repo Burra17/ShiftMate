@@ -7,13 +7,37 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `main`
+- **Active Branch:** `feature/schedule-ui-improvements`
 - **Last Updated:** 2026-02-11
-- **Project State:** Stabil — alla bugfixar mergade, tester gröna (13st), UX-förbättringar klara
+- **Project State:** Stabil — schedule-redesign klar (ej mergad till main ännu)
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-11 - Schedule Redesign (feature/schedule-ui-improvements)
+
+- **What was done:**
+  - **Komplett omskrivning av Schema-sidan** med tre vylägen:
+    - **Dag (DayView):** Detaljerad lista med fullstora ShiftCards (avatar, namn, tid, varaktighet, bytesstatus)
+    - **Vecka (WeekView):** 7-kolumnsrutnät mån–sön på desktop, staplat på mobil. Standardvy.
+    - **Månad (MonthView):** 42-cells kalenderrutnät med färgade passprickar. Klick på dag → öppnar dagsvy.
+  - **Navigation:** Föregående/Nästa-pilar, "Idag"-knapp, periodlabel som anpassas per vy
+  - **Egna pass markerade:** Blå accentkant + tonad bakgrund i alla vyer
+  - **Idag-indikator:** Ring-highlight i månadsvy, blå prick + text i veckovy
+  - **Nya filer (6):**
+    - `src/components/schedule/ShiftCard.jsx` — Återanvändbart passkort (compact/full + ägar-markering)
+    - `src/components/schedule/ViewToggle.jsx` — Dag/Vecka/Månad segmenterad kontroll
+    - `src/components/schedule/NavigationBar.jsx` — Navigering + periodlabel
+    - `src/components/schedule/DayView.jsx` — Detaljerad dagslista
+    - `src/components/schedule/WeekView.jsx` — Responsivt veckorutnät
+    - `src/components/schedule/MonthView.jsx` — Kalenderrutnät med passprickar + förklaring
+  - **Modifierade filer (3):**
+    - `src/utils/dateUtils.js` — 11 nya kalenderhjälpfunktioner (getMonday, getWeekNumber, getCalendarDays, isSameDay, isToday, formatMonthYear, formatWeekLabel, formatDayLabel, getShortWeekday, addDays, addMonths)
+    - `src/api.js` — Ny `getCurrentUserId()` hjälpfunktion (JWT nameidentifier claim)
+    - `src/Schedule.jsx` — Omskriven till orkestrerare med viewMode/currentDate state
+  - **Inga nya npm-beroenden** — enbart native Date + egna utility-funktioner
+  - **Build OK** — vite build kompilerar utan fel
 
 ### 2026-02-11 - Frontend UX (feature/frontend-ux-improvements → merged to main)
 
@@ -136,6 +160,11 @@ Track important architectural or design decisions here.
 | 2026-02-11 | AdminPanel: datum + tid separat istället för datetime-local | Enklare UX, behöver bara välja datum en gång |
 | 2026-02-11 | Mobil bottenmeny | Sidebar var `hidden md:flex` utan mobilalternativ |
 | 2026-02-11 | `<html lang="sv">` | Förhindrar Chrome auto-translate från att förstöra svensk text |
+| 2026-02-11 | Schema: Dag/Vecka/Månad-vyer med lokal state | Ingen URL-params — konsistent med resten av appen |
+| 2026-02-11 | Vecka startar måndag (ISO 8601) | Svensk standard |
+| 2026-02-11 | 42-cells månadsrutnät (6 rader) | Konsekvent höjd oavsett månad |
+| 2026-02-11 | Nattpass visas på startdagsdatum | Enklast och mest intuitiva tolkningent |
+| 2026-02-11 | `getCurrentUserId()` via JWT claim | Samma mönster som `getUserRole()` |
 
 ---
 
