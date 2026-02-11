@@ -7,15 +7,34 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `fix/post-cleanup-bugfixes`
+- **Active Branch:** `main`
 - **Last Updated:** 2026-02-11
-- **Project State:** Bugfixar klara — tester fixade (4→13), direktbyte-logik fixad, admin-passkapning fixad
+- **Project State:** Stabil — alla bugfixar mergade, tester gröna (13st), UX-förbättringar klara
 
 ---
 
 ## SESSION LOG
 
-### 2026-02-11 - Bugfixes & Tests (fix/post-cleanup-bugfixes)
+### 2026-02-11 - Frontend UX (feature/frontend-ux-improvements → merged to main)
+
+- **What was done:**
+  - **AdminPanel redesign:**
+    - Ersatte två `datetime-local`-inputs med separat datumväljare + tidsinputs
+    - Snabbvalsknappar: Öppning (05.45-13), Örjan (06.13-15), Dagpass (11-20), Kvällspass (14-22.15)
+    - Beräknad passlängd visas som förhandsgranskning
+    - Formuläret återställs automatiskt efter skapning
+    - Meddelanden auto-försvinner efter 4 sekunder
+    - Hanterar nattpass som passerar midnatt korrekt
+  - **Mobil navigation:**
+    - Fast bottenmeny med ikoner + etiketter, synlig bara på mobil (`md:hidden`)
+    - Samma menyalternativ som sidomenyn inkl. Admin för admin-användare
+    - Aktiv flik-indikator med glow-effekt
+  - **Svenskifiering:**
+    - `<html lang="en">` → `<html lang="sv">` (förhindrar Chrome auto-translate från att förstöra svensk text)
+    - Sidtitel → "ShiftMate"
+    - "Admin Panel" → "Admin" i navigationen
+
+### 2026-02-11 - Bugfixes & Tests (fix/post-cleanup-bugfixes → merged to main)
 
 - **What was done:**
   - **Fix 1 - Testsvit (4→13 tester, 0 failing):**
@@ -95,6 +114,8 @@ Update this file at the end of each significant work session.
   - Felsöka swap accept/decline i frontend (browser devtools)
   - Status magic strings ("Pending", "Accepted") → enum + migration
   - Error response format-konsistens
+  - Ersätta `alert()`/`window.confirm()` med stilade toast-meddelanden
+  - Profilredigering (backend-endpoint finns: PUT /api/users/profile)
 
 ---
 
@@ -112,6 +133,9 @@ Track important architectural or design decisions here.
 | 2026-02-11 | `.AsNoTracking()` på alla read-only queries | Prestandaoptimering |
 | 2026-02-11 | UTC-normalisering tidigt i handlers | Npgsql 8 kräver `DateTimeKind.Utc` för `timestamptz`-queries |
 | 2026-02-11 | Exkludera båda bytespass i overlap-check | Direktbyten blockerades felaktigt vid överlapp |
+| 2026-02-11 | AdminPanel: datum + tid separat istället för datetime-local | Enklare UX, behöver bara välja datum en gång |
+| 2026-02-11 | Mobil bottenmeny | Sidebar var `hidden md:flex` utan mobilalternativ |
+| 2026-02-11 | `<html lang="sv">` | Förhindrar Chrome auto-translate från att förstöra svensk text |
 
 ---
 
