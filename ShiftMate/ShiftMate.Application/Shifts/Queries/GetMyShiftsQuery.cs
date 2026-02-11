@@ -22,6 +22,7 @@ namespace ShiftMate.Application.Shifts.Queries
         {
             // Hämta pass från databasen som tillhör den angivna användaren, sorterade efter starttid.
             var shifts = await _context.Shifts
+                .AsNoTracking()
                 .Where(s => s.UserId == request.UserId)
                 .OrderBy(s => s.StartTime)
                 .ToListAsync(cancellationToken);

@@ -8,21 +8,21 @@ namespace ShiftMate.Application.Users.Commands
         {
             // Regel: Förnamn får inte vara tomt.
             RuleFor(x => x.FirstName)
-                .NotEmpty().WithMessage("First name is required.");
+                .NotEmpty().WithMessage("Förnamn måste anges.");
 
             // Regel: Efternamn får inte vara tomt.
             RuleFor(x => x.LastName)
-                .NotEmpty().WithMessage("Last name is required.");
+                .NotEmpty().WithMessage("Efternamn måste anges.");
 
             // Regel: E-post får inte vara tomt och måste vara en giltig e-postadress.
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("A valid email address is required.");
+                .NotEmpty().WithMessage("E-postadress måste anges.")
+                .EmailAddress().WithMessage("En giltig e-postadress krävs.");
 
             // Regel: Lösenord får inte vara tomt och måste vara minst 8 tecken långt.
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Password is required.")
-                .MinimumLength(8).WithMessage("Password must be at least 8 characters long.");
+                .NotEmpty().WithMessage("Lösenord måste anges.")
+                .MinimumLength(8).WithMessage("Lösenordet måste vara minst 8 tecken långt.");
         }
     }
 }

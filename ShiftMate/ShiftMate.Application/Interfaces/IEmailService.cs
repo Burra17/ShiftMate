@@ -2,8 +2,8 @@ using System.Threading.Tasks;
 
 namespace ShiftMate.Application.Interfaces
 {
-    public interface IEmailService // Skapa interface för e-posttjänst
+    public interface IEmailService // Skapa interface fÃ¶r e-posttjÃ¤nst
     {
-        Task SendEmailAsync(string toEmail, string subject, string message); // Metod för att skicka e-post
+        Task SendEmailAsync(string toEmail, string subject, string message); // Metod fÃ¶r att skicka e-post
     }
 }

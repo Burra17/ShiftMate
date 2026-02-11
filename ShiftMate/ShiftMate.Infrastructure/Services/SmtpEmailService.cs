@@ -59,7 +59,7 @@ namespace ShiftMate.Infrastructure.Services
         {
             if (_emailSettings == null)
             {
-                _logger.LogError("Email settings are not configured. Cannot send email.");
+                _logger.LogError("E-postinställningar saknas. Kan inte skicka e-post.");
                 return;
             }
             // Skapa och konfigurera SMTP-klienten

@@ -3,7 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.SwapRequests.Commands;
 using ShiftMate.Application.SwapRequests.Queries;
-using System.Security.Claims;
+using ShiftMate.Api.Extensions;
 
 namespace ShiftMate.Api.Controllers
 {
@@ -25,14 +25,13 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-                if (string.IsNullOrEmpty(userIdString))
+                var userId = User.GetUserId();
+                if (userId == null)
                 {
                     return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
 
-                command.RequestingUserId = Guid.Parse(userIdString);
+                command.RequestingUserId = userId.Value;
 
                 var swapRequestId = await _mediator.Send(command);
                 return Ok(new { SwapRequestId = swapRequestId, Message = "Bytesförfrågan skapad!" });
@@ -50,13 +49,13 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString))
+                var userId = User.GetUserId();
+                if (userId == null)
                 {
                     return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
 
-                command.RequestingUserId = Guid.Parse(userIdString);
+                command.RequestingUserId = userId.Value;
 
                 var swapRequestId = await _mediator.Send(command);
                 return Ok(new { SwapRequestId = swapRequestId, Message = "Förslag om direktbyte har skickats!" });
@@ -82,15 +81,15 @@ namespace ShiftMate.Api.Controllers
         [HttpGet("received")]
         public async Task<IActionResult> GetReceivedSwapRequests()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString))
+            var userId = User.GetUserId();
+            if (userId == null)
             {
                 return Unauthorized(new { message = "Kunde inte identifiera användaren." });
             }
 
             var query = new GetReceivedSwapRequestsQuery
             {
-                CurrentUserId = Guid.Parse(userIdString)
+                CurrentUserId = userId.Value
             };
             var result = await _mediator.Send(query);
             return Ok(result);
@@ -102,10 +101,10 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new { message = "Ingen behörighet." });
+                var userId = User.GetUserId();
+                if (userId == null) return Unauthorized(new { message = "Ingen behörighet." });
 
-                command.CurrentUserId = Guid.Parse(userIdString);
+                command.CurrentUserId = userId.Value;
 
                 await _mediator.Send(command);
                 return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
@@ -123,8 +122,8 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString))
+                var userId = User.GetUserId();
+                if (userId == null)
                 {
                     return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
@@ -132,7 +131,7 @@ namespace ShiftMate.Api.Controllers
                 var command = new DeclineSwapRequestCommand
                 {
                     SwapRequestId = id,
-                    CurrentUserId = Guid.Parse(userIdString)
+                    CurrentUserId = userId.Value
                 };
 
                 await _mediator.Send(command);
@@ -151,12 +150,10 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString)) return Unauthorized(new { message = "Ingen behörighet." });
+                var userId = User.GetUserId();
+                if (userId == null) return Unauthorized(new { message = "Ingen behörighet." });
 
-                var userId = Guid.Parse(userIdString);
-
-                await _mediator.Send(new CancelSwapRequestCommand(id, userId));
+                await _mediator.Send(new CancelSwapRequestCommand(id, userId.Value));
 
                 return NoContent();
             }

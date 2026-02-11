@@ -1,6 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-// Vi importerar både standard-api och vår specifika fetchShifts-funktion
-import api, { fetchShifts as fetchShiftsApi } from './api';
+import { fetchShifts as fetchShiftsApi, fetchMyShifts, fetchReceivedSwapRequests, acceptSwapRequest, declineSwapRequest, initiateSwap, cancelShiftSwap, proposeDirectSwap } from './api';
+import { formatDate, formatTime } from './utils/dateUtils';
 
 const ShiftList = () => {
     // --- STATES ---
@@ -25,8 +25,8 @@ const ShiftList = () => {
     // Hämtar pass som tillhör den inloggade användaren
     const fetchShifts = async () => {
         try {
-            const response = await api.get('/shifts/mine');
-            setShifts(response.data);
+            const data = await fetchMyShifts();
+            setShifts(data);
         } catch (err) {
             console.error("Kunde inte hämta pass:", err);
             setError("Kunde inte ladda dina pass just nu.");
@@ -39,8 +39,8 @@ const ShiftList = () => {
     const fetchReceivedRequests = async () => {
         try {
             setRequestsLoading(true);
-            const response = await api.get('/swaprequests/received');
-            setPendingRequests(response.data);
+            const data = await fetchReceivedSwapRequests();
+            setPendingRequests(data);
         } catch (err) {
             console.error("Kunde inte hämta inkommande förfrågningar:", err);
         } finally {
@@ -59,7 +59,7 @@ const ShiftList = () => {
     const handleDecline = async (requestId) => {
         setActionLoading(requestId);
         try {
-            await api.post(`/swaprequests/${requestId}/decline`);
+            await declineSwapRequest(requestId);
             alert("Förfrågan har nekats.");
             setPendingRequests(prev => prev.filter(r => r.id !== requestId));
         } catch (err) {
@@ -72,7 +72,7 @@ const ShiftList = () => {
     const handleAccept = async (requestId) => {
         setActionLoading(requestId);
         try {
-            await api.post('/swaprequests/accept', { swapRequestId: requestId });
+            await acceptSwapRequest(requestId);
             alert("Bytet har accepterats! Ditt schema uppdateras.");
             setPendingRequests(prev => prev.filter(r => r.id !== requestId));
             fetchShifts();
@@ -89,7 +89,7 @@ const ShiftList = () => {
     const handleInitiateSwap = async (shiftId) => {
         setActionLoading(shiftId);
         try {
-            await api.post('/SwapRequests/initiate', { shiftId: shiftId });
+            await initiateSwap(shiftId);
             alert("Passet ligger nu ute för byte! 🎉");
             setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, isUpForSwap: true } : s));
         } catch (err) {
@@ -103,7 +103,7 @@ const ShiftList = () => {
     const handleCancelSwap = async (shiftId) => {
         setActionLoading(shiftId);
         try {
-            await api.put(`/shifts/${shiftId}/cancel-swap`);
+            await cancelShiftSwap(shiftId);
             setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, isUpForSwap: false } : s));
         } finally {
             setActionLoading(null);
@@ -144,10 +144,7 @@ const ShiftList = () => {
         setActionLoading(targetShiftId);
 
         try {
-            await api.post('/SwapRequests/propose-direct', {
-                myShiftId: selectedShift.id,
-                targetShiftId: targetShiftId
-            });
+            await proposeDirectSwap(selectedShift.id, targetShiftId);
             alert("Förslag om direktbyte har skickats!");
             setIsModalOpen(false);
             setAvailableShifts([]);
@@ -163,20 +160,6 @@ const ShiftList = () => {
     const formatShiftTime = (shift) => {
         if (!shift?.startTime || !shift?.endTime) return "Okänd tid";
         return `${formatTime(shift.startTime)} - ${formatTime(shift.endTime)}`;
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-        return new Date(dateString).toLocaleDateString('sv-SE', {
-            weekday: 'short', day: 'numeric', month: 'short'
-        }).toUpperCase();
-    };
-
-    const formatTime = (dateString) => {
-        if (!dateString) return "";
-        return new Date(dateString).toLocaleTimeString('sv-SE', {
-            hour: '2-digit', minute: '2-digit'
-        });
     };
 
     // --- RENDERINGS-LOGIK ---

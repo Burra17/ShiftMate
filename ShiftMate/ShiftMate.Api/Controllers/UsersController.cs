@@ -1,8 +1,8 @@
 ﻿using MediatR;
 ﻿using Microsoft.AspNetCore.Mvc;
 ﻿using ShiftMate.Application.Users.Commands;
-﻿using ShiftMate.Application.Users.Queries; // Se till att denna matchar din namespace
-﻿using System.Security.Claims;
+﻿using ShiftMate.Application.Users.Queries;
+﻿using ShiftMate.Api.Extensions;
 ﻿
 ﻿namespace ShiftMate.Api.Controllers
 ﻿{
@@ -65,10 +65,10 @@
 ﻿        [HttpPut("profile")]
 ﻿        public async Task<IActionResult> UpdateProfile(UpdateProfileCommand command)
 ﻿        {
-﻿            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-﻿            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
-﻿
-﻿            command.UserId = Guid.Parse(userIdString);
+﻿            var userId = User.GetUserId();
+﻿            if (userId == null) return Unauthorized();
+
+﻿            command.UserId = userId.Value;
 ﻿
 ﻿            try
 ﻿            {

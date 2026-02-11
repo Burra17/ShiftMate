@@ -1,11 +1,7 @@
 using MediatR;
 using ShiftMate.Application.Interfaces;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Domain;
-using System;
-using System.Linq; // Behövs för .Any()
 
 namespace ShiftMate.Application.Shifts.Commands
 {

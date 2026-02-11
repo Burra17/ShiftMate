@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Shifts.Commands;
 using ShiftMate.Application.Shifts.Queries;
-using System.Security.Claims;
+using ShiftMate.Api.Extensions;
 using FluentValidation;
 
 namespace ShiftMate.Api.Controllers
@@ -29,13 +29,13 @@ namespace ShiftMate.Api.Controllers
         {
             try
             {
-                var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userIdString))
+                var userId = User.GetUserId();
+                if (userId == null)
                 {
                     return Unauthorized("Kunde inte identifiera användaren från token.");
                 }
 
-                command.UserId = Guid.Parse(userIdString);
+                command.UserId = userId.Value;
                 var shiftId = await _mediator.Send(command);
 
                 return Ok(new { Id = shiftId, Message = "Passet har skapats!" });
@@ -56,10 +56,10 @@ namespace ShiftMate.Api.Controllers
         [HttpGet("mine")]
         public async Task<IActionResult> GetMyShifts()
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
 
-            var query = new GetMyShiftsQuery(Guid.Parse(userIdString));
+            var query = new GetMyShiftsQuery(userId.Value);
             var result = await _mediator.Send(query);
 
             return Ok(result);
@@ -94,13 +94,13 @@ namespace ShiftMate.Api.Controllers
         [HttpPut("{id}/take")]
         public async Task<IActionResult> TakeShift(Guid id)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
 
             var command = new TakeShiftCommand
             {
                 ShiftId = id,
-                UserId = Guid.Parse(userIdString)
+                UserId = userId.Value
             };
 
             try
@@ -122,13 +122,13 @@ namespace ShiftMate.Api.Controllers
         [HttpPut("{id}/cancel-swap")]
         public async Task<IActionResult> CancelSwap(Guid id)
         {
-            var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userIdString)) return Unauthorized();
+            var userId = User.GetUserId();
+            if (userId == null) return Unauthorized();
 
             var command = new CancelShiftSwapCommand
             {
                 ShiftId = id,
-                UserId = Guid.Parse(userIdString)
+                UserId = userId.Value
             };
 
             try

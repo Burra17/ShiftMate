@@ -20,6 +20,7 @@ namespace ShiftMate.Application.SwapRequests.Queries
         public async Task<List<SwapRequestDto>> Handle(GetAvailableSwapsQuery request, CancellationToken cancellationToken)
         {
             var swaps = await _context.SwapRequests
+                .AsNoTracking()
                 .Include(sr => sr.Shift)           // Hämta passet
                 .Include(sr => sr.RequestingUser)  // <--- VIKTIGT: Hämta användaren också!
                 .Where(sr => sr.Status == "Pending")
