@@ -111,7 +111,7 @@ const AdminPanel = () => {
                                 </option>
                             ))}
                         </select>
-                        <p className="text-xs text-slate-500 ml-1">Lämnas det tomt hamnar passet direkt på Torget.</p>
+                        <p className="text-xs text-slate-500 ml-1">Lämnas det tomt hamnar passet direkt på Lediga pass.</p>
                     </div>
 
                     {/* Knapp */}

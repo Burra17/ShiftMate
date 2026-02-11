@@ -33,7 +33,7 @@ const MainApp = ({ onLogout }) => {
 
     // NYTT: Om man är admin, lägg till admin-panelen i listan!
     const navItems = isAdmin
-        ? [...baseNavItems, { id: 'admin', label: 'Admin Panel', path: '/admin', component: <AdminPanel />, icon: Icons.Shield }]
+        ? [...baseNavItems, { id: 'admin', label: 'Admin', path: '/admin', component: <AdminPanel />, icon: Icons.Shield }]
         : baseNavItems;
 
     // Hittar den komponent som motsvarar den aktiva fliken.
