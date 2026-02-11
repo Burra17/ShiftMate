@@ -1,51 +1,93 @@
-# React + Vite
+# ShiftMate Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React-klienten för ShiftMate - en applikation för skiftplanering och hantering av skiftbyten.
 
-Currently, two official plugins are available:
+## Teknikstack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React 19** - Funktionella komponenter med Hooks
+- **Vite 7** - Byggverktyg med HMR (Hot Module Replacement)
+- **Tailwind CSS 4** - Utility-first CSS med Neon Dark-tema (`bg-slate-950`, `text-blue-400`)
+- **Axios** - HTTP-klient med JWT-interceptor för automatisk autentisering
+- **React Router v7** - Klientbaserad routing
 
-## React Compiler
+## Komma igång
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+# Installera beroenden
+npm install
 
-## Expanding the ESLint configuration
+# Starta utvecklingsserver (http://localhost:5173)
+npm run dev
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Bygg för produktion
+npm run build
 
-## Frontend File Structure
+# Förhandsgranska produktionsbygge
+npm run preview
+```
+
+## Miljövariabler
+
+- `.env.development` - API-URL för lokal utveckling (`https://localhost:7215/api`)
+- `.env.production` - API-URL för produktion (`https://shiftmate-vow0.onrender.com/api`)
+
+## Sidor
+
+| Sida | Fil | Beskrivning |
+|------|-----|-------------|
+| Inloggning | `Login.jsx` | Inloggning med e-post och lösenord |
+| Registrering | `Register.jsx` | Skapa nytt konto |
+| Mina Pass | `ShiftList.jsx` | Användarens skift och inkommande bytesförfrågningar |
+| Lediga Pass | `MarketPlace.jsx` | Otilldelade och erbjudna skift att ta |
+| Schema | `Schedule.jsx` | Komplett schemaöversikt grupperad per datum |
+| Profil | `Profile.jsx` | Användarinformation och statistik |
+| Admin Panel | `components/AdminPanel.jsx` | Skapa skift och tilldela användare (admin-only) |
+
+## Filstruktur
 
 ```
 shiftmate-frontend/
-├── .env.development
-├── .env.production
-├── .gitignore
-├── eslint.config.js
-├── index.html
-├── package-lock.json
-├── package.json
-├── postcss.config.js
-├── README.md
-├── tailwind.config.js
-├── vite.config.js
+├── .env.development          # API-URL för utveckling
+├── .env.production           # API-URL för produktion
+├── eslint.config.js          # ESLint-regler
+├── index.html                # HTML-ingång
+├── package.json              # Beroenden och skript
+├── postcss.config.js         # PostCSS-konfiguration
+├── tailwind.config.js        # Tailwind CSS-anpassning
+├── vercel.json               # Vercel-driftsättning
+├── vite.config.js            # Vite-konfiguration
 ├── public/
 │   └── vite.svg
 └── src/
-    ├── api.js
-    ├── App.css
-    ├── App.jsx
-    ├── index.css
-    ├── Login.jsx
-    ├── main.jsx
-    ├── MarketPlace.jsx
-    ├── Profile.jsx
-    ├── Register.jsx
-    ├── Schedule.jsx
-    ├── ShiftList.jsx
+    ├── main.jsx              # React-ingångspunkt (ReactDOM.createRoot)
+    ├── App.jsx               # Huvudrouting, autentiseringskontroll, sidebar
+    ├── api.js                # Axios-instans med JWT-interceptor och hjälpfunktioner
+    ├── index.css             # Globala Tailwind-stilar
+    ├── App.css               # Komponentspecifika stilar
+    ├── Login.jsx             # Inloggningssida
+    ├── Register.jsx          # Registreringssida
+    ├── ShiftList.jsx         # Mina pass + bytesförfrågningar
+    ├── MarketPlace.jsx       # Lediga pass (marknadsplats)
+    ├── Schedule.jsx          # Schemaöversikt
+    ├── Profile.jsx           # Profil och statistik
     ├── assets/
     │   └── react.svg
     └── components/
-        └── AuthLayout.jsx
+        ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
+        └── AdminPanel.jsx    # Admin-panel för skifthantering
 ```
+
+## Autentisering
+
+- JWT-token lagras i `localStorage`
+- Axios-interceptor bifogar automatiskt `Authorization: Bearer {token}` till alla anrop
+- Vid 401-svar loggas användaren ut automatiskt
+- Rollkontroll (Admin/Employee) sker via avkodning av JWT-token direkt i klienten
+
+## Tema
+
+Applikationen använder ett Neon Dark-tema med färgerna:
+- Bakgrund: `bg-slate-950`
+- Primär text: `text-blue-400`
+- Kanter: `border-blue-500/30`
+- Accent: `text-cyan-400`, `text-green-400`
