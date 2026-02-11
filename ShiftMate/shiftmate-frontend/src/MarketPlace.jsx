@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import api, { fetchShifts } from './api'; // Importerar både instansen och den nya hjälpfunktionen
+import { fetchClaimableShifts, takeShift } from './api';
+import { formatDate, formatTimeRange } from './utils/dateUtils';
 
 const MarketPlace = () => {
     const [availableShifts, setAvailableShifts] = useState([]);
@@ -12,11 +13,8 @@ const MarketPlace = () => {
         const fetchAvailableShifts = async () => {
             try {
                 setLoading(true);
-                // Vi hämtar "claimable" pass. 
-                // Om du i framtiden vill filtrera bort pass utan ägare här också,
-                // kan du använda: await fetchShifts(true) om endpointen stödjer det.
-                const response = await api.get('/Shifts/claimable');
-                setAvailableShifts(response.data);
+                const data = await fetchClaimableShifts();
+                setAvailableShifts(data);
             } catch (err) {
                 console.error("Kunde inte hämta lediga pass:", err);
             } finally {
@@ -33,8 +31,7 @@ const MarketPlace = () => {
         if (!window.confirm("Vill du ta detta pass?")) return;
 
         try {
-            const url = `/Shifts/${shiftId}/take`;
-            await api.put(url, {});
+            await takeShift(shiftId);
 
             alert("Snyggt! Passet är nu ditt och syns i ditt schema. ✅");
 
@@ -45,25 +42,6 @@ const MarketPlace = () => {
             const errorMessage = err.response?.data?.message || "Okänt fel uppstod";
             alert(`Kunde inte ta passet: ${errorMessage}`);
         }
-    };
-
-    // ---------------------------------------------------------
-    // 3. HJÄLPFUNKTIONER FÖR FORMATERING
-    // ---------------------------------------------------------
-    const formatDate = (dateStr) => {
-        if (!dateStr) return "OKÄNT DATUM";
-        return new Date(dateStr).toLocaleDateString('sv-SE', {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short'
-        }).toUpperCase();
-    };
-
-    const formatTime = (startStr, endStr) => {
-        if (!startStr || !endStr) return "--:--";
-        const start = new Date(startStr).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-        const end = new Date(endStr).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
-        return `${start} - ${end}`;
     };
 
     // ---------------------------------------------------------
@@ -114,7 +92,7 @@ const MarketPlace = () => {
                                     </span>
 
                                     <h3 className="text-2xl font-black text-white tracking-tight mb-1">
-                                        {formatTime(shift.startTime, shift.endTime)}
+                                        {formatTimeRange(shift.startTime, shift.endTime)}
                                     </h3>
 
                                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">

@@ -2,12 +2,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
-using System.Security.Claims;
 using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.SwapRequests.Queries
 {
-    // Svensk kommentar: Datan som behövs för att hämta inkommande bytesförfrågningar.
+    // Datan som behövs för att hämta inkommande bytesförfrågningar.
     // CurrentUserId kommer att sättas i controllern från JWT-token.
     public record GetReceivedSwapRequestsQuery : IRequest<List<SwapRequestDto>>
     {
@@ -29,6 +28,7 @@ namespace ShiftMate.Application.SwapRequests.Queries
         {
             // 1. Hämta alla förfrågningar där den inloggade användaren är målet och statusen är "Pending".
             var swapRequests = await _context.SwapRequests
+                .AsNoTracking()
                 .Where(sr => sr.TargetUserId == request.CurrentUserId && sr.Status == "Pending")
                 .Include(sr => sr.RequestingUser) // Användaren som skickade förfrågan
                 .Include(sr => sr.Shift)          // Passet som de erbjuder

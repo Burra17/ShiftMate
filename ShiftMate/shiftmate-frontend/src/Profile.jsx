@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import api from './api';
+import { decodeToken, fetchMyShifts } from './api';
 
 const Profile = ({ onLogout }) => {
     const [stats, setStats] = useState({ totalShifts: 0, totalHours: 0 });
@@ -12,12 +12,9 @@ const Profile = ({ onLogout }) => {
 
     useEffect(() => {
         // 1. LÄS NAMN FRÅN TOKEN (Biljetten) 🎫
-        const token = localStorage.getItem('token');
-        if (token) {
+        const payload = decodeToken();
+        if (payload) {
             try {
-                // Avkoda token (den är base64-kodad)
-                const payload = JSON.parse(atob(token.split('.')[1]));
-
                 const firstName = payload.FirstName || "";
                 const lastName = payload.LastName || "";
                 const email = payload.email || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] || "Användare";
@@ -41,9 +38,7 @@ const Profile = ({ onLogout }) => {
         // 2. Hämta statistik (samma som förut)
         const fetchStats = async () => {
             try {
-                const response = await api.get('/Shifts/mine');
-
-                const shifts = response.data;
+                const shifts = await fetchMyShifts();
                 const hours = shifts.reduce((sum, shift) => sum + shift.durationHours, 0);
 
                 setStats({

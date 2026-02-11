@@ -2,8 +2,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
-using System.Linq;
-using System.Collections.Generic;
 
 namespace ShiftMate.Application.Shifts.Queries
 {
@@ -23,6 +21,7 @@ namespace ShiftMate.Application.Shifts.Queries
         public async Task<List<ShiftDto>> Handle(GetClaimableShiftsQuery request, CancellationToken cancellationToken)
         {
             var shifts = await _context.Shifts
+                .AsNoTracking()
                 .Include(s => s.User) // Inkludera User-objektet för att kunna mappa det till DTO:n.
                 .Where(s => s.IsUpForSwap == true || s.UserId == null) // Filtrera på lediga pass eller pass uppe för byte
                 .OrderBy(s => s.StartTime)

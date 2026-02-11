@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from 'react';
-import api from './api';
+import { fetchShifts } from './api';
+import { formatTime } from './utils/dateUtils';
 
 const Schedule = () => {
     const [schedule, setSchedule] = useState({});
@@ -8,8 +9,8 @@ const Schedule = () => {
     useEffect(() => {
         const fetchSchedule = async () => {
             try {
-                const response = await api.get('/Shifts');
-                const grouped = groupShiftsByDate(response.data);
+                const data = await fetchShifts();
+                const grouped = groupShiftsByDate(data);
                 setSchedule(grouped);
             } catch (err) {
                 console.error("Kunde inte hämta schemat:", err);
@@ -39,10 +40,6 @@ const Schedule = () => {
             groups[capitalizedDate].push(shift);
             return groups;
         }, {});
-    };
-
-    const formatTime = (dateString) => {
-        return new Date(dateString).toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
     };
 
     // FIX: Hämtar initialer från Namn istället för Email

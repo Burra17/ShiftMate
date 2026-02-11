@@ -19,6 +19,7 @@ namespace ShiftMate.Application.Shifts.Queries
         {
             // 1. Skapa en Queryable så vi kan bygga på filter dynamiskt
             var query = _context.Shifts
+                .AsNoTracking()
                 .Include(s => s.User)
                 .AsQueryable();
 

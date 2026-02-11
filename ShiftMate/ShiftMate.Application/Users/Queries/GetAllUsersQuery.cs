@@ -23,6 +23,7 @@ namespace ShiftMate.Application.Users.Queries
             // Vi använder .Select() för att plocka ut BARA det vi vill visa.
             // På så sätt skickas inte PasswordHash med, och vi undviker kraschar.
             return await _context.Users
+                .AsNoTracking()
                 .Select(u => new UserDto
                 {
                     Id = u.Id,
