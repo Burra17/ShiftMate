@@ -170,4 +170,13 @@ export const getUserRole = () => {
     return payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || payload.role;
 };
 
+/**
+ * Hämta den inloggade användarens ID (Guid) från JWT-tokenet.
+ */
+export const getCurrentUserId = () => {
+    const payload = decodeToken();
+    if (!payload) return null;
+    return payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload.sub;
+};
+
 export default axiosInstance;
