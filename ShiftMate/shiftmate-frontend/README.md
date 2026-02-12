@@ -43,6 +43,46 @@ npm run preview
 | Profil | `Profile.jsx` | Användarinformation och statistik |
 | Admin Panel | `components/AdminPanel.jsx` | Skapa skift och tilldela användare (admin-only) |
 
+## Toast & Confirm-system
+
+Applikationen använder ett globalt toast-notifikations- och bekräftelsedialogsystem via React Context, istället för native `alert()` och `window.confirm()`.
+
+### Användning
+
+```jsx
+import { useToast, useConfirm } from './contexts/ToastContext';
+
+const MyComponent = () => {
+  const toast = useToast();
+  const confirm = useConfirm();
+
+  // Toast-notifikationer (auto-försvinner efter 4s)
+  toast.success("Åtgärden lyckades!");
+  toast.error("Något gick fel.");
+  toast.info("Information till användaren.");
+  toast.warning("Varning!");
+
+  // Bekräftelsedialog (Promise-baserad, ersätter window.confirm)
+  const ok = await confirm({
+    title: "Bekräfta",
+    message: "Är du säker?",
+    confirmLabel: "Ja",
+    cancelLabel: "Avbryt",   // valfri (standard: "Avbryt")
+    variant: "danger",       // valfri: "default" | "danger"
+  });
+  if (!ok) return;
+};
+```
+
+### Funktioner
+
+- Max 5 toasts synliga samtidigt, auto-dismiss efter 4 sekunder
+- Slide-in/slide-out animationer
+- Färgkodade per typ: grön (success), röd (error), blå (info), gul (warning)
+- Confirm-dialog stängs med Escape-tangent eller overlay-klick
+- Portal-renderad (renderas utanför komponentträdet via `document.body`)
+- Tillgänglighet: `role="alert"` och `aria-live="polite"`
+
 ## Filstruktur
 
 ```
@@ -62,7 +102,7 @@ shiftmate-frontend/
     ├── main.jsx              # React-ingångspunkt (ReactDOM.createRoot)
     ├── App.jsx               # Huvudrouting, autentiseringskontroll, sidebar
     ├── api.js                # Axios-instans med JWT-interceptor och hjälpfunktioner
-    ├── index.css             # Globala Tailwind-stilar
+    ├── index.css             # Globala Tailwind-stilar + toast-animationer
     ├── App.css               # Komponentspecifika stilar
     ├── Login.jsx             # Inloggningssida
     ├── Register.jsx          # Registreringssida
@@ -72,9 +112,14 @@ shiftmate-frontend/
     ├── Profile.jsx           # Profil och statistik
     ├── assets/
     │   └── react.svg
+    ├── contexts/
+    │   └── ToastContext.jsx   # ToastProvider, useToast, useConfirm hooks
     └── components/
         ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
-        └── AdminPanel.jsx    # Admin-panel för skifthantering
+        ├── AdminPanel.jsx    # Admin-panel för skifthantering
+        └── ui/
+            ├── ToastContainer.jsx  # Toast-lista (portal-renderad)
+            └── ConfirmModal.jsx    # Bekräftelsedialog (portal-renderad)
 ```
 
 ## Autentisering

@@ -3,11 +3,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from './api'; // Importerar en förkonfigurerad Axios-instans för API-anrop.
 import AuthLayout from './components/AuthLayout'; // En layout-komponent för autentiseringssidor.
+import { useToast } from './contexts/ToastContext'; // Globala toast-notifikationer.
 
 // Registreringskomponent för nya användare.
 const Register = () => {
     // Hook för att programmatiskt navigera användaren, t.ex. efter lyckad registrering.
     const navigate = useNavigate();
+    const toast = useToast();
     
     // State-variabler för att hålla reda på formulärdata (förnamn, efternamn, etc.).
     const [firstName, setFirstName] = useState('');
@@ -36,7 +38,7 @@ const Register = () => {
         try {
             // Gör ett asynkront API-anrop (POST) för att registrera användaren.
             await api.post('/Users/register', payload);
-            alert("Konto skapat! Du omdirigeras nu till inloggningssidan.");
+            toast.success("Konto skapat! Du omdirigeras nu till inloggningssidan.");
             navigate('/login'); // Omdirigerar användaren till inloggningssidan.
 
         } catch (err) {
