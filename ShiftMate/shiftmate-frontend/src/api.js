@@ -179,4 +179,20 @@ export const getCurrentUserId = () => {
     return payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload.sub;
 };
 
+/**
+ * Uppdatera den inloggade användarens profil (namn och e-post).
+ */
+export const updateProfile = async (data) => {
+    const res = await axiosInstance.put('/Users/profile', data);
+    return res.data;
+};
+
+/**
+ * Byt lösenord för den inloggade användaren.
+ */
+export const changePassword = async (data) => {
+    const res = await axiosInstance.put('/Users/change-password', data);
+    return res.data;
+};
+
 export default axiosInstance;
