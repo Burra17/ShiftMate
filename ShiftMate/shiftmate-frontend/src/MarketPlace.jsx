@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { fetchClaimableShifts, takeShift } from './api';
 import { formatDate, formatTimeRange } from './utils/dateUtils';
+import { useToast, useConfirm } from './contexts/ToastContext';
 
 const MarketPlace = () => {
     const [availableShifts, setAvailableShifts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const toast = useToast();
+    const confirm = useConfirm();
 
     // ---------------------------------------------------------
     // 1. HÄMTA DATA VID START
@@ -28,19 +31,20 @@ const MarketPlace = () => {
     // 2. HANTERA "TA PASS"
     // ---------------------------------------------------------
     const handleTakeShift = async (shiftId) => {
-        if (!window.confirm("Vill du ta detta pass?")) return;
+        const ok = await confirm({ title: "Ta pass", message: "Vill du ta detta pass?", confirmLabel: "Ja, ta passet" });
+        if (!ok) return;
 
         try {
             await takeShift(shiftId);
 
-            alert("Snyggt! Passet är nu ditt och syns i ditt schema. ✅");
+            toast.success("Snyggt! Passet är nu ditt och syns i ditt schema.");
 
             // Uppdatera listan lokalt så passet försvinner direkt från marknaden
             setAvailableShifts(prev => prev.filter(s => s.id !== shiftId));
         } catch (err) {
             // Vi hämtar felmeddelandet från backend (t.ex. "Du har redan ett pass denna dag")
             const errorMessage = err.response?.data?.message || "Okänt fel uppstod";
-            alert(`Kunde inte ta passet: ${errorMessage}`);
+            toast.error(`Kunde inte ta passet: ${errorMessage}`);
         }
     };
 

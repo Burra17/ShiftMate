@@ -1,8 +1,12 @@
 ﻿import { useState, useEffect } from 'react';
 import { fetchShifts as fetchShiftsApi, fetchMyShifts, fetchReceivedSwapRequests, acceptSwapRequest, declineSwapRequest, initiateSwap, cancelShiftSwap, proposeDirectSwap } from './api';
 import { formatDate, formatTime } from './utils/dateUtils';
+import { useToast } from './contexts/ToastContext';
 
 const ShiftList = () => {
+    // --- HOOKS ---
+    const toast = useToast();
+
     // --- STATES ---
     const [shifts, setShifts] = useState([]); // Användarens egna pass
     const [loading, setLoading] = useState(true);
@@ -60,10 +64,10 @@ const ShiftList = () => {
         setActionLoading(requestId);
         try {
             await declineSwapRequest(requestId);
-            alert("Förfrågan har nekats.");
+            toast.success("Förfrågan har nekats.");
             setPendingRequests(prev => prev.filter(r => r.id !== requestId));
         } catch (err) {
-            alert(err.response?.data?.message || "Något gick fel.");
+            toast.error(err.response?.data?.message || "Något gick fel.");
         } finally {
             setActionLoading(null);
         }
@@ -73,11 +77,11 @@ const ShiftList = () => {
         setActionLoading(requestId);
         try {
             await acceptSwapRequest(requestId);
-            alert("Bytet har accepterats! Ditt schema uppdateras.");
+            toast.success("Bytet har accepterats! Ditt schema uppdateras.");
             setPendingRequests(prev => prev.filter(r => r.id !== requestId));
             fetchShifts();
         } catch (err) {
-            alert(err.response?.data?.message || "Kunde inte acceptera bytet.");
+            toast.error(err.response?.data?.message || "Kunde inte acceptera bytet.");
         } finally {
             setActionLoading(null);
         }
@@ -90,10 +94,10 @@ const ShiftList = () => {
         setActionLoading(shiftId);
         try {
             await initiateSwap(shiftId);
-            alert("Passet ligger nu ute för byte! 🎉");
+            toast.success("Passet ligger nu ute för byte!");
             setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, isUpForSwap: true } : s));
         } catch (err) {
-            alert(err.response?.data?.message || "Gick inte att lägga ut passet.");
+            toast.error(err.response?.data?.message || "Gick inte att lägga ut passet.");
         } finally {
             setActionLoading(null);
         }
@@ -145,11 +149,11 @@ const ShiftList = () => {
 
         try {
             await proposeDirectSwap(selectedShift.id, targetShiftId);
-            alert("Förslag om direktbyte har skickats!");
+            toast.success("Förslag om direktbyte har skickats!");
             setIsModalOpen(false);
             setAvailableShifts([]);
         } catch (err) {
-            alert(err.response?.data?.message || "Kunde inte föreslå byte.");
+            toast.error(err.response?.data?.message || "Kunde inte föreslå byte.");
         } finally {
             setActionLoading(null);
         }

@@ -5,6 +5,8 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 // Importera huvud-App-komponenten.
 import App from './App.jsx';
+// Importera ToastProvider för globala toast-notifikationer och bekräftelsedialoger.
+import { ToastProvider } from './contexts/ToastContext.jsx';
 // Importera globala stilmallar, inklusive Tailwind CSS.
 import './index.css';
 
@@ -15,8 +17,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     {/* BrowserRouter omsluter hela applikationen för att möjliggöra routing. */}
     <BrowserRouter>
-      {/* App-komponenten är startpunkten för hela applikationen. */}
-      <App />
+      {/* ToastProvider ger globala toast-notifikationer och bekräftelsedialoger till hela appen. */}
+      <ToastProvider>
+        {/* App-komponenten är startpunkten för hela applikationen. */}
+        <App />
+      </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );
