@@ -9,11 +9,57 @@ Update this file at the end of each significant work session.
 
 - **Active Branch:** `main`
 - **Last Updated:** 2026-02-12
-- **Project State:** Stabil — profilsideförbättringar mergade till main
+- **Project State:** Stabil — Email-notifikationssystem implementerat med Resend API
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-12 - Email Notification System (feature/email-notifications → merged to main)
+
+- **What was done:**
+  - **Migrering från Gmail SMTP till Resend HTTP API:**
+    - Problem identifierat: Gmail SMTP fungerar lokalt men blockeras på Render (cloud IPs)
+    - `ResendEmailService.cs` — Ny service med HttpClient för Resend API (ersätter SmtpEmailService)
+    - Använder `https://api.resend.com/emails` med Bearer token authentication
+    - Fire-and-forget pattern med `Task.Run()` för att inte blocka requests
+  - **Konfiguration:**
+    - `appsettings.json` — Bytt från EmailSettings (SMTP) till Resend (API key, FromEmail, FromName)
+    - `Program.cs` — `AddHttpClient<IEmailService, ResendEmailService>()` istället för SmtpEmailService
+    - Default `FromEmail`: "onboarding@resend.dev" (Resends officiella test-email, fungerar i production)
+  - **Email-notiser på 4 strategiska platser:**
+    - `AcceptSwapCommand.cs` — Notifierar requestor när swap godkänns (både direktbyte och marketplace)
+    - `DeclineSwapRequestCommand.cs` — Notifierar requestor när swap nekas
+    - `TakeShiftCommandHandler.cs` — Notifierar originalägare när pass tas från marketplace
+    - `CreateShiftCommand.cs` — Notifierar användare när admin tilldelar nytt pass
+  - **Email-innehåll:**
+    - HTML-formaterade emails med svensk formatering (datum/tid via CultureInfo "sv-SE")
+    - Färgkodade headers (grönt för godkänt, rött för nekat, blått för nytt pass)
+    - Tydlig information om vad som hände (vilka pass, vilka tider, vem som gjorde vad)
+  - **Testsvit uppdaterad:**
+    - Mockar för `IEmailService` och `ILogger<T>` tillagda i alla handlers
+    - `AcceptSwapHandlerTests.cs` — 7 tester, alla gröna
+    - `CreateShiftHandlerTests.cs` — 4 tester, alla gröna
+    - Alla 13 tester klarar utan fel
+  - **Deployment:**
+    - Render environment variable: `RESEND__APIKEY` (dubbel underscore för nested config)
+    - Testat lokalt — email skickas vid swap requests och pass-tilldelningar ✅
+  - **Nya filer (1):**
+    - `ShiftMate.Infrastructure/Services/ResendEmailService.cs`
+  - **Modifierade filer (7):**
+    - `ShiftMate.Api/Program.cs` — ResendEmailService registrering
+    - `ShiftMate.Api/appsettings.json` — Resend config
+    - `ShiftMate.Application/SwapRequests/Commands/AcceptSwapCommand.cs` — Email-notis + logging
+    - `ShiftMate.Application/SwapRequests/Commands/DeclineSwapRequestCommand.cs` — Email-notis + logging
+    - `ShiftMate.Application/Shifts/Commands/TakeShiftCommandHandler.cs` — Email-notis + logging
+    - `ShiftMate.Application/Shifts/Commands/CreateShiftCommand.cs` — Email-notis + logging
+    - `ShiftMate.Tests/*` — Mockar tillagda
+  - **Build OK** — dotnet build + dotnet test (13/13 gröna)
+
+- **Nästa steg (planerade):**
+  - Snygga till email-designen (logo, bättre styling, responsiv design)
+  - In-app notification system (badge counts, notification dropdown)
+  - Överväg egen domän för professionella emails (t.ex. noreply@shiftmate.se)
 
 ### 2026-02-12 - Profile Page Improvements (feature/profile-page-improvements → merged to main)
 
@@ -201,6 +247,11 @@ Track important architectural or design decisions here.
 | 2026-02-12 | Månadsstatistik beräknas i frontend | Alla shifts hämtas redan — ingen ny backend-endpoint behövs |
 | 2026-02-12 | Progress-bar: nuvarande månad vs genomsnitt | Ger kontext till månadstimmar utan att behöva ett hårdkodat mål |
 | 2026-02-12 | Lösenordsbyte via CQRS command | Följer exakt samma mönster som UpdateProfileCommand |
+| 2026-02-12 | Resend HTTP API istället för Gmail SMTP | Gmail blockerar cloud IPs (Render), Resend är byggt för transaktional email |
+| 2026-02-12 | Fire-and-forget email med Task.Run() | Email-fel ska inte krascha requests — logga fel men fortsätt |
+| 2026-02-12 | onboarding@resend.dev som default FromEmail | Resends officiella test-email, fungerar i production, gratis |
+| 2026-02-12 | Email-notiser på 4 platser (accept/decline/take/assign) | Maximera användarnytta — meddela vid alla kritiska events |
+| 2026-02-12 | HTML-formaterade emails med svensk CultureInfo | Professionellt utseende + svenskt datum/tidsformat |
 
 ---
 
