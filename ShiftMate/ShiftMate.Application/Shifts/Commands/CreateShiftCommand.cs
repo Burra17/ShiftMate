@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain;
+using Microsoft.Extensions.Logging;
 
 namespace ShiftMate.Application.Shifts.Commands
 {
@@ -22,11 +23,19 @@ namespace ShiftMate.Application.Shifts.Commands
     {
         private readonly IAppDbContext _context;
         private readonly IValidator<CreateShiftCommand> _validator;
+        private readonly IEmailService _emailService;
+        private readonly Microsoft.Extensions.Logging.ILogger<CreateShiftHandler> _logger;
 
-        public CreateShiftHandler(IAppDbContext context, IValidator<CreateShiftCommand> validator)
+        public CreateShiftHandler(
+            IAppDbContext context,
+            IValidator<CreateShiftCommand> validator,
+            IEmailService emailService,
+            Microsoft.Extensions.Logging.ILogger<CreateShiftHandler> logger)
         {
             _context = context;
             _validator = validator;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<Guid> Handle(CreateShiftCommand request, CancellationToken cancellationToken)
@@ -46,13 +55,14 @@ namespace ShiftMate.Application.Shifts.Commands
 
             // 2. KROCK-KONTROLL
             // Vi kollar bara krockar om passet faktiskt ska tilldelas någon (UserId är inte null)
+            Domain.User? assignedUser = null;
             if (request.UserId.HasValue)
             {
-                // Säkerställ först att användaren finns
-                var userExists = await _context.Users
-                    .AnyAsync(u => u.Id == request.UserId.Value, cancellationToken);
+                // Hämta användaren (behövs för både krock-kontroll och email)
+                assignedUser = await _context.Users
+                    .FirstOrDefaultAsync(u => u.Id == request.UserId.Value, cancellationToken);
 
-                if (!userExists)
+                if (assignedUser == null)
                 {
                     throw new InvalidOperationException("Användaren hittades inte.");
                 }
@@ -83,6 +93,52 @@ namespace ShiftMate.Application.Shifts.Commands
 
             _context.Shifts.Add(shift);
             await _context.SaveChangesAsync(cancellationToken);
+
+            // 4. SKICKA EMAIL om passet tilldelades en specifik användare
+            if (assignedUser != null)
+            {
+                try
+                {
+                    var culture = new System.Globalization.CultureInfo("sv-SE");
+                    var shiftDate = startTimeUtc.ToString("dddd d MMMM", culture);
+                    var shiftTime = $"{startTimeUtc:HH:mm} - {endTimeUtc:HH:mm}";
+                    var duration = (endTimeUtc - startTimeUtc).TotalHours;
+
+                    var subject = $"📅 Nytt pass tilldelat: {shiftDate}";
+                    var emailBody = $@"
+                        <html>
+                        <body style=""font-family: Arial, sans-serif; color: #333;"">
+                            <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
+                                <h2 style=""color: #0056b3;"">Nytt pass tilldelat</h2>
+                                <p>Hej <strong>{assignedUser.FirstName}</strong>!</p>
+                                <p>En administratör har tilldelat dig ett nytt arbetspass.</p>
+                                <hr/>
+                                <p><strong>Datum:</strong> {shiftDate}</p>
+                                <p><strong>Tid:</strong> {shiftTime}</p>
+                                <p><strong>Längd:</strong> {duration:F1} timmar</p>
+                                <hr/>
+                                <p style=""color: #666; font-size: 12px;"">Logga in på ShiftMate för att se ditt uppdaterade schema.</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailService.SendEmailAsync(assignedUser.Email, subject, emailBody);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Kunde inte skicka pass-tilldelnings-email till {Email}", assignedUser.Email);
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Email-notifiering misslyckades för nytt pass {Id}", shift.Id);
+                }
+            }
 
             return shift.Id;
         }

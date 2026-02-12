@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace ShiftMate.Application.SwapRequests.Commands
 {
@@ -19,16 +20,27 @@ namespace ShiftMate.Application.SwapRequests.Commands
     public class DeclineSwapRequestCommandHandler : IRequestHandler<DeclineSwapRequestCommand>
     {
         private readonly IAppDbContext _context;
+        private readonly IEmailService _emailService;
+        private readonly Microsoft.Extensions.Logging.ILogger<DeclineSwapRequestCommandHandler> _logger;
 
-        public DeclineSwapRequestCommandHandler(IAppDbContext context)
+        public DeclineSwapRequestCommandHandler(
+            IAppDbContext context,
+            IEmailService emailService,
+            Microsoft.Extensions.Logging.ILogger<DeclineSwapRequestCommandHandler> logger)
         {
             _context = context;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task Handle(DeclineSwapRequestCommand request, CancellationToken cancellationToken)
         {
-            // 1. Hämta förfrågan från databasen.
+            // 1. Hämta förfrågan från databasen (med relaterad data för email).
             var swapRequest = await _context.SwapRequests
+                .Include(sr => sr.RequestingUser)
+                .Include(sr => sr.TargetUser)
+                .Include(sr => sr.Shift)
+                .Include(sr => sr.TargetShift)
                 .FirstOrDefaultAsync(sr => sr.Id == request.SwapRequestId, cancellationToken);
 
             // 2. Validera att förfrågan existerar.
@@ -54,6 +66,53 @@ namespace ShiftMate.Application.SwapRequests.Commands
 
             // 6. Spara ändringarna.
             await _context.SaveChangesAsync(cancellationToken);
+
+            // 7. Skicka email till den som föreslog bytet (fire-and-forget)
+            try
+            {
+                if (swapRequest.RequestingUser != null && swapRequest.TargetUser != null && swapRequest.Shift != null)
+                {
+                    var culture = new System.Globalization.CultureInfo("sv-SE");
+                    var shiftDate = swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture);
+                    var shiftTime = $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}";
+
+                    var subject = $"❌ {swapRequest.TargetUser.FirstName} nekade bytet";
+                    var emailBody = $@"
+                        <html>
+                        <body style=""font-family: Arial, sans-serif; color: #333;"">
+                            <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
+                                <h2 style=""color: #dc3545;"">Byte nekat</h2>
+                                <p>Hej <strong>{swapRequest.RequestingUser.FirstName}</strong>!</p>
+                                <p><strong>{swapRequest.TargetUser.FirstName} {swapRequest.TargetUser.LastName}</strong> har nekat ditt bytesförslag.</p>
+                                <hr/>
+                                <p><strong>Pass:</strong> {shiftDate} ({shiftTime})</p>
+                                <hr/>
+                                <p style=""color: #666; font-size: 12px;"">Du kan försöka föreslå bytet till någon annan eller lägga upp passet på marknadsplatsen.</p>
+                            </div>
+                        </body>
+                        </html>";
+
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailService.SendEmailAsync(
+                                swapRequest.RequestingUser.Email,
+                                subject,
+                                emailBody
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Kunde inte skicka avslag-email till {Email}", swapRequest.RequestingUser.Email);
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Email-notifiering misslyckades för nekat byte {Id}", swapRequest.Id);
+            }
         }
     }
 }

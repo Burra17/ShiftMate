@@ -91,8 +91,8 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
-// Registrera e-posttjänsten
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+// Registrera e-posttjänsten (Resend HTTP API med HttpClient)
+builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 
 // --- CORS: Tillåt React-appen (Både lokalt och på Vercel) ---
 builder.Services.AddCors(options =>
