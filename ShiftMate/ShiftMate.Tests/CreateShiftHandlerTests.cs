@@ -6,6 +6,8 @@ using ShiftMate.Application.Shifts.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
 using Xunit;
+using ShiftMate.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ShiftMate.Tests
 {
@@ -35,7 +37,9 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new CreateShiftHandler(context, validatorMock.Object);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<CreateShiftHandler>>();
+            var handler = new CreateShiftHandler(context, validatorMock.Object, mockEmailService.Object, mockLogger.Object);
 
             var command = new CreateShiftCommand
             {
@@ -66,7 +70,9 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new CreateShiftHandler(context, validatorMock.Object);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<CreateShiftHandler>>();
+            var handler = new CreateShiftHandler(context, validatorMock.Object, mockEmailService.Object, mockLogger.Object);
 
             var command = new CreateShiftCommand
             {
@@ -96,7 +102,9 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new CreateShiftHandler(context, validatorMock.Object);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<CreateShiftHandler>>();
+            var handler = new CreateShiftHandler(context, validatorMock.Object, mockEmailService.Object, mockLogger.Object);
 
             var command = new CreateShiftCommand
             {
@@ -144,7 +152,9 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new CreateShiftHandler(context, validatorMock.Object);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<CreateShiftHandler>>();
+            var handler = new CreateShiftHandler(context, validatorMock.Object, mockEmailService.Object, mockLogger.Object);
 
             // Nytt pass: 10:00 - 14:00 (krockar med 08-16!)
             var command = new CreateShiftCommand

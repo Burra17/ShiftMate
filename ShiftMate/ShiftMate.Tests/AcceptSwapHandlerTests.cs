@@ -3,6 +3,9 @@ using ShiftMate.Application.SwapRequests.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
 using Xunit;
+using Moq;
+using ShiftMate.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ShiftMate.Tests
 {
@@ -13,7 +16,9 @@ namespace ShiftMate.Tests
         {
             // 1. ARRANGE
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var myUserId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
@@ -86,7 +91,9 @@ namespace ShiftMate.Tests
         {
             // ARRANGE — Skapa ett öppet byte utan krock
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var acceptorId = Guid.NewGuid();
             var requesterId = Guid.NewGuid();
@@ -152,7 +159,9 @@ namespace ShiftMate.Tests
         {
             // ARRANGE — Försök acceptera ett byte som inte finns
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var command = new AcceptSwapCommand
             {
@@ -173,7 +182,9 @@ namespace ShiftMate.Tests
         {
             // ARRANGE — Skapa ett byte som redan accepterats
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var requesterId = Guid.NewGuid();
 
@@ -223,7 +234,9 @@ namespace ShiftMate.Tests
         {
             // ARRANGE — Två kollegor byter pass på samma dag (onsdag-scenariot)
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var userAId = Guid.NewGuid();
             var userBId = Guid.NewGuid();
@@ -309,7 +322,9 @@ namespace ShiftMate.Tests
             // ARRANGE — Två kollegor byter ÖVERLAPPANDE pass på samma dag
             // Detta är exakt buggen: pass som överlappar ska kunna bytas
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var userAId = Guid.NewGuid();
             var userBId = Guid.NewGuid();
@@ -390,7 +405,9 @@ namespace ShiftMate.Tests
             // ARRANGE — User A har ETT EXTRA pass som krockar med passet hen får
             // Bytet ska avvisas eftersom User A redan har ett TREDJE pass som krockar
             var context = TestDbContextFactory.Create();
-            var handler = new AcceptSwapHandler(context);
+            var mockEmailService = new Mock<IEmailService>();
+            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
+            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var userAId = Guid.NewGuid();
             var userBId = Guid.NewGuid();

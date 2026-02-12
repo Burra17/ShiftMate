@@ -7,13 +7,45 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `feature/schedule-ui-improvements`
-- **Last Updated:** 2026-02-11
-- **Project State:** Stabil — schedule-redesign klar (ej mergad till main ännu)
+- **Active Branch:** `main`
+- **Last Updated:** 2026-02-12
+- **Project State:** Stabil — profilsideförbättringar mergade till main
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-12 - Profile Page Improvements (feature/profile-page-improvements → merged to main)
+
+- **What was done:**
+  - **Backend — Byt lösenord (ny funktionalitet):**
+    - `ChangePasswordCommand.cs` — CQRS command + handler: verifierar nuvarande lösenord med BCrypt, hashar nya, sparar
+    - `ChangePasswordCommandValidator.cs` — FluentValidation: CurrentPassword NotEmpty, NewPassword NotEmpty + MinimumLength(8)
+    - `UsersController.cs` — Ny endpoint `PUT /api/Users/change-password` (samma mönster som UpdateProfile)
+  - **Frontend — Månadsstatistik:**
+    - `fetchStats` beräknar nu pass/timmar denna månad + totaler (4 kort i 2x2 grid)
+    - Progress-bar under "Timmar denna månad" som visar nuvarande månad vs genomsnittliga timmar/månad
+  - **Frontend — Lösenordsbyte:**
+    - Ny `changePassword()` funktion i `api.js`
+    - Formulär med tre fält (nuvarande, nytt, bekräfta) + frontend-validering + toast-feedback
+  - **UI-polish (konsistent med resten av appen):**
+    - Glödande vänster-accentbarer (`w-1` + `shadow-[0_0_15px]`) på alla stats-kort (rosa/lila/blå/indigo)
+    - Svag färgtonad bakgrund per kort (`bg-pink-500/5`, `bg-blue-500/5`, etc.)
+    - "Statistik"-sektionsrubrik (`text-xl font-black uppercase`)
+    - Emoji-ikoner på alla knappar (✏️ Redigera, 🔒 Byt lösenord, 🚪 Logga ut)
+    - Rollbadge under användarnamnet (Admin=röd, Chef=amber, Anställd=blå)
+    - Glödande accentbar på lösenordsformuläret
+  - **Nya filer (2):**
+    - `ShiftMate.Application/Users/Commands/ChangePasswordCommand.cs`
+    - `ShiftMate.Application/Users/Commands/ChangePasswordCommandValidator.cs`
+  - **Modifierade filer (3):**
+    - `ShiftMate.Api/Controllers/UsersController.cs` — ny endpoint
+    - `shiftmate-frontend/src/api.js` — ny `changePassword()` funktion
+    - `shiftmate-frontend/src/Profile.jsx` — komplett omskrivning med alla förbättringar
+  - **Build OK** — dotnet build + vite build utan fel
+
+- **Idéer diskuterade men ej implementerade:**
+  - Profilbild-uppladdning (kräver fillagring, ny User-kolumn + migration)
 
 ### 2026-02-11 - Schedule Redesign (feature/schedule-ui-improvements)
 
@@ -138,8 +170,9 @@ Update this file at the end of each significant work session.
   - Felsöka swap accept/decline i frontend (browser devtools)
   - Status magic strings ("Pending", "Accepted") → enum + migration
   - Error response format-konsistens
-  - Ersätta `alert()`/`window.confirm()` med stilade toast-meddelanden
-  - Profilredigering (backend-endpoint finns: PUT /api/users/profile)
+  - Profilbild-uppladdning (fillagring + ny User-kolumn + migration)
+  - ~~Ersätta `alert()`/`window.confirm()` med stilade toast-meddelanden~~ ✅ (löst i toast-modal-system)
+  - ~~Profilredigering~~ ✅ (löst: redigera profil + byt lösenord)
 
 ---
 
@@ -165,6 +198,9 @@ Track important architectural or design decisions here.
 | 2026-02-11 | 42-cells månadsrutnät (6 rader) | Konsekvent höjd oavsett månad |
 | 2026-02-11 | Nattpass visas på startdagsdatum | Enklast och mest intuitiva tolkningent |
 | 2026-02-11 | `getCurrentUserId()` via JWT claim | Samma mönster som `getUserRole()` |
+| 2026-02-12 | Månadsstatistik beräknas i frontend | Alla shifts hämtas redan — ingen ny backend-endpoint behövs |
+| 2026-02-12 | Progress-bar: nuvarande månad vs genomsnitt | Ger kontext till månadstimmar utan att behöva ett hårdkodat mål |
+| 2026-02-12 | Lösenordsbyte via CQRS command | Följer exakt samma mönster som UpdateProfileCommand |
 
 ---
 
