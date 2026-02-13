@@ -5,7 +5,6 @@ using ShiftMate.Domain;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
-using Microsoft.Extensions.Configuration;
 
 namespace ShiftMate.Application.SwapRequests.Commands
 {
@@ -25,18 +24,15 @@ namespace ShiftMate.Application.SwapRequests.Commands
         private readonly IAppDbContext _context;
         private readonly IEmailService _emailService;
         private readonly ILogger<ProposeDirectSwapCommandHandler> _logger;
-        private readonly IConfiguration _configuration;
 
         public ProposeDirectSwapCommandHandler(
             IAppDbContext context,
             IEmailService emailService,
-            ILogger<ProposeDirectSwapCommandHandler> logger,
-            IConfiguration configuration)
+            ILogger<ProposeDirectSwapCommandHandler> logger)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
-            _configuration = configuration;
         }
 
         public async Task<Guid> Handle(ProposeDirectSwapCommand request, CancellationToken cancellationToken)
@@ -84,60 +80,36 @@ namespace ShiftMate.Application.SwapRequests.Commands
             await _context.SaveChangesAsync(cancellationToken);
 
             // ------------------------------------------------------------------------------
-            // 4. FÖRSÖK SKICKA MAIL (Med 2 sekunders "fire-and-forget" logik)
+            // 4. SKICKA EMAIL-NOTIS (fire-and-forget)
             // ------------------------------------------------------------------------------
             try
             {
-                // Formatering för snyggare mail
                 var culture = new CultureInfo("sv-SE");
-                var targetDate = targetShift.StartTime.ToString("dddd d MMMM", culture);
-                var targetTime = $"{targetShift.StartTime:HH:mm} - {targetShift.EndTime:HH:mm}";
-                var myDate = myShift.StartTime.ToString("dddd d MMMM", culture);
-                var myTime = $"{myShift.StartTime:HH:mm} - {myShift.EndTime:HH:mm}";
+                var subject = $"🔄 {requestingUser.FirstName} vill byta pass med dig";
+                var emailBody = Services.EmailTemplateService.SwapProposal(
+                    targetShift.User.FirstName,
+                    $"{requestingUser.FirstName} {requestingUser.LastName}",
+                    targetShift.StartTime.ToString("dddd d MMMM", culture),
+                    $"{targetShift.StartTime:HH:mm} - {targetShift.EndTime:HH:mm}",
+                    myShift.StartTime.ToString("dddd d MMMM", culture),
+                    $"{myShift.StartTime:HH:mm} - {myShift.EndTime:HH:mm}"
+                );
 
-                var baseUrl = _configuration["FrontendUrl"] ?? "http://localhost:5173";
-                var actionUrl = $"{baseUrl}/mine";
-                var toEmail = targetShift.User.Email;
-                var subject = $"Byte? {requestingUser.FirstName} vill byta pass med dig 🔄";
-
-                var message = $@"
-                    <html>
-                    <body style=""font-family: Arial, sans-serif; color: #333;"">
-                        <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
-                            <h2 style=""color: #0056b3;"">Ny bytesförfrågan</h2>
-                            <p>Hej <strong>{targetShift.User.FirstName}</strong>!</p>
-                            <p>{requestingUser.FirstName} {requestingUser.LastName} vill göra ett direktbyte med dig.</p>
-                            <hr/>
-                            <p><strong>Du lämnar:</strong> {targetDate} ({targetTime})</p>
-                            <p><strong>Du får:</strong> {myDate} ({myTime})</p>
-                            <hr/>
-                            <div style=""margin-top: 20px;"">
-                                <a href=""{actionUrl}"" style=""background: #0056b3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;"">Logga in och svara</a>
-                            </div>
-                        </div>
-                    </body>
-                    </html>";
-
-                // Timeout-hantering: Om mailservern är seg (t.ex. på Render Free Tier)
-                // låter vi inte hela appen vänta mer än 2 sekunder.
-                var emailTask = _emailService.SendEmailAsync(toEmail, subject, message);
-                var delayTask = Task.Delay(2000);
-
-                var completedTask = await Task.WhenAny(emailTask, delayTask);
-
-                if (completedTask == delayTask)
+                _ = Task.Run(async () =>
                 {
-                    _logger.LogWarning("Mailutskick för byte {Id} tog för lång tid och körs nu i bakgrunden.", swapRequest.Id);
-                }
-                else
-                {
-                    await emailTask; // Om mailet blev klart snabbt, awaita det för att fånga ev. fel
-                }
+                    try
+                    {
+                        await _emailService.SendEmailAsync(targetShift.User.Email, subject, emailBody);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Kunde inte skicka bytesförfrågan-email till {Email}", targetShift.User.Email);
+                    }
+                });
             }
             catch (Exception ex)
             {
-                // Vi loggar felet men kastar inte Exception, eftersom SwapRequest redan är sparad
-                _logger.LogError(ex, "Ett fel uppstod vid mailutskick för byte {Id}, men begäran är sparad.", swapRequest.Id);
+                _logger.LogWarning(ex, "Email-notifiering misslyckades för bytesförfrågan {Id}", swapRequest.Id);
             }
 
             // Returnera ID på den skapade förfrågan

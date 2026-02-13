@@ -73,24 +73,13 @@ namespace ShiftMate.Application.SwapRequests.Commands
                 if (swapRequest.RequestingUser != null && swapRequest.TargetUser != null && swapRequest.Shift != null)
                 {
                     var culture = new System.Globalization.CultureInfo("sv-SE");
-                    var shiftDate = swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture);
-                    var shiftTime = $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}";
-
                     var subject = $"❌ {swapRequest.TargetUser.FirstName} nekade bytet";
-                    var emailBody = $@"
-                        <html>
-                        <body style=""font-family: Arial, sans-serif; color: #333;"">
-                            <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
-                                <h2 style=""color: #dc3545;"">Byte nekat</h2>
-                                <p>Hej <strong>{swapRequest.RequestingUser.FirstName}</strong>!</p>
-                                <p><strong>{swapRequest.TargetUser.FirstName} {swapRequest.TargetUser.LastName}</strong> har nekat ditt bytesförslag.</p>
-                                <hr/>
-                                <p><strong>Pass:</strong> {shiftDate} ({shiftTime})</p>
-                                <hr/>
-                                <p style=""color: #666; font-size: 12px;"">Du kan försöka föreslå bytet till någon annan eller lägga upp passet på marknadsplatsen.</p>
-                            </div>
-                        </body>
-                        </html>";
+                    var emailBody = Services.EmailTemplateService.SwapDeclined(
+                        swapRequest.RequestingUser.FirstName,
+                        $"{swapRequest.TargetUser.FirstName} {swapRequest.TargetUser.LastName}",
+                        swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture),
+                        $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}"
+                    );
 
                     _ = Task.Run(async () =>
                     {

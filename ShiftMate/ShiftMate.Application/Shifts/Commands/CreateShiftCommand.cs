@@ -105,22 +105,12 @@ namespace ShiftMate.Application.Shifts.Commands
                     var duration = (endTimeUtc - startTimeUtc).TotalHours;
 
                     var subject = $"📅 Nytt pass tilldelat: {shiftDate}";
-                    var emailBody = $@"
-                        <html>
-                        <body style=""font-family: Arial, sans-serif; color: #333;"">
-                            <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
-                                <h2 style=""color: #0056b3;"">Nytt pass tilldelat</h2>
-                                <p>Hej <strong>{assignedUser.FirstName}</strong>!</p>
-                                <p>En administratör har tilldelat dig ett nytt arbetspass.</p>
-                                <hr/>
-                                <p><strong>Datum:</strong> {shiftDate}</p>
-                                <p><strong>Tid:</strong> {shiftTime}</p>
-                                <p><strong>Längd:</strong> {duration:F1} timmar</p>
-                                <hr/>
-                                <p style=""color: #666; font-size: 12px;"">Logga in på ShiftMate för att se ditt uppdaterade schema.</p>
-                            </div>
-                        </body>
-                        </html>";
+                    var emailBody = Services.EmailTemplateService.ShiftAssigned(
+                        assignedUser.FirstName,
+                        shiftDate,
+                        shiftTime,
+                        duration
+                    );
 
                     _ = Task.Run(async () =>
                     {

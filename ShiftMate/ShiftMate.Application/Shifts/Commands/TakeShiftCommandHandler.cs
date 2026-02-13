@@ -85,24 +85,13 @@ namespace ShiftMate.Application.Shifts.Commands
                 try
                 {
                     var culture = new System.Globalization.CultureInfo("sv-SE");
-                    var shiftDate = shift.StartTime.ToString("dddd d MMMM", culture);
-                    var shiftTime = $"{shift.StartTime:HH:mm} - {shift.EndTime:HH:mm}";
-
                     var subject = $"✅ {user.FirstName} tog ditt pass!";
-                    var emailBody = $@"
-                        <html>
-                        <body style=""font-family: Arial, sans-serif; color: #333;"">
-                            <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
-                                <h2 style=""color: #28a745;"">Ditt pass blev taget! 🎉</h2>
-                                <p>Hej <strong>{originalOwner.FirstName}</strong>!</p>
-                                <p><strong>{user.FirstName} {user.LastName}</strong> har tagit ditt pass från marknadsplatsen.</p>
-                                <hr/>
-                                <p><strong>Pass:</strong> {shiftDate} ({shiftTime})</p>
-                                <hr/>
-                                <p style=""color: #666; font-size: 12px;"">Logga in på ShiftMate för att se ditt uppdaterade schema.</p>
-                            </div>
-                        </body>
-                        </html>";
+                    var emailBody = Services.EmailTemplateService.MarketplaceShiftTaken(
+                        originalOwner.FirstName,
+                        $"{user.FirstName} {user.LastName}",
+                        shift.StartTime.ToString("dddd d MMMM", culture),
+                        $"{shift.StartTime:HH:mm} - {shift.EndTime:HH:mm}"
+                    );
 
                     _ = Task.Run(async () =>
                     {
