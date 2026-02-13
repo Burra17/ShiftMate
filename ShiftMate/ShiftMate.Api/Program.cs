@@ -94,6 +94,10 @@ builder.Services.AddApplication();
 // Registrera e-posttjänsten (Resend HTTP API med HttpClient)
 builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
 
+// Sätt FrontendUrl för email-templates (localhost i dev, Vercel i prod)
+ShiftMate.Application.Services.EmailTemplateService.FrontendUrl =
+    builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+
 // --- CORS: Tillåt React-appen (Både lokalt och på Vercel) ---
 builder.Services.AddCors(options =>
 {

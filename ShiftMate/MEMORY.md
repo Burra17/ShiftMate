@@ -7,13 +7,49 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `main`
-- **Last Updated:** 2026-02-12
-- **Project State:** Stabil — Email-notifikationssystem implementerat med Resend API
+- **Active Branch:** `feature/email-design-improvements`
+- **Last Updated:** 2026-02-13
+- **Project State:** Stabil — Centraliserad email-templateservice med professionell design
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-13 - Email Design Improvements (feature/email-design-improvements)
+
+- **What was done:**
+  - **Centraliserad EmailTemplateService (ny fil):**
+    - `ShiftMate.Application/Services/EmailTemplateService.cs` — Statisk klass som genererar all email-HTML
+    - 5 publika metoder: `SwapProposal`, `DirectSwapAccepted`, `MarketplaceShiftTaken`, `SwapDeclined`, `ShiftAssigned`
+    - 4 privata hjälpmetoder: `Layout` (bas-layout), `InfoBox` (färgad inforuta), `Button` (CTA-knapp), `ShiftRow` (pass-info)
+    - Professionell, ren design: vitt kort på ljusgrå bakgrund, subtila ramar, inga emojis i layout
+    - Email-safe HTML: tabellbaserad layout, inline styles, kompatibelt med Outlook/Gmail/etc.
+  - **Dynamisk FrontendUrl (dev vs produktion):**
+    - `EmailTemplateService.FrontendUrl` — Statisk property som sätts en gång i `Program.cs`
+    - `appsettings.json` → `https://shiftmate-ruby.vercel.app` (produktion)
+    - `appsettings.Development.json` → `http://localhost:5173` (utveckling)
+    - Knappar i emails pekar på rätt sida: `/mine`, `/schedule`, `/marketplace`
+  - **Alla 5 handlers uppdaterade:**
+    - Inline HTML ersatt med `EmailTemplateService`-anrop
+    - Inga konstruktor-ändringar — noll test-modifieringar behövdes
+    - Nettoreduktion: -80 rader kod (69 tillagda, 149 borttagna)
+  - **Nya filer (1):**
+    - `ShiftMate.Application/Services/EmailTemplateService.cs`
+  - **Modifierade filer (8):**
+    - `ShiftMate.Api/Program.cs` — Sätter `FrontendUrl` från config
+    - `ShiftMate.Api/appsettings.json` — Avkommenterad `FrontendUrl` (produktion)
+    - `ShiftMate.Api/appsettings.Development.json` — `FrontendUrl` override (localhost)
+    - `ShiftMate.Application/SwapRequests/Commands/ProposeDirectSwapCommand.cs` — Använder `EmailTemplateService.SwapProposal()`
+    - `ShiftMate.Application/SwapRequests/Commands/AcceptSwapCommand.cs` — Använder `DirectSwapAccepted()` + `MarketplaceShiftTaken()`
+    - `ShiftMate.Application/SwapRequests/Commands/DeclineSwapRequestCommand.cs` — Använder `SwapDeclined()`
+    - `ShiftMate.Application/Shifts/Commands/TakeShiftCommandHandler.cs` — Använder `MarketplaceShiftTaken()`
+    - `ShiftMate.Application/Shifts/Commands/CreateShiftCommand.cs` — Använder `ShiftAssigned()`
+  - **Build OK** — dotnet build + dotnet test (13/13 gröna), noll test-ändringar
+
+- **Nästa steg (planerade):**
+  - In-app notification system (badge counts, notification dropdown)
+  - Överväg egen domän för professionella emails (t.ex. noreply@shiftmate.se)
+  - Status magic strings ("Pending", "Accepted") → enum + migration
 
 ### 2026-02-12 - Email Notification System (feature/email-notifications → merged to main)
 
@@ -57,7 +93,7 @@ Update this file at the end of each significant work session.
   - **Build OK** — dotnet build + dotnet test (13/13 gröna)
 
 - **Nästa steg (planerade):**
-  - Snygga till email-designen (logo, bättre styling, responsiv design)
+  - ~~Snygga till email-designen (logo, bättre styling, responsiv design)~~ ✅ (löst i feature/email-design-improvements)
   - In-app notification system (badge counts, notification dropdown)
   - Överväg egen domän för professionella emails (t.ex. noreply@shiftmate.se)
 
@@ -252,6 +288,8 @@ Track important architectural or design decisions here.
 | 2026-02-12 | onboarding@resend.dev som default FromEmail | Resends officiella test-email, fungerar i production, gratis |
 | 2026-02-12 | Email-notiser på 4 platser (accept/decline/take/assign) | Maximera användarnytta — meddela vid alla kritiska events |
 | 2026-02-12 | HTML-formaterade emails med svensk CultureInfo | Professionellt utseende + svenskt datum/tidsformat |
+| 2026-02-13 | Statisk `EmailTemplateService` i Application-lagret | Centralisera email-HTML, undvika DI-ändringar och testbrott |
+| 2026-02-13 | `FrontendUrl` via appsettings-lagring | Dev/prod-URL utan hårdkodning, noll kodändringar vid deploy |
 
 ---
 

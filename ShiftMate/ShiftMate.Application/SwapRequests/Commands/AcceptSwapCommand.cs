@@ -130,62 +130,37 @@ using Microsoft.Extensions.Logging;
 
                     if (isDirectSwap && swapRequest.TargetUser != null)
                     {
-                        // Direktbyte: Berätta vad de bytte
-                        var myShiftDate = swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture);
-                        var myShiftTime = $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}";
-                        var targetShiftDate = swapRequest.TargetShift!.StartTime.ToString("dddd d MMMM", culture);
-                        var targetShiftTime = $"{swapRequest.TargetShift.StartTime:HH:mm} - {swapRequest.TargetShift.EndTime:HH:mm}";
-
-                        subject = $"✅ {swapRequest.TargetUser.FirstName} godkände bytet!";
-                        emailBody = $@"
-                            <html>
-                            <body style=""font-family: Arial, sans-serif; color: #333;"">
-                                <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
-                                    <h2 style=""color: #28a745;"">Bytet är godkänt! 🎉</h2>
-                                    <p>Hej <strong>{swapRequest.RequestingUser.FirstName}</strong>!</p>
-                                    <p><strong>{swapRequest.TargetUser.FirstName} {swapRequest.TargetUser.LastName}</strong> har godkänt ditt bytesförslag.</p>
-                                    <hr/>
-                                    <p><strong>Du lämnade:</strong> {myShiftDate} ({myShiftTime})</p>
-                                    <p><strong>Du fick:</strong> {targetShiftDate} ({targetShiftTime})</p>
-                                    <hr/>
-                                    <p style=""color: #666; font-size: 12px;"">Logga in på ShiftMate för att se ditt uppdaterade schema.</p>
-                                </div>
-                            </body>
-                            </html>";
+                        subject = $"🎉 {swapRequest.TargetUser.FirstName} godkände bytet!";
+                        emailBody = Services.EmailTemplateService.DirectSwapAccepted(
+                            swapRequest.RequestingUser.FirstName,
+                            $"{swapRequest.TargetUser.FirstName} {swapRequest.TargetUser.LastName}",
+                            swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture),
+                            $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}",
+                            swapRequest.TargetShift!.StartTime.ToString("dddd d MMMM", culture),
+                            $"{swapRequest.TargetShift.StartTime:HH:mm} - {swapRequest.TargetShift.EndTime:HH:mm}"
+                        );
                     }
                     else
                     {
-                        // Marketplace-byte: Någon tog deras pass
-                        var acceptorName = swapRequest.TargetUser?.FirstName ?? "Någon";
-                        var shiftDate = swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture);
-                        var shiftTime = $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}";
+                        var takerName = swapRequest.TargetUser?.FirstName ?? "Någon";
+                        var takerFull = swapRequest.TargetUser != null
+                            ? $"{swapRequest.TargetUser.FirstName} {swapRequest.TargetUser.LastName}"
+                            : "Någon";
 
-                        subject = $"✅ {acceptorName} tog ditt pass!";
-                        emailBody = $@"
-                            <html>
-                            <body style=""font-family: Arial, sans-serif; color: #333;"">
-                                <div style=""max-width: 500px; border: 1px solid #eee; padding: 20px;"">
-                                    <h2 style=""color: #28a745;"">Ditt pass blev taget! 🎉</h2>
-                                    <p>Hej <strong>{swapRequest.RequestingUser.FirstName}</strong>!</p>
-                                    <p>Någon har tagit ditt pass från marknadsplatsen.</p>
-                                    <hr/>
-                                    <p><strong>Pass:</strong> {shiftDate} ({shiftTime})</p>
-                                    <hr/>
-                                    <p style=""color: #666; font-size: 12px;"">Logga in på ShiftMate för att se ditt uppdaterade schema.</p>
-                                </div>
-                            </body>
-                            </html>";
+                        subject = $"✅ {takerName} tog ditt pass!";
+                        emailBody = Services.EmailTemplateService.MarketplaceShiftTaken(
+                            swapRequest.RequestingUser.FirstName,
+                            takerFull,
+                            swapRequest.Shift.StartTime.ToString("dddd d MMMM", culture),
+                            $"{swapRequest.Shift.StartTime:HH:mm} - {swapRequest.Shift.EndTime:HH:mm}"
+                        );
                     }
 
                     _ = Task.Run(async () =>
                     {
                         try
                         {
-                            await _emailService.SendEmailAsync(
-                                swapRequest.RequestingUser.Email,
-                                subject,
-                                emailBody
-                            );
+                            await _emailService.SendEmailAsync(swapRequest.RequestingUser.Email, subject, emailBody);
                         }
                         catch (Exception ex)
                         {
