@@ -25,7 +25,7 @@ You are a **Senior Fullstack Architect** for ShiftMate.
 - **Pattern:** CQRS with MediatR 12.4.1
 - **Validation:** FluentValidation 12.1.1
 - **Password Hashing:** BCrypt.Net-Next 4.0.3
-- **Email:** SMTP (Gmail) via IEmailService
+- **Email:** Resend HTTP API via IEmailService
 - **Architecture:** Clean Architecture (Domain -> Application -> Infrastructure -> Api)
 
 ### Frontend (React 19 + Vite)
@@ -98,7 +98,7 @@ ShiftMate.Application/      # Business logic layer (CQRS)
 ShiftMate.Infrastructure/   # Data access & external services
   AppDbContext.cs            # EF Core DbContext with relationships
   DbInitializer.cs          # Seed data (test users & shifts)
-  Services/                 # SmtpEmailService
+  Services/                 # ResendEmailService
   Migrations/               # EF Core migrations
 ShiftMate.Api/              # HTTP layer
   Program.cs                # DI configuration & middleware pipeline

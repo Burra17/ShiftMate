@@ -24,7 +24,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 - **Validering:** FluentValidation
 - **Autentisering:** JWT (JSON Web Tokens) med rollbaserade claims
 - **Lösenord:** BCrypt-hashning
-- **E-post:** SMTP via Gmail
+- **E-post:** Resend HTTP API
 
 ### Frontend (React 19 + Vite)
 
@@ -143,7 +143,7 @@ ShiftMate/
 │   ├── AppDbContext.cs
 │   ├── DbInitializer.cs
 │   ├── Services/
-│   │   └── SmtpEmailService.cs
+│   │   └── ResendEmailService.cs
 │   └── Migrations/
 │       ├── 20260202220054_InitialCreate.cs
 │       ├── 20260203170207_FixRolesAndAddSwapRequests.cs
