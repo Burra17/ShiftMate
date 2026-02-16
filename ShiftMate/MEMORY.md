@@ -7,13 +7,53 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `feature/email-design-improvements`
-- **Last Updated:** 2026-02-13
-- **Project State:** Stabil — Centraliserad email-templateservice med professionell design
+- **Active Branch:** `feature/project-explanation`
+- **Last Updated:** 2026-02-16
+- **Project State:** Stabil — Dokumentation uppdaterad för lärarpresentation
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-16 - Dokumentationsuppdatering (feature/project-explanation)
+
+- **What was done:**
+  - **Skapade PROJEKTBESKRIVNING.md (ny fil):**
+    - Omfattande teknisk dokumentation för lärarpresentation (17KB, 407 rader)
+    - Innehåll: Om projektet, funktioner, teknikstack, arkitektur (Clean Architecture + CQRS)
+    - Data Model, testning (xUnit, Moq, FluentAssertions), deployment (Render + Vercel)
+    - Databas (Supabase PostgreSQL, User Secrets, migrations)
+    - Konventioner (språk, backend/frontend-regler, namngivning)
+    - Git workflow, utvecklingsflöde, tekniska utmaningar (Gmail→Resend, passkrockar, UTC-buggar)
+    - AI-verktyg i utvecklingen (Gemini CLI → Claude Code)
+    - Syfte: Visa kunskap och problemlösning för lärare (skiljer sig från README som är praktisk utvecklarguide)
+  - **Uppdaterade CLAUDE.md:**
+    - Rad 28: Email SMTP (Gmail) → Resend HTTP API
+    - Rad 101: SmtpEmailService → ResendEmailService
+  - **Uppdaterade README.md (repo root):**
+    - Rad 27: E-post SMTP via Gmail → Resend HTTP API
+    - Rad 146: SmtpEmailService.cs → ResendEmailService.cs
+  - **Granskade all dokumentation:**
+    - Verifierade konsistens mellan README.md, CLAUDE.md, PROJEKTBESKRIVNING.md och frontend README
+    - Bekräftade att package.json och .csproj-filer matchar dokumentationen
+    - Kontrollerade att ResendEmailService används (inte SmtpEmailService) via Program.cs
+  - **Nya filer (1):**
+    - `PROJEKTBESKRIVNING.md` — Teknisk rapport för lärare
+  - **Modifierade filer (3):**
+    - `CLAUDE.md` — Email-referenser uppdaterade till Resend
+    - `README.md` (repo root) — Email-referenser uppdaterade till Resend
+    - `MEMORY.md` — Denna session + metadata-uppdatering
+
+- **Beslut tagna:**
+  - PROJEKTBESKRIVNING.md och README.md tjänar olika syften och kompletterar varandra:
+    - README.md: Praktisk guide för utvecklare ("Hur kör jag projektet?")
+    - PROJEKTBESKRIVNING.md: Teknisk rapport för lärare ("Vad har studenten lärt sig?")
+  - Alla Gmail SMTP-referenser i PROJEKTBESKRIVNING.md behålls — de beskriver korrekt den historiska migreationen som är en viktig teknisk utmaning
+
+- **Nästa steg:**
+  - Commit och push till GitHub från feature/project-explanation
+  - Merge till main via PR
+  - Status magic strings ("Pending", "Accepted") → enum + migration (framtida arbete)
 
 ### 2026-02-13 - Email Design Improvements (feature/email-design-improvements)
 
