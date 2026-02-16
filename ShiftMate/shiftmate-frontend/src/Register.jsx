@@ -1,5 +1,5 @@
 // Importerar nödvändiga React-hooks och komponenter.
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from './api'; // Importerar en förkonfigurerad Axios-instans för API-anrop.
 import AuthLayout from './components/AuthLayout'; // En layout-komponent för autentiseringssidor.
@@ -7,6 +7,11 @@ import { useToast } from './contexts/ToastContext'; // Globala toast-notifikatio
 
 // Registreringskomponent för nya användare.
 const Register = () => {
+    // Sätt sidtiteln
+    useEffect(() => {
+        document.title = 'Registrera - ShiftMate';
+    }, []);
+
     // Hook för att programmatiskt navigera användaren, t.ex. efter lyckad registrering.
     const navigate = useNavigate();
     const toast = useToast();
