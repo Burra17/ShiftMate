@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Bakgrund -->
+  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+
+  <!-- Övre pil (höger) -->
+  <g filter="url(#glow)">
+    <!-- Pil-linje -->
+    <line x1="16" y1="22" x2="48" y2="22" stroke="url(#grad)" stroke-width="4" stroke-linecap="round"/>
+    <!-- Pilspets -->
+    <polyline points="42,16 48,22 42,28" fill="none" stroke="url(#grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Nedre pil (vänster) -->
+  <g filter="url(#glow)">
+    <!-- Pil-linje -->
+    <line x1="48" y1="42" x2="16" y2="42" stroke="url(#grad)" stroke-width="4" stroke-linecap="round"/>
+    <!-- Pilspets -->
+    <polyline points="22,36 16,42 22,48" fill="none" stroke="url(#grad)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Prickar mellan pilarna för extra touch (valfritt) -->
+  <circle cx="32" cy="32" r="2.5" fill="url(#grad)" opacity="0.6"/>
+</svg>

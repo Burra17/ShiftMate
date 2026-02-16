@@ -39,6 +39,12 @@ const MainApp = ({ onLogout }) => {
     // Hittar den komponent som motsvarar den aktiva fliken.
     const ActiveComponent = navItems.find(item => item.id === activeTab)?.component || <ShiftList />;
 
+    // Uppdatera sidtiteln dynamiskt baserat på aktiv flik
+    useEffect(() => {
+        const pageTitle = navItems.find(item => item.id === activeTab)?.label || 'ShiftMate';
+        document.title = `${pageTitle} - ShiftMate`;
+    }, [activeTab, navItems]);
+
     return (
         <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
             {/* Sidomeny */}

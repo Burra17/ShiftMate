@@ -1,5 +1,5 @@
 ﻿// importera nödvändiga funktioner och komponenter
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from './api'; // Api-instans för att göra anrop till backend
 import AuthLayout from './components/AuthLayout'; // Gemensam layout för autentiseringssidor
@@ -7,6 +7,11 @@ import AuthLayout from './components/AuthLayout'; // Gemensam layout för autent
 // Komponent för inloggningssidan.
 // Tar emot onLoginSuccess som en prop, vilken anropas vid lyckad inloggning.
 const Login = ({ onLoginSuccess }) => {
+    // Sätt sidtiteln
+    useEffect(() => {
+        document.title = 'Logga in - ShiftMate';
+    }, []);
+
     // State-variabler för att hantera formulärdata, laddningsstatus och felmeddelanden.
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
