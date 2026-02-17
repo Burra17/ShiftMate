@@ -7,13 +7,36 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `feature/ui-touchups`
+- **Active Branch:** `feature/ui-consistency`
 - **Last Updated:** 2026-02-17
-- **Project State:** Stabil — UI-förbättringar: routing, mobilvy, auth-tema
+- **Project State:** Stabil — Konsekventa loading/empty states
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-17 - UI Consistency: Loading & Empty States (feature/ui-consistency)
+
+- **What was done:**
+  - **Ny delad LoadingSpinner-komponent:**
+    - `shiftmate-frontend/src/components/LoadingSpinner.jsx` — Animerad spinner med valfritt meddelande
+    - Ersätter 6 olika laddningsindikatorer (olika färger, storlekar) med en enhetlig design
+    - Används av: Dashboard, ShiftList, MarketPlace, Schedule, Profile
+  - **Ny delad EmptyState-komponent:**
+    - `shiftmate-frontend/src/components/EmptyState.jsx` — Konsekvent kort med ikon, meddelande och valfri länk
+    - Ersätter 4 olika tomma-tillstånd med varierande styling
+    - Används av: Dashboard, ShiftList, MarketPlace, DayView
+  - **Nya filer (2):**
+    - `shiftmate-frontend/src/components/LoadingSpinner.jsx`
+    - `shiftmate-frontend/src/components/EmptyState.jsx`
+  - **Modifierade filer (6):**
+    - `shiftmate-frontend/src/Dashboard.jsx` — LoadingSpinner + EmptyState
+    - `shiftmate-frontend/src/ShiftList.jsx` — LoadingSpinner + EmptyState
+    - `shiftmate-frontend/src/MarketPlace.jsx` — LoadingSpinner + EmptyState
+    - `shiftmate-frontend/src/Schedule.jsx` — LoadingSpinner
+    - `shiftmate-frontend/src/Profile.jsx` — LoadingSpinner
+    - `shiftmate-frontend/src/components/schedule/DayView.jsx` — EmptyState
+  - **Build OK** — dotnet test (13/13 gröna) + vite build
 
 ### 2026-02-17 - UI Touchups (feature/ui-touchups)
 

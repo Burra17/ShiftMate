@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { decodeToken, fetchMyShifts, updateProfile, changePassword, getUserRole } from './api';
 import { useToast } from './contexts/ToastContext';
+import LoadingSpinner from './components/LoadingSpinner';
 
 // Översätt rollnamn till svenska för visning
 const roleLabels = {
@@ -208,7 +209,7 @@ const Profile = ({ onLogout }) => {
         );
     };
 
-    if (loading) return <div className="p-10 text-center text-pink-400 font-bold animate-pulse tracking-widest">LADDAR PROFIL...</div>;
+    if (loading) return <LoadingSpinner message="Laddar profil..." />;
 
     return (
         <div className="space-y-8">

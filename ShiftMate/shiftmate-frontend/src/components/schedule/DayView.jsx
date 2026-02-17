@@ -1,5 +1,6 @@
 import { isSameDay } from '../../utils/dateUtils';
 import ShiftCard from './ShiftCard';
+import EmptyState from '../EmptyState';
 
 /**
  * DayView — Visar alla pass för en enskild dag med fullständiga kort.
@@ -11,12 +12,7 @@ const DayView = ({ shifts, currentDate, currentUserId }) => {
         .sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
 
     if (dayShifts.length === 0) {
-        return (
-            <div className="bg-slate-900/50 p-12 rounded-3xl text-center border-2 border-dashed border-slate-800">
-                <p className="text-4xl mb-4">📋</p>
-                <p className="text-slate-400 font-medium">Inga pass denna dag.</p>
-            </div>
-        );
+        return <EmptyState icon="📋" message="Inga pass denna dag." />;
     }
 
     return (
