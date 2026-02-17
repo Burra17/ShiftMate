@@ -70,24 +70,24 @@ const Register = () => {
                 {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold p-3 rounded-lg text-center">{error}</div>}
 
                 {/* Formulärsektion för för- och efternamn. */}
-                <div className="flex space-x-4">
-                    <div className="space-y-2 w-1/2">
+                <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-6 sm:space-y-0">
+                    <div className="space-y-2 sm:w-1/2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Förnamn</label>
                         <input
                             type="text"
                             required
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                             placeholder="Alex"
                             value={firstName}
                             onChange={(e) => setFirstName(e.target.value)}
                         />
                     </div>
-                    <div className="space-y-2 w-1/2">
+                    <div className="space-y-2 sm:w-1/2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Efternamn</label>
                         <input
                             type="text"
                             required
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                             placeholder="Jones"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
@@ -101,7 +101,7 @@ const Register = () => {
                     <input
                         type="email"
                         required
-                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                         placeholder="namn@okq8.se"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
@@ -126,7 +126,7 @@ const Register = () => {
                 <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 mt-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-500 hover:to-pink-500 text-white font-black rounded-xl shadow-lg shadow-purple-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 tracking-wide uppercase text-sm"
+                    className="w-full py-4 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-xl shadow-lg shadow-blue-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 tracking-wide uppercase text-sm"
                 >
                     {loading ? 'Jobbar...' : 'Skapa Konto'}
                 </button>

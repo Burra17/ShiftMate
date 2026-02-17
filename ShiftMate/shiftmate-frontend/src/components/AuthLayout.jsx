@@ -15,7 +15,7 @@ const AuthLayout = ({ title, subtitle, children }) => {
             <div className="w-full max-w-md bg-slate-900/60 backdrop-blur-2xl border border-slate-800 p-8 md:p-12 rounded-3xl shadow-2xl relative z-10 animate-in fade-in zoom-in duration-500 mx-4">
                 <div className="text-center mb-10">
                     {/* Applikationens logotyp och varumärke. */}
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl mb-6 shadow-lg shadow-purple-500/30">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl mb-6 shadow-lg shadow-indigo-500/30">
                         <span className="text-3xl filter drop-shadow-md">⛽</span>
                     </div>
                     {/* Titel för sidan, dynamiskt satt via props. */}
