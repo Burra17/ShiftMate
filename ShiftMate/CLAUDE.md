@@ -177,10 +177,18 @@ components/
 
 ---
 
-## INSTRUCTIONS FOR EACH SESSION
+## IMPLEMENTATION WORKFLOW
 
-1. **Read MEMORY.md** to understand what was worked on previously.
-2. **Analyze** before coding - check if backend/frontend code already exists for the requested feature.
-3. **Generate** code following the rules above (English code, Swedish comments).
-4. **Create a new branch** for any new feature or fix before making changes.
-5. **Update MEMORY.md** at the end of significant work sessions with what was done.
+Follow these steps **in order** for every implementation task:
+
+1. **Read MEMORY.md** — Understand what was worked on previously and current project state.
+2. **Create a new branch** — `feature/`, `fix/`, or `refactor/` before making any changes.
+3. **Analyze relevant files** — Read existing code to understand patterns. Check that the feature doesn't already exist.
+4. **Implement** — Write code following the rules above (English code, Swedish comments), matching existing patterns.
+5. **Build & test** — Run `dotnet build`, `dotnet test`, and `vite build`. All must pass.
+6. **Let the user test** — Wait for the user to verify in the browser. Fix issues if needed.
+7. **Update documentation** — MEMORY.md, CLAUDE.md (endpoints/structure), README.md, frontend README if relevant.
+8. **Commit & push** — Descriptive commit message in English. Push branch to GitHub.
+9. **Create PR** — Use the commit message as title. No extra body text needed.
+10. **Merge to main** — Only after user approval.
+11. **Clean up** — Checkout main, pull latest, delete branch locally and on GitHub.
