@@ -95,6 +95,24 @@ namespace ShiftMate.Api.Controllers
             return Ok(result);
         }
 
+        // GET: api/SwapRequests/sent
+        [HttpGet("sent")]
+        public async Task<IActionResult> GetSentSwapRequests()
+        {
+            var userId = User.GetUserId();
+            if (userId == null)
+            {
+                return Unauthorized(new { message = "Kunde inte identifiera användaren." });
+            }
+
+            var query = new GetSentSwapRequestsQuery
+            {
+                CurrentUserId = userId.Value
+            };
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
         // POST: api/SwapRequests/accept
         [HttpPost("accept")]
         public async Task<IActionResult> AcceptSwap(AcceptSwapCommand command)

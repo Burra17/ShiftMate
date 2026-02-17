@@ -35,6 +35,7 @@ npm run preview
 
 | Sida | Fil | Beskrivning |
 |------|-----|-------------|
+| Dashboard | `Dashboard.jsx` | Startsida med översikt, snabbkort och kommande pass |
 | Inloggning | `Login.jsx` | Inloggning med e-post och lösenord |
 | Registrering | `Register.jsx` | Skapa nytt konto |
 | Mina Pass | `ShiftList.jsx` | Användarens skift och inkommande bytesförfrågningar |
@@ -104,6 +105,7 @@ shiftmate-frontend/
     ├── api.js                # Axios-instans med JWT-interceptor och hjälpfunktioner
     ├── index.css             # Globala Tailwind-stilar + toast-animationer
     ├── App.css               # Komponentspecifika stilar
+    ├── Dashboard.jsx         # Dashboard med översikt och snabbkort
     ├── Login.jsx             # Inloggningssida
     ├── Register.jsx          # Registreringssida
     ├── ShiftList.jsx         # Mina pass + bytesförfrågningar

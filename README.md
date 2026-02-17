@@ -128,7 +128,8 @@ ShiftMate/
 │   │   │   └── CancelSwapRequestCommand.cs
 │   │   └── Queries/
 │   │       ├── GetAvailableSwapsQuery.cs
-│   │       └── GetReceivedSwapRequestsQuery.cs
+│   │       ├── GetReceivedSwapRequestsQuery.cs
+│   │       └── GetSentSwapRequestsQuery.cs
 │   └── Users/
 │       ├── Commands/
 │       │   ├── RegisterUserCommand.cs
@@ -178,6 +179,7 @@ ShiftMate/
         ├── App.jsx
         ├── api.js
         ├── index.css
+        ├── Dashboard.jsx
         ├── Login.jsx
         ├── Register.jsx
         ├── ShiftList.jsx

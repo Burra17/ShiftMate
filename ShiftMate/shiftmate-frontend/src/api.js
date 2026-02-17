@@ -142,6 +142,14 @@ export const fetchReceivedSwapRequests = async () => {
 };
 
 /**
+ * Hämta skickade bytesförfrågningar (väntande).
+ */
+export const fetchSentSwapRequests = async () => {
+    const response = await axiosInstance.get('/swaprequests/sent');
+    return response.data;
+};
+
+/**
  * Acceptera en bytesförfrågan.
  */
 export const acceptSwapRequest = async (swapRequestId) => {
