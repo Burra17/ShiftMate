@@ -7,13 +7,52 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `feature/ui-consistency`
+- **Active Branch:** `main`
 - **Last Updated:** 2026-02-17
-- **Project State:** Stabil — Konsekventa loading/empty states
+- **Project State:** Stabil — 49 enhetstester, alla gröna
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-17 - Unit Test Expansion (test/shift-command-handlers, test/swap-request-handlers, test/auth-account-handlers)
+
+- **What was done:**
+  - **Testsviten utökad från 13 → 49 tester (36 nya) i tre batchar:**
+  - **Batch 1 — Shift Operations (PR #63, merged):**
+    - `TakeShiftCommandHandlerTests.cs` — 5 tester (pass ej hittat, ej tillgängligt, användare ej hittad, passkrock samma dag, happy path)
+    - `InitiateSwapHandlerTests.cs` — 3 tester (pass ej hittat, ej ägare, happy path)
+    - `CancelShiftSwapCommandHandlerTests.cs` — 4 tester (pass ej hittat, ej ägare, ej markerat för byte, happy path)
+  - **Batch 2 — Swap Request Operations (PR #64, merged):**
+    - `DeclineSwapRequestCommandHandlerTests.cs` — 4 tester (ej hittad, ej behörig, ej pending, happy path)
+    - `CancelSwapRequestHandlerTests.cs` — 3 tester (ej hittad, ej ägare, happy path med hard delete + reset)
+    - `ProposeDirectSwapCommandHandlerTests.cs` — 4 tester (pass ej hittade, ej ägare, målpass utan ägare, happy path)
+  - **Batch 3 — Auth & Account Flows (PR #65, denna branch):**
+    - `RegisterUserCommandHandlerTests.cs` — 4 tester (happy path, dubblett-email, lowercase-normalisering, BCrypt-hashning)
+    - `LoginHandlerTests.cs` — 4 tester (användare ej hittad, fel lösenord, JWT-token returneras, case-insensitive email)
+    - `ChangePasswordHandlerTests.cs` — 3 tester (användare ej hittad, fel nuvarande lösenord, happy path)
+    - `UpdateProfileHandlerTests.cs` — 2 tester (användare ej hittad, happy path)
+  - **Testmönster som följs:**
+    - `TestDbContextFactory.Create()` / `Destroy()` för in-memory DB per test
+    - Moq för `IEmailService`, `ILogger<T>`, `IValidator<T>`, `IConfiguration`
+    - FluentAssertions + xUnit `[Fact]`
+  - **Nya filer (10):**
+    - `ShiftMate.Tests/TakeShiftCommandHandlerTests.cs`
+    - `ShiftMate.Tests/InitiateSwapHandlerTests.cs`
+    - `ShiftMate.Tests/CancelShiftSwapCommandHandlerTests.cs`
+    - `ShiftMate.Tests/DeclineSwapRequestCommandHandlerTests.cs`
+    - `ShiftMate.Tests/CancelSwapRequestHandlerTests.cs`
+    - `ShiftMate.Tests/ProposeDirectSwapCommandHandlerTests.cs`
+    - `ShiftMate.Tests/RegisterUserCommandHandlerTests.cs`
+    - `ShiftMate.Tests/LoginHandlerTests.cs`
+    - `ShiftMate.Tests/ChangePasswordHandlerTests.cs`
+    - `ShiftMate.Tests/UpdateProfileHandlerTests.cs`
+  - **Build OK** — dotnet build + dotnet test (49/49 gröna)
+
+- **Nästa steg:**
+  - In-app notification system (badge counts, notification dropdown)
+  - Admin: redigera/ta bort pass
+  - Status magic strings ("Pending", "Accepted") → enum + migration
 
 ### 2026-02-17 - UI Consistency: Loading & Empty States (feature/ui-consistency)
 

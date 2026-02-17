@@ -159,10 +159,20 @@ ShiftMate/
 │       ├── ShiftsController.cs
 │       └── SwapRequestsController.cs
 │
-├── ShiftMate.Tests/                       # Enhetstester
+├── ShiftMate.Tests/                       # Enhetstester (49 tester)
 │   ├── AcceptSwapHandlerTests.cs
+│   ├── CancelShiftSwapCommandHandlerTests.cs
+│   ├── CancelSwapRequestHandlerTests.cs
+│   ├── ChangePasswordHandlerTests.cs
 │   ├── CreateShiftCommandValidatorTests.cs
 │   ├── CreateShiftHandlerTests.cs
+│   ├── DeclineSwapRequestCommandHandlerTests.cs
+│   ├── InitiateSwapHandlerTests.cs
+│   ├── LoginHandlerTests.cs
+│   ├── ProposeDirectSwapCommandHandlerTests.cs
+│   ├── RegisterUserCommandHandlerTests.cs
+│   ├── TakeShiftCommandHandlerTests.cs
+│   ├── UpdateProfileHandlerTests.cs
 │   └── Support/
 │       └── TestDbContextFactory.cs
 │
