@@ -11,6 +11,7 @@ import MarketPlace from './MarketPlace';
 import Schedule from './Schedule';
 import Profile from './Profile';
 import AdminPanel from './components/AdminPanel'; // <--- NYTT: Vi importerar AdminPanel
+import Dashboard from './Dashboard';
 
 // Huvudkomponent för applikationen när en användare är inloggad.
 const MainApp = ({ onLogout }) => {
@@ -21,10 +22,17 @@ const MainApp = ({ onLogout }) => {
     const isAdmin = role === 'Admin';
 
     // Bestämmer den aktiva fliken baserat på URL
-    const [activeTab, setActiveTab] = useState(location.pathname.substring(1) || 'mine');
+    const [activeTab, setActiveTab] = useState(location.pathname.substring(1) || 'dashboard');
+
+    // Synka activeTab med URL-ändringar (t.ex. från Link-komponenter)
+    useEffect(() => {
+        const tab = location.pathname.substring(1) || 'dashboard';
+        setActiveTab(tab);
+    }, [location.pathname]);
 
     // Definition av bas-elementen i menyn (för alla)
     const baseNavItems = [
+        { id: 'dashboard', label: 'Dashboard', path: '/dashboard', component: <Dashboard />, icon: Icons.Dashboard },
         { id: 'mine', label: 'Mina Pass', path: '/mine', component: <ShiftList />, icon: Icons.Home },
         { id: 'market', label: 'Lediga Pass', path: '/market', component: <MarketPlace />, icon: Icons.Swap },
         { id: 'schedule', label: 'Schema', path: '/schedule', component: <Schedule />, icon: Icons.Calendar },
@@ -37,7 +45,7 @@ const MainApp = ({ onLogout }) => {
         : baseNavItems;
 
     // Hittar den komponent som motsvarar den aktiva fliken.
-    const ActiveComponent = navItems.find(item => item.id === activeTab)?.component || <ShiftList />;
+    const ActiveComponent = navItems.find(item => item.id === activeTab)?.component || <Dashboard />;
 
     // Uppdatera sidtiteln dynamiskt baserat på aktiv flik
     useEffect(() => {
@@ -81,12 +89,14 @@ const MainApp = ({ onLogout }) => {
             {/* Huvudinnehåll */}
             <main className="flex-1 overflow-y-auto relative h-screen">
                 <div className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12">
-                    <header className="mb-8">
-                        <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
-                            {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
-                        </h2>
-                        <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
-                    </header>
+                    {activeTab !== 'dashboard' && (
+                        <header className="mb-8">
+                            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
+                            </h2>
+                            <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
+                        </header>
+                    )}
 
                     <div className="animate-in fade-in zoom-in-95 duration-300">
                         {ActiveComponent}
@@ -124,6 +134,7 @@ const MainApp = ({ onLogout }) => {
 
 // SVG-ikoner
 const Icons = {
+    Dashboard: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="4" rx="1" /><rect x="14" y="10" width="7" height="11" rx="1" /><rect x="3" y="13" width="7" height="8" rx="1" /></svg>,
     Home: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
     Swap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>,
     Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>,
@@ -140,7 +151,7 @@ function App() {
 
     const handleLoginSuccess = () => {
         setIsLoggedIn(true);
-        navigate('/');
+        navigate('/dashboard');
     };
 
     const handleLogout = () => {

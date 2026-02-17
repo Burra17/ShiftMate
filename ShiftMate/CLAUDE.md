@@ -113,6 +113,7 @@ main.jsx                    # React entrypoint
 App.jsx                     # Main routing, auth check, sidebar navigation
 api.js                      # Axios config (BaseURL + JWT interceptor + helper functions)
 index.css                   # Global Tailwind styles
+Dashboard.jsx               # Dashboard - landing page with overview & quick stats
 Login.jsx                   # Login page
 Register.jsx                # Registration page
 ShiftList.jsx               # "Mina Pass" - user's shifts + incoming swap requests
@@ -155,6 +156,7 @@ components/
 - `POST /api/swaprequests/propose-direct` - Direct swap proposal
 - `GET /api/swaprequests/available` - Available swaps
 - `GET /api/swaprequests/received` - Incoming requests
+- `GET /api/swaprequests/sent` - Sent (outgoing) requests
 - `POST /api/swaprequests/accept` - Accept swap
 - `POST /api/swaprequests/{id}/decline` - Decline swap
 - `DELETE /api/swaprequests/{id}` - Cancel request

@@ -7,13 +7,55 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `feature/project-explanation`
-- **Last Updated:** 2026-02-16
-- **Project State:** Stabil — Dokumentation uppdaterad för lärarpresentation
+- **Active Branch:** `feature/dashboard`
+- **Last Updated:** 2026-02-17
+- **Project State:** Stabil — Dashboard-sida tillagd + skickade förfrågningar endpoint
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-17 - Dashboard & Sent Swap Requests (feature/dashboard)
+
+- **What was done:**
+  - **Dashboard-sida (ny komponent):**
+    - `shiftmate-frontend/src/Dashboard.jsx` — Ny startsida efter inloggning
+    - Personlig hälsning med förnamn från JWT (God morgon/Hej/God kväll)
+    - 4 snabbkort: Nästa pass (med countdown), Idag (antal pass), Denna vecka (timmar), Förfrågningar (inkommande + skickade)
+    - Alert-banner för inkommande bytesförfrågningar (klickbar → Mina Pass)
+    - Skickade förfrågningar-sektion med pass-tider och målperson
+    - Kommande pass-lista (max 5) med datum-box, "pågår nu"-indikator, "ute för byte"-badge
+    - Snabblänkar till Lediga Pass och Schema
+  - **App.jsx uppdaterad:**
+    - Dashboard som standardsida (`/dashboard` istället för `/mine`)
+    - Ny Dashboard-ikon i navigationen (sidebar + mobilmeny)
+    - Generisk page-header döljs på dashboard (egen hälsning)
+    - Login-redirect går till `/dashboard`
+    - `useEffect` synkar `activeTab` med `location.pathname` (fixar Link-navigation från Dashboard)
+  - **Backend — Ny endpoint för skickade förfrågningar:**
+    - `GetSentSwapRequestsQuery.cs` — CQRS-query: hämtar väntande förfrågningar skickade av användaren
+    - `SwapRequestsController.cs` — Ny endpoint `GET /api/swaprequests/sent`
+  - **Frontend API:**
+    - `api.js` — Ny `fetchSentSwapRequests()` funktion
+  - **Nya filer (2):**
+    - `shiftmate-frontend/src/Dashboard.jsx`
+    - `ShiftMate.Application/SwapRequests/Queries/GetSentSwapRequestsQuery.cs`
+  - **Modifierade filer (3):**
+    - `shiftmate-frontend/src/App.jsx` — Dashboard-integration + URL-synk
+    - `shiftmate-frontend/src/api.js` — `fetchSentSwapRequests()`
+    - `ShiftMate.Api/Controllers/SwapRequestsController.cs` — `GET sent` endpoint
+  - **Build OK** — dotnet build + dotnet test (13/13 gröna) + vite build
+
+- **Beslut tagna:**
+  - Dashboard som startsida ger bättre förstaintryck vid demo
+  - `FirstName` claim (custom) i JWT istället för ClaimTypes.GivenName
+  - Skickade förfrågningar: Återanvänd `RequestingUser`-fältet i DTO för målpersonens info (undviker DTO-ändring)
+  - `useEffect` på `location.pathname` för att synka tabs med URL (fixar Link-komponenter utanför navbar)
+
+- **Nästa steg:**
+  - In-app notification system (badge counts, notification dropdown)
+  - Admin: redigera/ta bort pass
+  - Status magic strings ("Pending", "Accepted") → enum + migration
 
 ### 2026-02-16 - Dokumentationsuppdatering (feature/project-explanation)
 
