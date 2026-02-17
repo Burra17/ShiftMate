@@ -8,6 +8,7 @@ import EmptyState from './components/EmptyState';
 const MarketPlace = () => {
     const [availableShifts, setAvailableShifts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const toast = useToast();
     const confirm = useConfirm();
 
@@ -22,6 +23,7 @@ const MarketPlace = () => {
                 setAvailableShifts(data);
             } catch (err) {
                 console.error("Kunde inte hämta lediga pass:", err);
+                setError("Kunde inte ladda lediga pass just nu.");
             } finally {
                 setLoading(false);
             }
@@ -54,6 +56,12 @@ const MarketPlace = () => {
     // 4. RENDERING (Laddningsvy)
     // ---------------------------------------------------------
     if (loading) return <LoadingSpinner message="Hämtar lediga pass..." />;
+
+    if (error) return (
+        <div className="p-6 bg-red-900/20 border border-red-800 rounded-2xl text-center text-red-400 font-bold">
+            {error}
+        </div>
+    );
 
     return (
         <div className="space-y-6">

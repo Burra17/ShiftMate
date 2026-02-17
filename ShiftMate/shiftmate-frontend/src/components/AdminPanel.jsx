@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../api';
+import { useToast } from '../contexts/ToastContext';
 
 // Snabbval för vanliga passtyper
 const QUICK_SHIFTS = [
@@ -30,7 +31,7 @@ const AdminPanel = () => {
 
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ text: '', type: '' });
+    const toast = useToast();
 
     // Hämta användare när sidan laddas
     useEffect(() => {
@@ -44,13 +45,6 @@ const AdminPanel = () => {
         };
         fetchUsers();
     }, []);
-
-    // Rensa meddelande efter 4 sekunder
-    useEffect(() => {
-        if (!message.text) return;
-        const timer = setTimeout(() => setMessage({ text: '', type: '' }), 4000);
-        return () => clearTimeout(timer);
-    }, [message]);
 
     // Hantera snabbval — fyller i start/sluttid automatiskt
     const handleQuickSelect = (quick) => {
@@ -72,7 +66,6 @@ const AdminPanel = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage({ text: '', type: '' });
 
         try {
             // Bygg ihop datum + tid till datetime-strängar
@@ -92,7 +85,7 @@ const AdminPanel = () => {
 
             await api.post('/Shifts/admin', payload);
 
-            setMessage({ text: 'Passet har skapats!', type: 'success' });
+            toast.success("Passet har skapats!");
 
             // Återställ formuläret efter lyckad skapning
             setDate('');
@@ -103,7 +96,7 @@ const AdminPanel = () => {
 
         } catch (err) {
             const errorMsg = err.response?.data?.message || "Något gick fel.";
-            setMessage({ text: errorMsg, type: 'error' });
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
@@ -125,7 +118,7 @@ const AdminPanel = () => {
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
                         required
-                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                     />
                 </div>
 
@@ -163,7 +156,7 @@ const AdminPanel = () => {
                             value={startTime}
                             onChange={(e) => handleStartChange(e.target.value)}
                             required
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                         />
                     </div>
                     <div className="space-y-2">
@@ -173,7 +166,7 @@ const AdminPanel = () => {
                             value={endTime}
                             onChange={(e) => handleEndChange(e.target.value)}
                             required
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all"
+                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                         />
                     </div>
                 </div>
@@ -192,7 +185,7 @@ const AdminPanel = () => {
                     <select
                         value={userId}
                         onChange={(e) => setUserId(e.target.value)}
-                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all appearance-none"
+                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none"
                     >
                         <option value="">Öppet pass (ingen ägare)</option>
                         <option disabled>──────────</option>
@@ -218,15 +211,6 @@ const AdminPanel = () => {
                     {loading ? 'Skapar...' : 'Skapa pass'}
                 </button>
 
-                {/* Feedback-meddelande med auto-fade */}
-                {message.text && (
-                    <div className={`p-4 rounded-xl text-center font-bold text-sm border transition-all ${message.type === 'success'
-                            ? 'bg-green-500/10 text-green-400 border-green-500/20'
-                            : 'bg-red-500/10 text-red-400 border-red-500/20'
-                        }`}>
-                        {message.type === 'success' ? '✅' : '❌'} {message.text}
-                    </div>
-                )}
             </form>
         </div>
     );
