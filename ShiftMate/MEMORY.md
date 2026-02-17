@@ -7,13 +7,50 @@ Update this file at the end of each significant work session.
 
 ## CURRENT STATUS
 
-- **Active Branch:** `feature/dashboard`
+- **Active Branch:** `feature/ui-touchups`
 - **Last Updated:** 2026-02-17
-- **Project State:** Stabil — Dashboard-sida tillagd + skickade förfrågningar endpoint
+- **Project State:** Stabil — UI-förbättringar: routing, mobilvy, auth-tema
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-17 - UI Touchups (feature/ui-touchups)
+
+- **What was done:**
+  - **App.jsx — Routing & sidbytefix:**
+    - Ersatte manuell `activeTab` state + inline komponentväxling med React Router `<Routes>` inuti MainApp
+    - `activeTab` härleds nu direkt från `location.pathname` (ingen state-sync delay)
+    - Lade till `ref` på `<main>` för scroll-to-top vid sidbyte
+    - Lade till `key={activeTab}` på content-wrapper för att tvinga React att ommontera vid sidbyte
+    - Tog bort `animate-in` wrapper runt sidinnehåll
+  - **Profile.jsx — Tog bort inträdesanimation:**
+    - Tog bort `animate-in fade-in zoom-in-95 duration-500` från wrapper-div (konsekvent med övriga sidor)
+  - **WeekView.jsx — Mobilvy med dagtabbar:**
+    - Mobil: Horisontell rad med 7 dagtabbar (mån–sön), tappa en dag för att se dess pass
+    - Prickindikator visar vilka dagar som har pass
+    - Defaultar till dagens flik
+    - Desktop: Oförändrat 7-kolumnsrutnät
+  - **Auth-sidor — Temaharmonisering:**
+    - AuthLayout logotypikon: `indigo→purple→pink` → `indigo→purple` (matchar sidebar)
+    - Login + Register knappar: `indigo→purple→pink` → `blue→indigo` med blå skugga
+    - Alla input focus-ringar: `purple` → `blue` (matchar appens neon-blåtema)
+  - **Register.jsx — Mobilresponsivitet:**
+    - Förnamn/efternamn-fält staplas vertikalt på mobil, sida vid sida på `sm+`
+  - **Modifierade filer (6):**
+    - `shiftmate-frontend/src/App.jsx` — React Router routing + scroll reset
+    - `shiftmate-frontend/src/Profile.jsx` — Borttagen animation
+    - `shiftmate-frontend/src/components/schedule/WeekView.jsx` — Mobil dagtabbar
+    - `shiftmate-frontend/src/Login.jsx` — Blått tema
+    - `shiftmate-frontend/src/Register.jsx` — Blått tema + mobilresponsiv namn-layout
+    - `shiftmate-frontend/src/components/AuthLayout.jsx` — Logotypikon färg
+  - **Build OK** — dotnet test (13/13 gröna) + vite build
+
+- **Nästa steg:**
+  - Konsekvent laddningsstatus (delad skeleton/spinner-komponent)
+  - Konsekvent empty states
+  - MarketPlace-kort: vänsterjusterat för bättre skanning
+  - Dashboard stat-kort: 1-kolumn på mycket små skärmar
 
 ### 2026-02-17 - Dashboard & Sent Swap Requests (feature/dashboard)
 

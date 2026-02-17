@@ -1,5 +1,5 @@
 ﻿// importera nödvändiga funktioner och komponenter från react och react-router-dom
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
 import { setLogoutCallback, getUserRole } from './api'; // <--- NYTT: Vi importerar getUserRole
 
@@ -16,42 +16,34 @@ import Dashboard from './Dashboard';
 // Huvudkomponent för applikationen när en användare är inloggad.
 const MainApp = ({ onLogout }) => {
     const location = useLocation();
+    const mainRef = useRef(null);
 
-    // NYTT: Kolla om användaren är Admin
+    // Kolla om användaren är Admin
     const role = getUserRole();
     const isAdmin = role === 'Admin';
 
-    // Bestämmer den aktiva fliken baserat på URL
-    const [activeTab, setActiveTab] = useState(location.pathname.substring(1) || 'dashboard');
+    // Härledd aktiv flik direkt från URL (ingen state behövs)
+    const activeTab = location.pathname.substring(1) || 'dashboard';
 
-    // Synka activeTab med URL-ändringar (t.ex. från Link-komponenter)
-    useEffect(() => {
-        const tab = location.pathname.substring(1) || 'dashboard';
-        setActiveTab(tab);
-    }, [location.pathname]);
-
-    // Definition av bas-elementen i menyn (för alla)
+    // Definition av menyalternativ (utan komponent-instanser)
     const baseNavItems = [
-        { id: 'dashboard', label: 'Dashboard', path: '/dashboard', component: <Dashboard />, icon: Icons.Dashboard },
-        { id: 'mine', label: 'Mina Pass', path: '/mine', component: <ShiftList />, icon: Icons.Home },
-        { id: 'market', label: 'Lediga Pass', path: '/market', component: <MarketPlace />, icon: Icons.Swap },
-        { id: 'schedule', label: 'Schema', path: '/schedule', component: <Schedule />, icon: Icons.Calendar },
-        { id: 'profile', label: 'Profil', path: '/profile', component: <Profile onLogout={onLogout} />, icon: Icons.User },
+        { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: Icons.Dashboard },
+        { id: 'mine', label: 'Mina Pass', path: '/mine', icon: Icons.Home },
+        { id: 'market', label: 'Lediga Pass', path: '/market', icon: Icons.Swap },
+        { id: 'schedule', label: 'Schema', path: '/schedule', icon: Icons.Calendar },
+        { id: 'profile', label: 'Profil', path: '/profile', icon: Icons.User },
     ];
 
-    // NYTT: Om man är admin, lägg till admin-panelen i listan!
     const navItems = isAdmin
-        ? [...baseNavItems, { id: 'admin', label: 'Admin', path: '/admin', component: <AdminPanel />, icon: Icons.Shield }]
+        ? [...baseNavItems, { id: 'admin', label: 'Admin', path: '/admin', icon: Icons.Shield }]
         : baseNavItems;
 
-    // Hittar den komponent som motsvarar den aktiva fliken.
-    const ActiveComponent = navItems.find(item => item.id === activeTab)?.component || <Dashboard />;
-
-    // Uppdatera sidtiteln dynamiskt baserat på aktiv flik
+    // Scrolla till toppen och uppdatera titel vid sidbyte
     useEffect(() => {
+        if (mainRef.current) mainRef.current.scrollTop = 0;
         const pageTitle = navItems.find(item => item.id === activeTab)?.label || 'ShiftMate';
         document.title = `${pageTitle} - ShiftMate`;
-    }, [activeTab, navItems]);
+    }, [activeTab]);
 
     return (
         <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
@@ -67,7 +59,7 @@ const MainApp = ({ onLogout }) => {
                 {/* Navigationslänkar */}
                 <nav className="flex-1 space-y-2">
                     {navItems.map((item) => (
-                        <Link to={item.path} key={item.id} onClick={() => setActiveTab(item.id)}
+                        <Link to={item.path} key={item.id}
                             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-bold ${activeTab === item.id
                                 ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
                                 : 'text-slate-400 hover:bg-slate-800 hover:text-white'
@@ -87,20 +79,26 @@ const MainApp = ({ onLogout }) => {
             </aside>
 
             {/* Huvudinnehåll */}
-            <main className="flex-1 overflow-y-auto relative h-screen">
-                <div className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12">
+            <main ref={mainRef} className="flex-1 overflow-y-auto relative h-screen">
+                <div key={activeTab} className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12">
                     {activeTab !== 'dashboard' && (
                         <header className="mb-8">
-                            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight animate-in fade-in slide-in-from-bottom-2 duration-500">
+                            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
                                 {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
                             </h2>
                             <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
                         </header>
                     )}
 
-                    <div className="animate-in fade-in zoom-in-95 duration-300">
-                        {ActiveComponent}
-                    </div>
+                    <Routes>
+                        <Route path="/dashboard" element={<Dashboard />} />
+                        <Route path="/mine" element={<ShiftList />} />
+                        <Route path="/market" element={<MarketPlace />} />
+                        <Route path="/schedule" element={<Schedule />} />
+                        <Route path="/profile" element={<Profile onLogout={onLogout} />} />
+                        {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
+                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    </Routes>
                 </div>
             </main>
 
@@ -111,7 +109,6 @@ const MainApp = ({ onLogout }) => {
                         <Link
                             to={item.path}
                             key={item.id}
-                            onClick={() => setActiveTab(item.id)}
                             className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200
                                 ${activeTab === item.id
                                     ? 'text-blue-400'

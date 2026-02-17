@@ -211,7 +211,7 @@ const Profile = ({ onLogout }) => {
     if (loading) return <div className="p-10 text-center text-pink-400 font-bold animate-pulse tracking-widest">LADDAR PROFIL...</div>;
 
     return (
-        <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
+        <div className="space-y-8">
 
             {/* 1. PROFILKORT */}
             <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 flex flex-col items-center text-center relative overflow-hidden group">
