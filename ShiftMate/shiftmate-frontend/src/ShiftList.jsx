@@ -32,6 +32,8 @@ const ShiftList = () => {
     const fetchShifts = async () => {
         try {
             const data = await fetchMyShifts();
+            // Sortera pass kronologiskt (närmaste först)
+            data.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
             setShifts(data);
         } catch (err) {
             console.error("Kunde inte hämta pass:", err);
@@ -110,7 +112,10 @@ const ShiftList = () => {
         setActionLoading(shiftId);
         try {
             await cancelShiftSwap(shiftId);
+            toast.success("Passet har tagits bort från marknaden.");
             setShifts(prev => prev.map(s => s.id === shiftId ? { ...s, isUpForSwap: false } : s));
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Kunde inte ångra utläggningen.");
         } finally {
             setActionLoading(null);
         }
@@ -301,7 +306,7 @@ const ShiftList = () => {
                             <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-white text-xl">✕</button>
                         </div>
                         <div className="p-4 overflow-y-auto">
-                            {modalLoading && <p className="text-slate-400 text-center animate-pulse py-10 uppercase text-xs font-bold">Laddar kollegor...</p>}
+                            {modalLoading && <LoadingSpinner message="Laddar kollegor..." />}
                             {modalError && <p className="text-red-400 text-center py-10 font-bold">{modalError}</p>}
                             {!modalLoading && !modalError && (
                                 <div className="space-y-2">

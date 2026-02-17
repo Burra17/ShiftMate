@@ -234,7 +234,7 @@ const Profile = ({ onLogout }) => {
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                                    className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                                     value={form.firstName}
                                     onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                                 />
@@ -244,7 +244,7 @@ const Profile = ({ onLogout }) => {
                                 <input
                                     type="text"
                                     required
-                                    className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                                    className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                                     value={form.lastName}
                                     onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                                 />
@@ -255,7 +255,7 @@ const Profile = ({ onLogout }) => {
                             <input
                                 type="email"
                                 required
-                                className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                                className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                                 value={form.email}
                                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                             />
@@ -369,7 +369,7 @@ const Profile = ({ onLogout }) => {
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nuvarande lösenord</label>
                         <input
                             type="password"
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                             placeholder="Ange nuvarande lösenord"
                             value={passwordForm.currentPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
@@ -379,7 +379,7 @@ const Profile = ({ onLogout }) => {
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nytt lösenord</label>
                         <input
                             type="password"
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                             placeholder="Minst 8 tecken"
                             value={passwordForm.newPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
@@ -389,7 +389,7 @@ const Profile = ({ onLogout }) => {
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Bekräfta nytt lösenord</label>
                         <input
                             type="password"
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all font-medium"
+                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
                             placeholder="Upprepa nytt lösenord"
                             value={passwordForm.confirmPassword}
                             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}

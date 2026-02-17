@@ -16,6 +16,7 @@ const Schedule = () => {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [allShifts, setAllShifts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const currentUserId = getCurrentUserId();
 
@@ -27,6 +28,7 @@ const Schedule = () => {
                 setAllShifts(data);
             } catch (err) {
                 console.error("Kunde inte hämta schemat:", err);
+                setError("Kunde inte ladda schemat just nu.");
             } finally {
                 setLoading(false);
             }
@@ -41,6 +43,12 @@ const Schedule = () => {
     };
 
     if (loading) return <LoadingSpinner message="Laddar schema..." />;
+
+    if (error) return (
+        <div className="p-6 bg-red-900/20 border border-red-800 rounded-2xl text-center text-red-400 font-bold">
+            {error}
+        </div>
+    );
 
     return (
         <div className="space-y-6">
