@@ -5,6 +5,7 @@ import NavigationBar from './components/schedule/NavigationBar';
 import DayView from './components/schedule/DayView';
 import WeekView from './components/schedule/WeekView';
 import MonthView from './components/schedule/MonthView';
+import LoadingSpinner from './components/LoadingSpinner';
 
 /**
  * Schedule — Orkestreringskomponent för schemavyn.
@@ -39,13 +40,7 @@ const Schedule = () => {
         setViewMode('day');
     };
 
-    if (loading) {
-        return (
-            <div className="p-10 text-center text-blue-400 font-bold animate-pulse tracking-widest">
-                LADDAR SCHEMA...
-            </div>
-        );
-    }
+    if (loading) return <LoadingSpinner message="Laddar schema..." />;
 
     return (
         <div className="space-y-6">

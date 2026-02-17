@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import EmptyState from './components/EmptyState';
 import { fetchMyShifts, fetchReceivedSwapRequests, fetchSentSwapRequests, decodeToken } from './api';
 import { formatTime, formatDate, isSameDay } from './utils/dateUtils';
+import LoadingSpinner from './components/LoadingSpinner';
 
 const Dashboard = () => {
     const [shifts, setShifts] = useState([]);
@@ -98,11 +100,7 @@ const Dashboard = () => {
         return `om ${minutes} min`;
     };
 
-    if (loading) return (
-        <div className="p-10 text-center text-blue-400 font-bold animate-pulse tracking-widest uppercase">
-            Laddar dashboard...
-        </div>
-    );
+    if (loading) return <LoadingSpinner message="Laddar dashboard..." />;
 
     return (
         <div className="space-y-8">
@@ -222,12 +220,7 @@ const Dashboard = () => {
                     {todayShifts.length > 0 ? 'Dagens pass' : 'Kommande pass'}
                 </h3>
                 {upcomingShifts.length === 0 ? (
-                    <div className="bg-slate-900/50 p-10 rounded-2xl text-center border-2 border-dashed border-slate-800">
-                        <p className="text-slate-500 font-medium">Inga kommande pass inbokade.</p>
-                        <Link to="/market" className="text-blue-400 text-sm font-bold hover:underline mt-2 inline-block">
-                            Kolla lediga pass
-                        </Link>
-                    </div>
+                    <EmptyState icon="💤" message="Inga kommande pass inbokade." linkTo="/market" linkText="Kolla lediga pass" />
                 ) : (
                     <div className="space-y-3">
                         {upcomingShifts.slice(0, 5).map(shift => {

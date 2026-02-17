@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { fetchClaimableShifts, takeShift } from './api';
 import { formatDate, formatTimeRange } from './utils/dateUtils';
 import { useToast, useConfirm } from './contexts/ToastContext';
+import LoadingSpinner from './components/LoadingSpinner';
+import EmptyState from './components/EmptyState';
 
 const MarketPlace = () => {
     const [availableShifts, setAvailableShifts] = useState([]);
@@ -51,20 +53,13 @@ const MarketPlace = () => {
     // ---------------------------------------------------------
     // 4. RENDERING (Laddningsvy)
     // ---------------------------------------------------------
-    if (loading) return (
-        <div className="p-10 text-center text-green-400 font-bold animate-pulse tracking-widest uppercase">
-            Hämtar lediga pass...
-        </div>
-    );
+    if (loading) return <LoadingSpinner message="Hämtar lediga pass..." />;
 
     return (
         <div className="space-y-6">
             {/* Om listan är tom */}
             {availableShifts.length === 0 ? (
-                <div className="bg-slate-900/50 p-12 rounded-3xl text-center border-2 border-dashed border-slate-800">
-                    <p className="text-4xl mb-4">🌴</p>
-                    <p className="text-slate-400 font-medium">Inga lediga pass tillgängliga just nu.</p>
-                </div>
+                <EmptyState icon="🌴" message="Inga lediga pass tillgängliga just nu." />
             ) : (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {availableShifts.map((shift) => {

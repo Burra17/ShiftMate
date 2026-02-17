@@ -2,6 +2,8 @@
 import { fetchShifts as fetchShiftsApi, fetchMyShifts, fetchReceivedSwapRequests, acceptSwapRequest, declineSwapRequest, initiateSwap, cancelShiftSwap, proposeDirectSwap } from './api';
 import { formatDate, formatTime } from './utils/dateUtils';
 import { useToast } from './contexts/ToastContext';
+import LoadingSpinner from './components/LoadingSpinner';
+import EmptyState from './components/EmptyState';
 
 const ShiftList = () => {
     // --- HOOKS ---
@@ -168,11 +170,7 @@ const ShiftList = () => {
 
     // --- RENDERINGS-LOGIK ---
 
-    if (loading || requestsLoading) return (
-        <div className="p-10 text-center text-blue-400 font-bold animate-pulse tracking-widest uppercase">
-            Hämtar schema...
-        </div>
-    );
+    if (loading || requestsLoading) return <LoadingSpinner message="Hämtar schema..." />;
 
     if (error) return (
         <div className="p-6 bg-red-900/20 border border-red-800 rounded-2xl text-center text-red-400 font-bold">
@@ -238,10 +236,7 @@ const ShiftList = () => {
             <div>
                 <h2 className="text-xl font-black text-white tracking-tight mb-4 uppercase">Mina Pass</h2>
                 {shifts.length === 0 ? (
-                    <div className="bg-slate-900/50 p-12 rounded-3xl text-center border-2 border-dashed border-slate-800">
-                        <p className="text-4xl mb-4">💤</p>
-                        <p className="text-slate-400 font-medium">Du har inga inbokade pass just nu.</p>
-                    </div>
+                    <EmptyState icon="💤" message="Du har inga inbokade pass just nu." linkTo="/market" linkText="Kolla lediga pass" />
                 ) : (
                     <div className="space-y-4">
                         {shifts.map((shift) => (
