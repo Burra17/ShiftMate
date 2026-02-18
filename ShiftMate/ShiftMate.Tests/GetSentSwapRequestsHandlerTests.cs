@@ -36,13 +36,13 @@ public class GetSentSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
-            TargetUserId = target.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = target.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         // Skickad av annan — ska INTE inkluderas
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = target.Id,
-            TargetUserId = sender.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = sender.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -87,7 +87,7 @@ public class GetSentSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
-            TargetUserId = target.Id, Status = "Approved", CreatedAt = DateTime.UtcNow
+            TargetUserId = target.Id, Status = SwapRequestStatus.Accepted, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -131,7 +131,7 @@ public class GetSentSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
-            TargetUserId = target.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = target.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -186,7 +186,7 @@ public class GetSentSwapRequestsHandlerTests
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
             TargetUserId = target.Id, TargetShiftId = targetShift.Id,
-            Status = "Pending", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

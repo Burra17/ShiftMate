@@ -72,7 +72,7 @@ namespace ShiftMate.Application.SwapRequests.Commands
                 ShiftId = myShift.Id,
                 TargetUserId = targetShift.UserId, // Kollegan som äger det andra passet
                 TargetShiftId = targetShift.Id,
-                Status = "Pending",
+                Status = SwapRequestStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
 

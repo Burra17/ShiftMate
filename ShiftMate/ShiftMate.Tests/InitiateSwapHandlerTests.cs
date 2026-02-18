@@ -105,7 +105,7 @@ public class InitiateSwapHandlerTests
         var swapRequest = context.SwapRequests.First();
         swapRequest.ShiftId.Should().Be(shiftId);
         swapRequest.RequestingUserId.Should().Be(userId);
-        swapRequest.Status.Should().Be("Pending");
+        swapRequest.Status.Should().Be(SwapRequestStatus.Pending);
 
         TestDbContextFactory.Destroy(context);
     }

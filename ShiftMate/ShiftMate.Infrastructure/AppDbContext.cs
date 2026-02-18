@@ -23,6 +23,11 @@ namespace ShiftMate.Infrastructure
                 .Property(u => u.Role)
                 .HasConversion<string>();
 
+            // Konvertera SwapRequestStatus-enum till sträng i databasen (ingen datamigration behövs)
+            modelBuilder.Entity<SwapRequest>()
+                .Property(sr => sr.Status)
+                .HasConversion<string>();
+
             // Konfigurera relationen för den användare som SKAPAR en bytesförfrågan.
             modelBuilder.Entity<SwapRequest>()
                 .HasOne(s => s.RequestingUser)

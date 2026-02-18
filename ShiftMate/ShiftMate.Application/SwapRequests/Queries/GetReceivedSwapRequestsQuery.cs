@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain;
 using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.SwapRequests.Queries
@@ -29,7 +30,7 @@ namespace ShiftMate.Application.SwapRequests.Queries
             // 1. Hämta alla förfrågningar där den inloggade användaren är målet och statusen är "Pending".
             var swapRequests = await _context.SwapRequests
                 .AsNoTracking()
-                .Where(sr => sr.TargetUserId == request.CurrentUserId && sr.Status == "Pending")
+                .Where(sr => sr.TargetUserId == request.CurrentUserId && sr.Status == SwapRequestStatus.Pending)
                 .Include(sr => sr.RequestingUser) // Användaren som skickade förfrågan
                 .Include(sr => sr.Shift)          // Passet som de erbjuder
                 .Include(sr => sr.TargetShift)    // Passet som de vill ha i utbyte
@@ -40,7 +41,7 @@ namespace ShiftMate.Application.SwapRequests.Queries
             return swapRequests.Select(sr => new SwapRequestDto
             {
                 Id = sr.Id,
-                Status = sr.Status,
+                Status = sr.Status.ToString(),
                 CreatedAt = sr.CreatedAt,
                 RequestingUser = new UserDto
                 {

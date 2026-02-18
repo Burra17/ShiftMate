@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain;
 
 namespace ShiftMate.Application.SwapRequests.Queries
 {
@@ -23,14 +24,14 @@ namespace ShiftMate.Application.SwapRequests.Queries
                 .AsNoTracking()
                 .Include(sr => sr.Shift)           // Hämta passet
                 .Include(sr => sr.RequestingUser)  // <--- VIKTIGT: Hämta användaren också!
-                .Where(sr => sr.Status == "Pending")
+                .Where(sr => sr.Status == SwapRequestStatus.Pending)
                 .ToListAsync(cancellationToken);
 
             // Mappa om till DTOs
             var dtos = swaps.Select(sr => new SwapRequestDto
             {
                 Id = sr.Id,
-                Status = sr.Status,
+                Status = sr.Status.ToString(),
                 CreatedAt = sr.CreatedAt, // <--- Nu tar vi med datumet
 
                 Shift = new ShiftDto
