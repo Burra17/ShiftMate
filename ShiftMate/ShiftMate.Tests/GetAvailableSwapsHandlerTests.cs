@@ -96,6 +96,8 @@ public class GetAvailableSwapsHandlerTests
         result[0].Shift.Should().NotBeNull();
         result[0].Shift!.Id.Should().Be(shift.Id);
         result[0].RequestingUser.Should().NotBeNull();
+        result[0].RequestingUser!.FirstName.Should().Be("Anna");
+        result[0].RequestingUser!.LastName.Should().Be("Svensson");
         result[0].RequestingUser!.Email.Should().Be("anna@test.com");
 
         TestDbContextFactory.Destroy(context);
