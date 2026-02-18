@@ -104,9 +104,9 @@ public class GetSentSwapRequestsHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_Map_TargetUser_To_RequestingUser_Dto()
+    public async Task Handle_Should_Map_TargetUser_To_TargetUser_Dto()
     {
-        // Arrange — handlern återanvänder RequestingUser-fältet för att skicka målpersonens info
+        // Arrange — målpersonens info mappas till TargetUser-fältet
         var context = TestDbContextFactory.Create();
         var sender = new User
         {
@@ -141,11 +141,12 @@ public class GetSentSwapRequestsHandlerTests
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
 
-        // Assert — RequestingUser-fältet ska innehålla målpersonens (Eriks) info
+        // Assert — TargetUser-fältet ska innehålla målpersonens (Eriks) info
         result.Should().HaveCount(1);
-        result[0].RequestingUser.Should().NotBeNull();
-        result[0].RequestingUser!.FirstName.Should().Be("Erik");
-        result[0].RequestingUser!.Email.Should().Be("erik@test.com");
+        result[0].TargetUser.Should().NotBeNull();
+        result[0].TargetUser!.FirstName.Should().Be("Erik");
+        result[0].TargetUser!.Email.Should().Be("erik@test.com");
+        result[0].RequestingUser.Should().BeNull();
 
         TestDbContextFactory.Destroy(context);
     }

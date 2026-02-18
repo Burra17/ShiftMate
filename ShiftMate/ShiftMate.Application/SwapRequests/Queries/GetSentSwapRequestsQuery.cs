@@ -53,8 +53,8 @@ namespace ShiftMate.Application.SwapRequests.Queries
                     StartTime = sr.TargetShift.StartTime,
                     EndTime = sr.TargetShift.EndTime
                 } : null,
-                // Återanvänd RequestingUser-fältet för att skicka målpersonens info
-                RequestingUser = sr.TargetUser != null ? new UserDto
+                // Målpersonens info mappas till rätt fält (TargetUser)
+                TargetUser = sr.TargetUser != null ? new UserDto
                 {
                     Id = sr.TargetUser.Id,
                     FirstName = sr.TargetUser.FirstName,

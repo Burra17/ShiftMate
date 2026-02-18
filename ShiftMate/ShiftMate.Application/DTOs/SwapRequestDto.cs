@@ -10,7 +10,10 @@
         public ShiftDto? Shift { get; set; }
         public UserDto? RequestingUser { get; set; }
 
-        // NYTT: Nödvändigt för att visa "passet du ger bort" vid direktbyten
+        // Målpersonen som bytet riktas till (används i skickade förfrågningar)
+        public UserDto? TargetUser { get; set; }
+
+        // Nödvändigt för att visa "passet du ger bort" vid direktbyten
         public ShiftDto? TargetShift { get; set; }
     }
 }
