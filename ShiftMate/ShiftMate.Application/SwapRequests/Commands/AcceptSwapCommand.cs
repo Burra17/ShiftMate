@@ -1,6 +1,7 @@
 ﻿using MediatR;
 ﻿using ShiftMate.Application.Interfaces;
 ﻿using Microsoft.EntityFrameworkCore;
+using ShiftMate.Domain;
 ﻿using System.Text.Json.Serialization; // <--- Behövs för [JsonIgnore]
 using Microsoft.Extensions.Logging;
 ﻿
@@ -43,7 +44,7 @@ using Microsoft.Extensions.Logging;
 ﻿                .FirstOrDefaultAsync(sr => sr.Id == request.SwapRequestId, cancellationToken);
 ﻿
 ﻿            if (swapRequest == null) throw new Exception("Bytet hittades inte.");
-﻿            if (swapRequest.Status != "Pending") throw new Exception("Det här bytet är inte längre tillgängligt.");
+﻿            if (swapRequest.Status != SwapRequestStatus.Pending) throw new Exception("Det här bytet är inte längre tillgängligt.");
 ﻿
 ﻿            // B. Kontrollera om det är ett DIREKTBYTE eller ett ÖPPET BYTE
 ﻿            bool isDirectSwap = swapRequest.TargetShiftId.HasValue && swapRequest.TargetShift != null;
@@ -114,7 +115,7 @@ using Microsoft.Extensions.Logging;
 ﻿            }
 ﻿
 ﻿            // C. Avsluta förfrågan
-﻿            swapRequest.Status = "Accepted";
+﻿            swapRequest.Status = SwapRequestStatus.Accepted;
 
 ﻿            // D. Spara alla ändringar
 ﻿            await _context.SaveChangesAsync(cancellationToken);

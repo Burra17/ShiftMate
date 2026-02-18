@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 
@@ -56,13 +57,13 @@ namespace ShiftMate.Application.SwapRequests.Commands
             }
 
             // 4. Validera att förfrågan fortfarande är aktiv.
-            if (swapRequest.Status != "Pending")
+            if (swapRequest.Status != SwapRequestStatus.Pending)
             {
                 throw new Exception("Denna förfrågan är inte längre aktiv och kan inte nekas.");
             }
 
             // 5. Uppdatera status till "Declined".
-            swapRequest.Status = "Declined";
+            swapRequest.Status = SwapRequestStatus.Declined;
 
             // 6. Spara ändringarna.
             await _context.SaveChangesAsync(cancellationToken);

@@ -47,7 +47,7 @@ public class CancelSwapRequestHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            Status = "Pending"
+            Status = SwapRequestStatus.Pending
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -85,7 +85,7 @@ public class CancelSwapRequestHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            Status = "Pending"
+            Status = SwapRequestStatus.Pending
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

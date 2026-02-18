@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain;
 using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.SwapRequests.Queries
@@ -28,7 +29,7 @@ namespace ShiftMate.Application.SwapRequests.Queries
             // Hämta alla förfrågningar som den inloggade användaren har skickat och som fortfarande är väntande.
             var swapRequests = await _context.SwapRequests
                 .AsNoTracking()
-                .Where(sr => sr.RequestingUserId == request.CurrentUserId && sr.Status == "Pending")
+                .Where(sr => sr.RequestingUserId == request.CurrentUserId && sr.Status == SwapRequestStatus.Pending)
                 .Include(sr => sr.Shift)
                 .Include(sr => sr.TargetShift)
                 .Include(sr => sr.TargetUser)
@@ -39,7 +40,7 @@ namespace ShiftMate.Application.SwapRequests.Queries
             return swapRequests.Select(sr => new SwapRequestDto
             {
                 Id = sr.Id,
-                Status = sr.Status,
+                Status = sr.Status.ToString(),
                 CreatedAt = sr.CreatedAt,
                 Shift = new ShiftDto
                 {
@@ -53,8 +54,8 @@ namespace ShiftMate.Application.SwapRequests.Queries
                     StartTime = sr.TargetShift.StartTime,
                     EndTime = sr.TargetShift.EndTime
                 } : null,
-                // Återanvänd RequestingUser-fältet för att skicka målpersonens info
-                RequestingUser = sr.TargetUser != null ? new UserDto
+                // Målpersonens info mappas till rätt fält (TargetUser)
+                TargetUser = sr.TargetUser != null ? new UserDto
                 {
                     Id = sr.TargetUser.Id,
                     FirstName = sr.TargetUser.FirstName,

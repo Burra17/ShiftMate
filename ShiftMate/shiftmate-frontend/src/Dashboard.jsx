@@ -206,7 +206,7 @@ const Dashboard = () => {
                                 <span>
                                     {req.shift && <span className="text-white font-bold">{formatTime(req.shift.startTime)} – {formatTime(req.shift.endTime)}</span>}
                                     {req.shift && <span className="ml-1">({formatDate(req.shift.startTime)})</span>}
-                                    {req.requestingUser && <span className="ml-1">till <span className="text-white">{req.requestingUser.firstName} {req.requestingUser.lastName}</span></span>}
+                                    {req.targetUser && <span className="ml-1">till <span className="text-white">{req.targetUser.firstName} {req.targetUser.lastName}</span></span>}
                                 </span>
                             </div>
                         ))}

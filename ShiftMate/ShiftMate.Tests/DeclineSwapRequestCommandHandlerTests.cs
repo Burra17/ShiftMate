@@ -60,7 +60,7 @@ public class DeclineSwapRequestCommandHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = "Pending"
+            TargetUserId = targetId, Status = SwapRequestStatus.Pending
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -108,7 +108,7 @@ public class DeclineSwapRequestCommandHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = "Approved" // Redan godkänd
+            TargetUserId = targetId, Status = SwapRequestStatus.Accepted // Redan godkänd
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -156,7 +156,7 @@ public class DeclineSwapRequestCommandHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = "Pending"
+            TargetUserId = targetId, Status = SwapRequestStatus.Pending
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -172,7 +172,7 @@ public class DeclineSwapRequestCommandHandlerTests
 
         // Assert
         var updated = context.SwapRequests.First(sr => sr.Id == swapRequestId);
-        updated.Status.Should().Be("Declined");
+        updated.Status.Should().Be(SwapRequestStatus.Declined);
 
         TestDbContextFactory.Destroy(context);
     }

@@ -36,13 +36,13 @@ public class GetSentSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
-            TargetUserId = target.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = target.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         // Skickad av annan — ska INTE inkluderas
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = target.Id,
-            TargetUserId = sender.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = sender.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -87,7 +87,7 @@ public class GetSentSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
-            TargetUserId = target.Id, Status = "Approved", CreatedAt = DateTime.UtcNow
+            TargetUserId = target.Id, Status = SwapRequestStatus.Accepted, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -104,9 +104,9 @@ public class GetSentSwapRequestsHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_Map_TargetUser_To_RequestingUser_Dto()
+    public async Task Handle_Should_Map_TargetUser_To_TargetUser_Dto()
     {
-        // Arrange — handlern återanvänder RequestingUser-fältet för att skicka målpersonens info
+        // Arrange — målpersonens info mappas till TargetUser-fältet
         var context = TestDbContextFactory.Create();
         var sender = new User
         {
@@ -131,7 +131,7 @@ public class GetSentSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
-            TargetUserId = target.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = target.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -141,11 +141,12 @@ public class GetSentSwapRequestsHandlerTests
         // Act
         var result = await handler.Handle(query, CancellationToken.None);
 
-        // Assert — RequestingUser-fältet ska innehålla målpersonens (Eriks) info
+        // Assert — TargetUser-fältet ska innehålla målpersonens (Eriks) info
         result.Should().HaveCount(1);
-        result[0].RequestingUser.Should().NotBeNull();
-        result[0].RequestingUser!.FirstName.Should().Be("Erik");
-        result[0].RequestingUser!.Email.Should().Be("erik@test.com");
+        result[0].TargetUser.Should().NotBeNull();
+        result[0].TargetUser!.FirstName.Should().Be("Erik");
+        result[0].TargetUser!.Email.Should().Be("erik@test.com");
+        result[0].RequestingUser.Should().BeNull();
 
         TestDbContextFactory.Destroy(context);
     }
@@ -185,7 +186,7 @@ public class GetSentSwapRequestsHandlerTests
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = sender.Id,
             TargetUserId = target.Id, TargetShiftId = targetShift.Id,
-            Status = "Pending", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

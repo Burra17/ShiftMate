@@ -48,7 +48,7 @@ namespace ShiftMate.Application.SwapRequests.Commands
                 Id = Guid.NewGuid(),
                 ShiftId = request.ShiftId,
                 RequestingUserId = request.RequestingUserId,
-                Status = "Pending",
+                Status = SwapRequestStatus.Pending,
                 CreatedAt = DateTime.UtcNow
             };
 

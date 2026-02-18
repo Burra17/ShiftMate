@@ -186,7 +186,7 @@ public class ProposeDirectSwapCommandHandlerTests
         swapRequest.RequestingUserId.Should().Be(requesterId);
         swapRequest.TargetUserId.Should().Be(targetOwnerId);
         swapRequest.TargetShiftId.Should().Be(targetShiftId);
-        swapRequest.Status.Should().Be("Pending");
+        swapRequest.Status.Should().Be(SwapRequestStatus.Pending);
 
         TestDbContextFactory.Destroy(context);
     }

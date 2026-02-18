@@ -48,13 +48,13 @@ public class GetReceivedSwapRequestsHandlerTests
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
             TargetUserId = targetUser.Id, TargetShiftId = targetShift.Id,
-            Status = "Pending", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         // Förfrågan riktad till annan användare — ska INTE inkluderas
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
-            TargetUserId = otherUser.Id, Status = "Pending", CreatedAt = DateTime.UtcNow
+            TargetUserId = otherUser.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -100,7 +100,7 @@ public class GetReceivedSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, Status = "Approved", CreatedAt = DateTime.UtcNow
+            TargetUserId = targetUser.Id, Status = SwapRequestStatus.Accepted, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -151,7 +151,7 @@ public class GetReceivedSwapRequestsHandlerTests
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
             TargetUserId = targetUser.Id, TargetShiftId = targetShift.Id,
-            Status = "Pending", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -204,14 +204,14 @@ public class GetReceivedSwapRequestsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift1.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, Status = "Pending",
+            TargetUserId = targetUser.Id, Status = SwapRequestStatus.Pending,
             CreatedAt = DateTime.UtcNow.AddHours(-2)
         });
         // Nyare förfrågan
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift2.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, Status = "Pending",
+            TargetUserId = targetUser.Id, Status = SwapRequestStatus.Pending,
             CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);

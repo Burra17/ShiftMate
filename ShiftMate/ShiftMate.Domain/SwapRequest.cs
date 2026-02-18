@@ -6,7 +6,7 @@ namespace ShiftMate.Domain
     {
         public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public string Status { get; set; } = "Pending"; // Pending, Approved, Rejected
+        public SwapRequestStatus Status { get; set; } = SwapRequestStatus.Pending;
 
         // Foreign Key: Vilket pass gäller det?
         public Guid ShiftId { get; set; }

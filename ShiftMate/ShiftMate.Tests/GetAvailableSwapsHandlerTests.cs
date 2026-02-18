@@ -31,19 +31,19 @@ public class GetAvailableSwapsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = user.Id,
-            Status = "Pending", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         // Approved — ska INTE inkluderas
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = user.Id,
-            Status = "Approved", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Accepted, CreatedAt = DateTime.UtcNow
         });
         // Rejected — ska INTE inkluderas
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = user.Id,
-            Status = "Rejected", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Declined, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -82,7 +82,7 @@ public class GetAvailableSwapsHandlerTests
         context.SwapRequests.Add(new SwapRequest
         {
             Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = user.Id,
-            Status = "Pending", CreatedAt = DateTime.UtcNow
+            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -96,6 +96,8 @@ public class GetAvailableSwapsHandlerTests
         result[0].Shift.Should().NotBeNull();
         result[0].Shift!.Id.Should().Be(shift.Id);
         result[0].RequestingUser.Should().NotBeNull();
+        result[0].RequestingUser!.FirstName.Should().Be("Anna");
+        result[0].RequestingUser!.LastName.Should().Be("Svensson");
         result[0].RequestingUser!.Email.Should().Be("anna@test.com");
 
         TestDbContextFactory.Destroy(context);

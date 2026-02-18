@@ -70,7 +70,7 @@ namespace ShiftMate.Tests
                 Id = Guid.NewGuid(),
                 ShiftId = swapShift.Id,
                 RequestingUserId = otherUserId,
-                Status = "Pending"
+                Status = SwapRequestStatus.Pending
             };
             context.SwapRequests.Add(swapRequest);
 
@@ -133,7 +133,7 @@ namespace ShiftMate.Tests
                 Id = Guid.NewGuid(),
                 ShiftId = swapShift.Id,
                 RequestingUserId = requesterId,
-                Status = "Pending"
+                Status = SwapRequestStatus.Pending
             };
             context.SwapRequests.Add(swapRequest);
 
@@ -149,7 +149,7 @@ namespace ShiftMate.Tests
             updatedShift.IsUpForSwap.Should().BeFalse();
 
             var updatedRequest = context.SwapRequests.First(sr => sr.Id == swapRequest.Id);
-            updatedRequest.Status.Should().Be("Accepted");
+            updatedRequest.Status.Should().Be(SwapRequestStatus.Accepted);
 
             TestDbContextFactory.Destroy(context);
         }
@@ -213,7 +213,7 @@ namespace ShiftMate.Tests
                 Id = Guid.NewGuid(),
                 ShiftId = swapShift.Id,
                 RequestingUserId = requesterId,
-                Status = "Accepted" // Redan accepterat!
+                Status = SwapRequestStatus.Accepted // Redan accepterat!
             };
             context.SwapRequests.Add(swapRequest);
 
@@ -291,7 +291,7 @@ namespace ShiftMate.Tests
                 RequestingUserId = userAId,
                 TargetUserId = userBId,
                 TargetShiftId = shiftB.Id,
-                Status = "Pending"
+                Status = SwapRequestStatus.Pending
             };
             context.SwapRequests.Add(swapRequest);
 
@@ -311,7 +311,7 @@ namespace ShiftMate.Tests
             updatedShiftB.IsUpForSwap.Should().BeFalse();
 
             var updatedRequest = context.SwapRequests.First(sr => sr.Id == swapRequest.Id);
-            updatedRequest.Status.Should().Be("Accepted");
+            updatedRequest.Status.Should().Be(SwapRequestStatus.Accepted);
 
             TestDbContextFactory.Destroy(context);
         }
@@ -379,7 +379,7 @@ namespace ShiftMate.Tests
                 RequestingUserId = userAId,
                 TargetUserId = userBId,
                 TargetShiftId = shiftB.Id,
-                Status = "Pending"
+                Status = SwapRequestStatus.Pending
             };
             context.SwapRequests.Add(swapRequest);
 
@@ -469,7 +469,7 @@ namespace ShiftMate.Tests
                 RequestingUserId = userAId,
                 TargetUserId = userBId,
                 TargetShiftId = shiftB.Id,
-                Status = "Pending"
+                Status = SwapRequestStatus.Pending
             };
             context.SwapRequests.Add(swapRequest);
 
