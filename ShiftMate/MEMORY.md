@@ -8,12 +8,45 @@ Update this file at the end of each significant work session.
 ## CURRENT STATUS
 
 - **Active Branch:** `main`
-- **Last Updated:** 2026-02-17
-- **Project State:** Stabil — 49 enhetstester, alla gröna
+- **Last Updated:** 2026-02-18
+- **Project State:** Stabil — 74 enhetstester, alla gröna
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-18 - Code Quality Fixes from Test Audit (refactor/query-improvements, PR #67, merged)
+
+- **What was done:**
+  - **Fix 1 — Inkonsekvent UserDto-mappning:**
+    - `GetAvailableSwapsQuery.cs` — Lade till `FirstName` och `LastName` i RequestingUser-mappningen (saknades, bara Id och Email mappades)
+    - Uppdaterade `GetAvailableSwapsHandlerTests.cs` med assertions för FirstName/LastName
+  - **Fix 2 — TargetUser-fältet på SwapRequestDto:**
+    - `SwapRequestDto.cs` — Nytt fält `public UserDto? TargetUser { get; set; }`
+    - `GetSentSwapRequestsQuery.cs` — Mappar nu TargetUser till rätt fält istället för att missbruka RequestingUser
+    - `Dashboard.jsx` — `req.requestingUser` → `req.targetUser` för skickade förfrågningar
+    - Uppdaterade `GetSentSwapRequestsHandlerTests.cs` med assertions för TargetUser
+  - **Fix 3 — SwapRequestStatus enum (ersätter magic strings):**
+    - `ShiftMate.Domain/SwapRequestStatus.cs` — Ny enum: `Pending`, `Accepted`, `Declined`, `Cancelled`
+    - `SwapRequest.cs` — Status ändrad från `string` till `SwapRequestStatus`
+    - `AppDbContext.cs` — `HasConversion<string>()` så DB-kolumnen förblir text (ingen datamigration)
+    - Uppdaterade 5 command handlers + 3 query handlers: alla magic strings ersatta med enum-värden
+    - Uppdaterade 8 testfiler: alla `"Pending"`/`"Approved"`/`"Rejected"` → `SwapRequestStatus.Pending`/`.Accepted`/`.Declined`
+    - `SwapRequestDto.Status` förblir `string` för bakåtkompatibilitet med frontend
+  - **Nya filer (1):**
+    - `ShiftMate.Domain/SwapRequestStatus.cs`
+  - **Modifierade filer (20):**
+    - 3 query handlers, 4 command handlers, 1 DTO, 1 domain entity, 1 DbContext, 8 testfiler, 1 frontend-komponent, 1 CLAUDE.md
+  - **Build OK** — dotnet build + dotnet test (74/74 gröna) + vite build
+
+- **Beslut tagna:**
+  - `HasConversion<string>()` istället för EF-migration — DB-kolumnen var redan text, inga ändringar behövs
+  - SwapRequestDto.Status behålls som `string` — frontend-API-kontraktet är oförändrat
+  - "Approved"/"Rejected" (gamla ogiltiga statusar i tester) korrigerades till "Accepted"/"Declined"
+
+- **Nästa steg:**
+  - In-app notification system (badge counts, notification dropdown)
+  - Admin: redigera/ta bort pass
 
 ### 2026-02-17 - Unit Test Expansion (test/shift-command-handlers, test/swap-request-handlers, test/auth-account-handlers)
 
@@ -52,7 +85,7 @@ Update this file at the end of each significant work session.
 - **Nästa steg:**
   - In-app notification system (badge counts, notification dropdown)
   - Admin: redigera/ta bort pass
-  - Status magic strings ("Pending", "Accepted") → enum + migration
+  - ~~Status magic strings ("Pending", "Accepted") → enum + migration~~ ✅ (löst i refactor/query-improvements)
 
 ### 2026-02-17 - UI Consistency: Loading & Empty States (feature/ui-consistency)
 
@@ -154,7 +187,7 @@ Update this file at the end of each significant work session.
 - **Nästa steg:**
   - In-app notification system (badge counts, notification dropdown)
   - Admin: redigera/ta bort pass
-  - Status magic strings ("Pending", "Accepted") → enum + migration
+  - ~~Status magic strings ("Pending", "Accepted") → enum + migration~~ ✅ (löst i refactor/query-improvements)
 
 ### 2026-02-16 - Dokumentationsuppdatering (feature/project-explanation)
 
@@ -194,7 +227,7 @@ Update this file at the end of each significant work session.
 - **Nästa steg:**
   - Commit och push till GitHub från feature/project-explanation
   - Merge till main via PR
-  - Status magic strings ("Pending", "Accepted") → enum + migration (framtida arbete)
+  - ~~Status magic strings ("Pending", "Accepted") → enum + migration~~ ✅ (löst i refactor/query-improvements) (framtida arbete)
 
 ### 2026-02-13 - Email Design Improvements (feature/email-design-improvements)
 
@@ -230,7 +263,7 @@ Update this file at the end of each significant work session.
 - **Nästa steg (planerade):**
   - In-app notification system (badge counts, notification dropdown)
   - Överväg egen domän för professionella emails (t.ex. noreply@shiftmate.se)
-  - Status magic strings ("Pending", "Accepted") → enum + migration
+  - ~~Status magic strings ("Pending", "Accepted") → enum + migration~~ ✅ (löst i refactor/query-improvements)
 
 ### 2026-02-12 - Email Notification System (feature/email-notifications → merged to main)
 
@@ -431,7 +464,7 @@ Update this file at the end of each significant work session.
 
 - **Known areas for future work:**
   - Felsöka swap accept/decline i frontend (browser devtools)
-  - Status magic strings ("Pending", "Accepted") → enum + migration
+  - ~~Status magic strings ("Pending", "Accepted") → enum + migration~~ ✅ (löst i refactor/query-improvements)
   - Error response format-konsistens
   - Profilbild-uppladdning (fillagring + ny User-kolumn + migration)
   - ~~Ersätta `alert()`/`window.confirm()` med stilade toast-meddelanden~~ ✅ (löst i toast-modal-system)
@@ -471,6 +504,9 @@ Track important architectural or design decisions here.
 | 2026-02-12 | HTML-formaterade emails med svensk CultureInfo | Professionellt utseende + svenskt datum/tidsformat |
 | 2026-02-13 | Statisk `EmailTemplateService` i Application-lagret | Centralisera email-HTML, undvika DI-ändringar och testbrott |
 | 2026-02-13 | `FrontendUrl` via appsettings-lagring | Dev/prod-URL utan hårdkodning, noll kodändringar vid deploy |
+| 2026-02-18 | `SwapRequestStatus` enum med `HasConversion<string>()` | Typsäkerhet utan datamigration — DB-kolumnen förblir text |
+| 2026-02-18 | `TargetUser` som eget fält på `SwapRequestDto` | Korrekt semantik — sluta missbruka `RequestingUser` för målpersonsinfo |
+| 2026-02-18 | `SwapRequestDto.Status` förblir `string` | Bakåtkompatibilitet med frontend — JSON-kontraktet ändras inte |
 
 ---
 
