@@ -88,7 +88,7 @@ You are a **Senior Fullstack Architect** for ShiftMate.
 ### Backend
 
 ```
-ShiftMate.Domain/           # Entities only (User.cs, Shift.cs, SwapRequest.cs). No dependencies.
+ShiftMate.Domain/           # Entities + enums (User.cs, Shift.cs, SwapRequest.cs, SwapRequestStatus.cs). No dependencies.
 ShiftMate.Application/      # Business logic layer (CQRS)
   DTOs/                     # Data transfer objects (ShiftDto, UserDto, SwapRequestDto)
   Interfaces/               # Abstractions (IAppDbContext, IEmailService)
@@ -131,7 +131,7 @@ components/
 
 - **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Admin/Employee/Manager), `PasswordHash`
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK to User), `IsUpForSwap` (bool)
-- **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (Pending/Approved/Rejected/Cancelled), `CreatedAt`
+- **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string in DB), `CreatedAt`
 
 ---
 

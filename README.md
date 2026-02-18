@@ -92,10 +92,11 @@ ShiftMate/
 ├── CLAUDE.md                              # Arkitekturdokumentation (Source of Truth)
 ├── MEMORY.md                              # Sessionslogg för utveckling
 │
-├── ShiftMate.Domain/                      # Domänlager - Entiteter (inga beroenden)
+├── ShiftMate.Domain/                      # Domänlager - Entiteter & enums (inga beroenden)
 │   ├── User.cs
 │   ├── Shift.cs
-│   └── SwapRequest.cs
+│   ├── SwapRequest.cs
+│   └── SwapRequestStatus.cs              # Enum: Pending, Accepted, Declined, Cancelled
 │
 ├── ShiftMate.Application/                 # Applikationslager - Affärslogik (CQRS)
 │   ├── DependencyInjection.cs
@@ -159,7 +160,7 @@ ShiftMate/
 │       ├── ShiftsController.cs
 │       └── SwapRequestsController.cs
 │
-├── ShiftMate.Tests/                       # Enhetstester (49 tester)
+├── ShiftMate.Tests/                       # Enhetstester (74 tester)
 │   ├── AcceptSwapHandlerTests.cs
 │   ├── CancelShiftSwapCommandHandlerTests.cs
 │   ├── CancelSwapRequestHandlerTests.cs
@@ -167,6 +168,13 @@ ShiftMate/
 │   ├── CreateShiftCommandValidatorTests.cs
 │   ├── CreateShiftHandlerTests.cs
 │   ├── DeclineSwapRequestCommandHandlerTests.cs
+│   ├── GetAllShiftsHandlerTests.cs
+│   ├── GetAllUsersHandlerTests.cs
+│   ├── GetAvailableSwapsHandlerTests.cs
+│   ├── GetClaimableShiftsHandlerTests.cs
+│   ├── GetMyShiftsHandlerTests.cs
+│   ├── GetReceivedSwapRequestsHandlerTests.cs
+│   ├── GetSentSwapRequestsHandlerTests.cs
 │   ├── InitiateSwapHandlerTests.cs
 │   ├── LoginHandlerTests.cs
 │   ├── ProposeDirectSwapCommandHandlerTests.cs
