@@ -11,7 +11,7 @@ import ShiftList from './ShiftList';
 import MarketPlace from './MarketPlace';
 import Schedule from './Schedule';
 import Profile from './Profile';
-import AdminPanel from './components/AdminPanel'; // <--- NYTT: Vi importerar AdminPanel
+import ManagerPanel from './components/ManagerPanel'; // Managerpanelen för privilegierade användare
 import Dashboard from './Dashboard';
 
 // Huvudkomponent för applikationen när en användare är inloggad.
@@ -40,7 +40,7 @@ const MainApp = ({ onLogout }) => {
     ];
 
     const navItems = isManager
-        ? [...baseNavItems, { id: 'admin', label: 'Hantera', path: '/admin', icon: Icons.Shield }]
+        ? [...baseNavItems, { id: 'manager', label: 'Hantera', path: '/manager', icon: Icons.Shield }]
         : baseNavItems;
 
     // Scrolla till toppen och uppdatera titel vid sidbyte
@@ -140,7 +140,7 @@ const MainApp = ({ onLogout }) => {
                         <Route path="/market" element={<MarketPlace />} />
                         <Route path="/schedule" element={<Schedule />} />
                         <Route path="/profile" element={<Profile onLogout={onLogout} />} />
-                        {isManager && <Route path="/admin" element={<AdminPanel />} />}
+                        {isManager && <Route path="/manager" element={<ManagerPanel />} />}
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                 </div>
@@ -181,7 +181,7 @@ const Icons = {
     Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>,
     User: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
     LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>,
-    // NY IKON: En sköld för Admin (måste finnas för att inte krascha)
+    // NY IKON: En sköld för Manager (måste finnas för att inte krascha)
     Shield: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
 };
 

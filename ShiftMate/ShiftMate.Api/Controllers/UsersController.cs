@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Application.Users.Queries;
@@ -98,6 +99,43 @@ namespace ShiftMate.Api.Controllers
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
+            }
+        }
+
+        // DELETE: api/users/{id}
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            var requestingUserId = User.GetUserId();
+            if (requestingUserId == null) return Unauthorized();
+            try
+            {
+                await _mediator.Send(new DeleteUserCommand { TargetUserId = id, RequestingUserId = requestingUserId.Value });
+                return Ok(new { Message = "Användaren har tagits bort." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message });
+            }
+        }
+
+        // PUT: api/users/{id}/role
+        [HttpPut("{id}/role")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateUserRoleCommand command)
+        {
+            var requestingUserId = User.GetUserId();
+            if (requestingUserId == null) return Unauthorized();
+            command = command with { TargetUserId = id, RequestingUserId = requestingUserId.Value };
+            try
+            {
+                await _mediator.Send(command);
+                return Ok(new { Message = "Rollen har uppdaterats." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message });
             }
         }
     }
