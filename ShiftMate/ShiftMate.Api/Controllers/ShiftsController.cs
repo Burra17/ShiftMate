@@ -145,7 +145,48 @@ namespace ShiftMate.Api.Controllers
         }
 
         // -----------------------------------------------------------------------
-        // 7. ADMIN SKAPA PASS
+        // 7. MANAGER UPPDATERA PASS
+        // -----------------------------------------------------------------------
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> UpdateShift(Guid id, UpdateShiftCommand command)
+        {
+            try
+            {
+                command.ShiftId = id;
+                await _mediator.Send(command);
+                return Ok(new { Message = "Passet har uppdaterats!" });
+            }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
+            }
+        }
+
+        // -----------------------------------------------------------------------
+        // 8. MANAGER RADERA PASS
+        // -----------------------------------------------------------------------
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> DeleteShift(Guid id)
+        {
+            try
+            {
+                await _mediator.Send(new DeleteShiftCommand(id));
+                return Ok(new { Message = "Passet har raderats!" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
+            }
+        }
+
+        // -----------------------------------------------------------------------
+        // 9. ADMIN SKAPA PASS
         // -----------------------------------------------------------------------
         [HttpPost("admin")]
         // Ändrad från [Authorize(Roles = "Admin")] — Admin-rollen är borttagen, Manager är nu den privilegierade rollen

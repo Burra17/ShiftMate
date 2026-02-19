@@ -4,7 +4,10 @@ import {
     deleteUser,
     updateUserRole,
     getCurrentUserId,
-    createManagerShift
+    createManagerShift,
+    fetchShifts,
+    updateShift,
+    deleteShift
 } from '../api';
 import { useToast } from '../contexts/ToastContext';
 
@@ -28,8 +31,17 @@ const calcDuration = (start, end) => {
     return m > 0 ? `${h}h ${m}min` : `${h}h`;
 };
 
+// Beräkna passtid i timmar från Date-objekt
+const calcDurationFromDates = (start, end) => {
+    const ms = new Date(end) - new Date(start);
+    const mins = Math.round(ms / 60000);
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+};
+
 const ManagerPanel = () => {
-    // Flikval: 'shifts' eller 'users'
+    // Flikval: 'shifts', 'users' eller 'allShifts'
     const [activeTab, setActiveTab] = useState('shifts');
 
     // State för pass-formuläret
@@ -43,6 +55,19 @@ const ManagerPanel = () => {
     // State för användarlistan
     const [users, setUsers] = useState([]);
     const [updatingUserId, setUpdatingUserId] = useState(null);
+
+    // State för "Alla Pass"-fliken
+    const [allShifts, setAllShifts] = useState([]);
+    const [shiftsLoading, setShiftsLoading] = useState(false);
+    const [editingShiftId, setEditingShiftId] = useState(null);
+    const [editDate, setEditDate] = useState('');
+    const [editStartTime, setEditStartTime] = useState('');
+    const [editEndTime, setEditEndTime] = useState('');
+    const [editUserId, setEditUserId] = useState('');
+    const [editActiveQuick, setEditActiveQuick] = useState(null);
+    const [editLoading, setEditLoading] = useState(false);
+    const [deleteLoading, setDeleteLoading] = useState(null);
+    const [filterDate, setFilterDate] = useState('');
 
     const toast = useToast();
     const currentUserId = getCurrentUserId();
@@ -59,6 +84,26 @@ const ManagerPanel = () => {
         };
         loadUsers();
     }, []);
+
+    // Hämta alla pass när "Alla Pass"-fliken aktiveras
+    useEffect(() => {
+        if (activeTab === 'allShifts') {
+            loadAllShifts();
+        }
+    }, [activeTab]);
+
+    const loadAllShifts = async () => {
+        setShiftsLoading(true);
+        try {
+            const data = await fetchShifts();
+            setAllShifts(data);
+        } catch (err) {
+            console.error("Kunde inte hämta pass:", err);
+            toast.error("Kunde inte hämta pass.");
+        } finally {
+            setShiftsLoading(false);
+        }
+    };
 
     // Hantera snabbval — fyller i start/sluttid automatiskt
     const handleQuickSelect = (quick) => {
@@ -147,7 +192,89 @@ const ManagerPanel = () => {
         }
     };
 
+    // --- "Alla Pass"-funktioner ---
+
+    const pad = (n) => String(n).padStart(2, '0');
+
+    // Öppna redigering för ett pass — visa lokala tider (matchar listvisningen)
+    const handleEditClick = (shift) => {
+        const start = new Date(shift.startTime);
+        const end = new Date(shift.endTime);
+        setEditingShiftId(shift.id);
+        setEditDate(`${start.getFullYear()}-${pad(start.getMonth() + 1)}-${pad(start.getDate())}`);
+        setEditStartTime(`${pad(start.getHours())}:${pad(start.getMinutes())}`);
+        setEditEndTime(`${pad(end.getHours())}:${pad(end.getMinutes())}`);
+        setEditUserId(shift.user?.id ?? '');
+        setEditActiveQuick(null);
+    };
+
+    // Snabbval i redigeringsläge
+    const handleEditQuickSelect = (quick) => {
+        setEditStartTime(quick.start);
+        setEditEndTime(quick.end);
+        setEditActiveQuick(quick.label);
+    };
+
+    // Spara redigerat pass — konvertera lokal tid till UTC innan vi skickar
+    const handleEditSave = async (shiftId) => {
+        setEditLoading(true);
+        try {
+            let endDate = editDate;
+            if (editEndTime <= editStartTime) {
+                const next = new Date(editDate);
+                next.setDate(next.getDate() + 1);
+                endDate = `${next.getFullYear()}-${pad(next.getMonth() + 1)}-${pad(next.getDate())}`;
+            }
+
+            // Skapa Date-objekt från lokala värden och konvertera till UTC ISO-sträng
+            const localStart = new Date(`${editDate}T${editStartTime}`);
+            const localEnd = new Date(`${endDate}T${editEndTime}`);
+
+            const payload = {
+                startTime: localStart.toISOString(),
+                endTime: localEnd.toISOString(),
+                userId: editUserId === '' ? null : editUserId
+            };
+
+            await updateShift(shiftId, payload);
+            toast.success("Passet har uppdaterats!");
+            setEditingShiftId(null);
+            await loadAllShifts();
+        } catch (err) {
+            const msg = err.response?.data?.message || "Kunde inte uppdatera passet.";
+            toast.error(msg);
+        } finally {
+            setEditLoading(false);
+        }
+    };
+
+    // Radera ett pass
+    const handleDeleteShift = async (shiftId) => {
+        if (!window.confirm("Är du säker på att du vill radera detta pass? Eventuella väntande bytesförfrågningar kommer avbrytas.")) return;
+        setDeleteLoading(shiftId);
+        try {
+            await deleteShift(shiftId);
+            setAllShifts(prev => prev.filter(s => s.id !== shiftId));
+            toast.success("Passet har raderats!");
+        } catch (err) {
+            const msg = err.response?.data?.message || "Kunde inte radera passet.";
+            toast.error(msg);
+        } finally {
+            setDeleteLoading(null);
+        }
+    };
+
     const duration = calcDuration(startTime, endTime);
+    const editDuration = calcDuration(editStartTime, editEndTime);
+
+    // Filtrera och sortera pass (nyast först)
+    const filteredShifts = allShifts
+        .filter(s => {
+            if (!filterDate) return true;
+            const shiftDate = new Date(s.startTime).toISOString().split('T')[0];
+            return shiftDate === filterDate;
+        })
+        .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
 
     return (
         <div className="bg-slate-900/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
@@ -163,6 +290,15 @@ const ManagerPanel = () => {
                             : 'text-slate-500 hover:text-white'}`}
                 >
                     Schemalägg Pass
+                </button>
+                <button
+                    onClick={() => setActiveTab('allShifts')}
+                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all
+                        ${activeTab === 'allShifts'
+                            ? 'bg-emerald-600/20 border border-emerald-500 text-emerald-300'
+                            : 'text-slate-500 hover:text-white'}`}
+                >
+                    Alla Pass
                 </button>
                 <button
                     onClick={() => setActiveTab('users')}
@@ -281,6 +417,219 @@ const ManagerPanel = () => {
                     </button>
 
                 </form>
+            )}
+
+            {/* Flik: Alla Pass */}
+            {activeTab === 'allShifts' && (
+                <div className="space-y-4 relative z-10">
+                    {/* Datumfilter */}
+                    <div className="flex items-center gap-3">
+                        <input
+                            type="date"
+                            value={filterDate}
+                            onChange={(e) => setFilterDate(e.target.value)}
+                            className="bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                        />
+                        {filterDate && (
+                            <button
+                                onClick={() => setFilterDate('')}
+                                className="text-xs text-slate-400 hover:text-white transition-colors"
+                            >
+                                Rensa filter
+                            </button>
+                        )}
+                        <span className="text-xs text-slate-500 ml-auto">
+                            {filteredShifts.length} pass
+                        </span>
+                    </div>
+
+                    {shiftsLoading ? (
+                        <div className="text-center py-12">
+                            <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                            <p className="text-slate-400 text-sm">Laddar pass...</p>
+                        </div>
+                    ) : filteredShifts.length === 0 ? (
+                        <p className="text-slate-500 text-sm text-center py-8">Inga pass hittades.</p>
+                    ) : (
+                        <div className="space-y-2">
+                            {filteredShifts.map(shift => {
+                                const start = new Date(shift.startTime);
+                                const end = new Date(shift.endTime);
+                                const dateStr = start.toLocaleDateString('sv-SE', { weekday: 'short', month: 'short', day: 'numeric' });
+                                const timeStr = `${start.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' })}`;
+                                const durationStr = calcDurationFromDates(shift.startTime, shift.endTime);
+                                const isEditing = editingShiftId === shift.id;
+                                const isDeleting = deleteLoading === shift.id;
+                                const userName = shift.user
+                                    ? `${shift.user.firstName} ${shift.user.lastName}`
+                                    : null;
+
+                                return (
+                                    <div key={shift.id} className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+                                        {/* Passrad */}
+                                        <div className="flex items-center gap-3 px-4 py-3">
+                                            {/* Datum + tid */}
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-white text-sm font-semibold">{dateStr}</p>
+                                                <p className="text-slate-400 text-xs">{timeStr} ({durationStr})</p>
+                                            </div>
+
+                                            {/* Tilldelad eller öppet */}
+                                            <div className="flex-shrink-0">
+                                                {userName ? (
+                                                    <span className="text-xs text-slate-300 bg-slate-700/50 px-2 py-1 rounded-lg">
+                                                        {userName}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-1 rounded-lg">
+                                                        Öppet pass
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Swap-status */}
+                                            {shift.isUpForSwap && (
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded-full flex-shrink-0">
+                                                    Byte
+                                                </span>
+                                            )}
+
+                                            {/* Redigera-knapp */}
+                                            <button
+                                                onClick={() => isEditing ? setEditingShiftId(null) : handleEditClick(shift)}
+                                                className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${isEditing ? 'text-emerald-400 bg-emerald-500/10' : 'text-blue-400 hover:text-blue-300 hover:bg-blue-500/10'}`}
+                                                title="Redigera pass"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                                </svg>
+                                            </button>
+
+                                            {/* Radera-knapp */}
+                                            <button
+                                                onClick={() => handleDeleteShift(shift.id)}
+                                                disabled={isDeleting}
+                                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1.5 rounded-lg transition-colors disabled:opacity-30 flex-shrink-0"
+                                                title="Radera pass"
+                                            >
+                                                {isDeleting ? (
+                                                    <div className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+                                                ) : (
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
+
+                                        {/* Redigeringsformulär (expanderbart) */}
+                                        {isEditing && (
+                                            <div className="border-t border-slate-700 px-4 py-4 bg-slate-800/30 space-y-4">
+                                                {/* Datum */}
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Datum</label>
+                                                    <input
+                                                        type="date"
+                                                        value={editDate}
+                                                        onChange={(e) => setEditDate(e.target.value)}
+                                                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                                                    />
+                                                </div>
+
+                                                {/* Snabbval */}
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                    {QUICK_SHIFTS.map((quick) => (
+                                                        <button
+                                                            key={quick.label}
+                                                            type="button"
+                                                            onClick={() => handleEditQuickSelect(quick)}
+                                                            className={`py-2 px-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border
+                                                                ${editActiveQuick === quick.label
+                                                                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300'
+                                                                    : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-white'
+                                                                }`}
+                                                        >
+                                                            {quick.icon} {quick.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                {/* Start- och sluttid */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Start</label>
+                                                        <input
+                                                            type="time"
+                                                            value={editStartTime}
+                                                            onChange={(e) => { setEditStartTime(e.target.value); setEditActiveQuick(null); }}
+                                                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Slut</label>
+                                                        <input
+                                                            type="time"
+                                                            value={editEndTime}
+                                                            onChange={(e) => { setEditEndTime(e.target.value); setEditActiveQuick(null); }}
+                                                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Passlängd */}
+                                                {editDuration && (
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#10b981]"></span>
+                                                        <span className="text-xs font-bold text-emerald-300">Passlängd: {editDuration}</span>
+                                                    </div>
+                                                )}
+
+                                                {/* Tilldela personal */}
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Personal</label>
+                                                    <select
+                                                        value={editUserId}
+                                                        onChange={(e) => setEditUserId(e.target.value)}
+                                                        className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all appearance-none"
+                                                    >
+                                                        <option value="">Öppet pass (ingen ägare)</option>
+                                                        <option disabled>──────────</option>
+                                                        {users.map(user => (
+                                                            <option key={user.id} value={user.id}>
+                                                                {user.firstName} {user.lastName}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+
+                                                {/* Spara / Avbryt */}
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        onClick={() => handleEditSave(shift.id)}
+                                                        disabled={editLoading}
+                                                        className={`flex-1 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs transition-all
+                                                            ${editLoading
+                                                                ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                                                                : 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98]'
+                                                            }`}
+                                                    >
+                                                        {editLoading ? 'Sparar...' : 'Spara'}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setEditingShiftId(null)}
+                                                        className="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs text-slate-400 border border-slate-700 hover:text-white hover:border-slate-500 transition-all"
+                                                    >
+                                                        Avbryt
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             )}
 
             {/* Flik: Användare */}

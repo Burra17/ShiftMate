@@ -212,6 +212,22 @@ export const createManagerShift = async (payload) => {
 };
 
 /**
+ * Uppdatera ett pass (manager only).
+ */
+export const updateShift = async (shiftId, payload) => {
+    const res = await axiosInstance.put(`/Shifts/${shiftId}`, payload);
+    return res.data;
+};
+
+/**
+ * Radera ett pass (manager only).
+ */
+export const deleteShift = async (shiftId) => {
+    const res = await axiosInstance.delete(`/Shifts/${shiftId}`);
+    return res.data;
+};
+
+/**
  * Hämta alla användare.
  */
 export const fetchAllUsers = async () => {
