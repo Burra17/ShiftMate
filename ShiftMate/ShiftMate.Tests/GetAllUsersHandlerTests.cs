@@ -20,7 +20,7 @@ public class GetAllUsersHandlerTests
         context.Users.Add(new User
         {
             Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "secrethash", Role = Role.Admin
+            Email = "erik@test.com", PasswordHash = "secrethash", Role = Role.Manager
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

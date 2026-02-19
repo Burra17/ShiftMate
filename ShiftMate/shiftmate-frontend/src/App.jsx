@@ -19,9 +19,9 @@ const MainApp = ({ onLogout }) => {
     const location = useLocation();
     const mainRef = useRef(null);
 
-    // Kolla om användaren är Admin
+    // Kolla om användaren är Manager (privilegierad roll)
     const role = getUserRole();
-    const isAdmin = role === 'Admin';
+    const isManager = role === 'Manager';
 
     // State för notifikationssystemet
     const [notifRequests, setNotifRequests] = useState([]);
@@ -39,8 +39,8 @@ const MainApp = ({ onLogout }) => {
         { id: 'profile', label: 'Profil', path: '/profile', icon: Icons.User },
     ];
 
-    const navItems = isAdmin
-        ? [...baseNavItems, { id: 'admin', label: 'Admin', path: '/admin', icon: Icons.Shield }]
+    const navItems = isManager
+        ? [...baseNavItems, { id: 'admin', label: 'Hantera', path: '/admin', icon: Icons.Shield }]
         : baseNavItems;
 
     // Scrolla till toppen och uppdatera titel vid sidbyte
@@ -140,7 +140,7 @@ const MainApp = ({ onLogout }) => {
                         <Route path="/market" element={<MarketPlace />} />
                         <Route path="/schedule" element={<Schedule />} />
                         <Route path="/profile" element={<Profile onLogout={onLogout} />} />
-                        {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
+                        {isManager && <Route path="/admin" element={<AdminPanel />} />}
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                 </div>

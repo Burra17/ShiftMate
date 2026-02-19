@@ -148,7 +148,8 @@ namespace ShiftMate.Api.Controllers
         // 7. ADMIN SKAPA PASS
         // -----------------------------------------------------------------------
         [HttpPost("admin")]
-        [Authorize(Roles = "Admin")]
+        // Ändrad från [Authorize(Roles = "Admin")] — Admin-rollen är borttagen, Manager är nu den privilegierade rollen
+        [Authorize(Roles = "Manager")]
         public async Task<IActionResult> AdminCreate(CreateShiftCommand command)
         {
             try
