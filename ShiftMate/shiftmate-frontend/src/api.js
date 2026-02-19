@@ -203,4 +203,36 @@ export const changePassword = async (data) => {
     return res.data;
 };
 
+/**
+ * Skapa ett pass via manager-endpoint.
+ */
+export const createManagerShift = async (payload) => {
+    const res = await axiosInstance.post('/Shifts/admin', payload);
+    return res.data;
+};
+
+/**
+ * Hämta alla användare.
+ */
+export const fetchAllUsers = async () => {
+    const res = await axiosInstance.get('/Users');
+    return res.data;
+};
+
+/**
+ * Radera en användare.
+ */
+export const deleteUser = async (userId) => {
+    const res = await axiosInstance.delete(`/Users/${userId}`);
+    return res.data;
+};
+
+/**
+ * Uppdatera en användares roll.
+ */
+export const updateUserRole = async (userId, role) => {
+    const res = await axiosInstance.put(`/Users/${userId}/role`, { newRole: role });
+    return res.data;
+};
+
 export default axiosInstance;

@@ -29,7 +29,8 @@ namespace ShiftMate.Application.Users.Queries
                     Id = u.Id,
                     Email = u.Email,
                     FirstName = u.FirstName,
-                    LastName = u.LastName
+                    LastName = u.LastName,
+                    Role = u.Role.ToString()
                 })
                 .ToListAsync(cancellationToken);
         }
