@@ -9,11 +9,109 @@ Update this file at the end of each significant work session.
 
 - **Active Branch:** `main`
 - **Last Updated:** 2026-02-19
-- **Project State:** Stabil — 74 enhetstester, alla gröna
+- **Project State:** Stabil — 87 enhetstester, alla gröna
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-19 - Manager Edit/Delete Shifts (feature/admin-edit-delete-shifts, PR #73, merged)
+
+- **What was done:**
+  - **Backend — Redigera och radera pass (Manager only):**
+    - `UpdateShiftCommand.cs` — CQRS command + handler: hämtar pass, normaliserar UTC, krockkontroll (exkluderar sig själv), uppdaterar fält
+    - `UpdateShiftCommandValidator.cs` — FluentValidation: EndTime > StartTime (utan "måste vara i framtiden" — managers kan korrigera gamla pass)
+    - `DeleteShiftCommand.cs` — CQRS command + handler: laddar pass med swap requests, avbryter+raderar väntande bytesförfrågningar, tar bort passet
+    - `ShiftsController.cs` — Två nya endpoints: `PUT /api/shifts/{id}` och `DELETE /api/shifts/{id}` (Roles = "Manager")
+  - **Frontend — Ny "Alla Pass"-flik i ManagerPanel:**
+    - Tredje flik i Hantera-panelen (bredvid "Schemalägg Pass" och "Användare")
+    - Hämtar alla pass via `fetchShifts()`, sorterat nyast först
+    - Varje rad: datum, tidsintervall, varaktighet, tilldelad användare (eller "Öppet pass"), byte-badge
+    - Datumfilter + antal pass
+    - Redigera: expanderbart inline-formulär med snabbval, datum/tid/personal-fält
+    - Radera: bekräftelsedialog + toast-feedback
+    - Korrekt tidszonshantering: lokal tid i formuläret, konvertering till UTC vid sparning (toISOString)
+  - **Frontend API:**
+    - `api.js` — Nya `updateShift()` och `deleteShift()` funktioner
+  - **Nya filer (4):**
+    - `ShiftMate.Application/Shifts/Commands/UpdateShiftCommand.cs`
+    - `ShiftMate.Application/Shifts/Commands/UpdateShiftCommandValidator.cs`
+    - `ShiftMate.Application/Shifts/Commands/DeleteShiftCommand.cs`
+    - `ShiftMate.Tests/ShiftEditDeleteHandlerTests.cs` (7 nya tester)
+  - **Modifierade filer (4):**
+    - `ShiftMate.Api/Controllers/ShiftsController.cs` — Nya endpoints
+    - `shiftmate-frontend/src/api.js` — Nya API-funktioner
+    - `shiftmate-frontend/src/components/ManagerPanel.jsx` — Ny "Alla Pass"-flik
+    - `CLAUDE.md` — Uppdaterade endpoints och struktur
+  - **Build OK** — dotnet test (87/87 gröna) + vite build
+
+- **Beslut tagna:**
+  - Lokal tid i edit-formuläret + `toISOString()` vid sparning — lossless round-trip utan tidszonsdrift
+  - `DeleteShiftCommand` raderar swap requests (inte bara avbryter) — krävs av EF Cores FK-regler
+  - Ingen "måste vara i framtiden"-regel på update — managers ska kunna korrigera historiska pass
+
+- **Nästa steg:**
+  - Profilbild-uppladdning
+  - Error response format-konsistens
+
+### 2026-02-19 - Dashboard Redesign (feature/dashboard-redesign, PR #72, merged)
+
+- **What was done:**
+  - **Dashboard.jsx — Buggfix + UI-förbättringar:**
+    - Fix: "Dagens pass" visade alla kommande pass istället för bara dagens — uppdelat i separata "Dagens pass" och "Kommande pass" sektioner
+    - Ny veckoöversikt (mån–sön) med passprickar och idag-highlight
+    - Förbättrade stat-kort: "Nästa pass" visar daglabel + countdown, "Denna vecka" har timmar-progressbar
+    - Ersatte gul alert-banner med inline action-kort — inkommande bytesförfrågningar har Accept/Decline-knappar direkt på dashboarden
+  - **Modifierade filer (1):**
+    - `shiftmate-frontend/src/Dashboard.jsx` — Komplett redesign (+278/-97 rader)
+  - **Build OK** — vite build utan fel
+
+### 2026-02-19 - User Management Panel (feature/user-management, PR #71, merged)
+
+- **What was done:**
+  - **Ny användarhantering för managers:**
+    - Omdöpt `AdminPanel` → `ManagerPanel` (fil, komponent, route `/admin` → `/manager`)
+    - Ny "Användare"-flik i Hantera-panelen: listar alla användare med namn, email, rollbadge, roll-dropdown och radera-knapp
+    - Roll-dropdown ändrar roll med toast-bekräftelse
+    - Radera-knapp med bekräftelsedialog
+    - Egen rad: roll-dropdown + radera-knapp är inaktiverade
+  - **Backend — Nya endpoints:**
+    - `DELETE /api/users/{id}` — Radera användare (Manager only)
+    - `PUT /api/users/{id}/role` — Ändra användarroll (Manager only)
+    - `DeleteUserCommand.cs` + `UpdateUserRoleCommand.cs` — CQRS commands
+  - **Nya filer (4):**
+    - `ShiftMate.Application/Users/Commands/DeleteUserCommand.cs`
+    - `ShiftMate.Application/Users/Commands/UpdateUserRoleCommand.cs`
+    - `ShiftMate.Tests/UserManagementHandlerTests.cs` (6 nya tester)
+    - `shiftmate-frontend/src/components/ManagerPanel.jsx`
+  - **Borttagna filer (1):**
+    - `shiftmate-frontend/src/components/AdminPanel.jsx`
+  - **Modifierade filer (4):**
+    - `ShiftMate.Api/Controllers/UsersController.cs` — Nya endpoints
+    - `ShiftMate.Application/DTOs/UserDto.cs` — Nytt fält
+    - `ShiftMate.Application/Users/Queries/GetAllUsersQuery.cs` — Uppdaterad mappning
+    - `shiftmate-frontend/src/api.js` — Nya API-funktioner
+  - **Build OK** — dotnet test (80/80 gröna) + vite build
+
+### 2026-02-19 - Manager Role Consolidation (refactor/manager-role, PR #70, merged)
+
+- **What was done:**
+  - **Admin-rollen borttagen — Manager tar över alla admin-funktioner:**
+    - `Role` enum: Tog bort `Admin`, kvar: `Employee` och `Manager`
+    - `/api/shifts/admin` kräver nu `Manager`-roll (var `Admin`)
+    - Frontend: `isAdmin` → `isManager`, nav-label `Admin` → `Hantera`
+    - Profilsida: Tog bort Admin-entries från `roleLabels` och badge `styles`
+  - **Modifierade filer (5):**
+    - `ShiftMate.Api/Controllers/ShiftsController.cs`
+    - `ShiftMate.Domain/User.cs`
+    - `ShiftMate.Tests/GetAllUsersHandlerTests.cs`
+    - `shiftmate-frontend/src/App.jsx`
+    - `shiftmate-frontend/src/Profile.jsx`
+  - **Build OK** — dotnet test (74/74 gröna) + vite build
+
+- **Beslut tagna:**
+  - Två roller räcker: Employee + Manager (Admin var redundant)
+  - Manager har alla administrativa rättigheter
 
 ### 2026-02-19 - In-App Notification System (feature/notification-system)
 
@@ -51,7 +149,7 @@ Update this file at the end of each significant work session.
   - Polling 30s + event-driven uppdatering — bästa av båda (bakgrundssynk + omedelbar respons)
 
 - **Nästa steg:**
-  - Admin: redigera/ta bort pass
+  - ~~Admin: redigera/ta bort pass~~ ✅ (löst i feature/admin-edit-delete-shifts)
 
 ### 2026-02-18 - Code Quality Fixes from Test Audit (refactor/query-improvements, PR #67, merged)
 
@@ -549,6 +647,9 @@ Track important architectural or design decisions here.
 | 2026-02-19 | `z-10` på `<aside>` | `backdrop-blur` skapar isolerad stacking context — dropdownen blockerades av `<main>` utan explicit z-index |
 | 2026-02-19 | Custom event `'swaps-updated'` för cross-component kommunikation | Undviker prop-drilling/global state — enkelt och effektivt |
 | 2026-02-19 | Polling 30s + event-driven uppdatering | Bakgrundssynk täcker externa ändringar, event ger omedelbar respons vid egna actions |
+| 2026-02-19 | Lokal tid i edit-form + `toISOString()` vid sparning | Lossless round-trip — formuläret matchar listvisningen, UTC-konvertering sker vid submit |
+| 2026-02-19 | `DeleteShiftCommand` raderar swap requests | EF Cores FK-krav — `Shift.SwapRequests` har required FK, kan inte bara avbryta utan radera |
+| 2026-02-19 | Ingen "framtid"-validering på UpdateShiftCommand | Managers ska kunna korrigera historiska pass utan att blockeras |
 
 ---
 

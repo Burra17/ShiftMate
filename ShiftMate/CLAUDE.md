@@ -122,14 +122,14 @@ Schedule.jsx                # "Schema" - full schedule grouped by date
 Profile.jsx                 # User profile & stats
 components/
   AuthLayout.jsx            # Shared auth page layout
-  AdminPanel.jsx            # Admin-only shift creation
+  ManagerPanel.jsx          # Manager panel: shift creation, all shifts (edit/delete), user management
 ```
 
 ---
 
 ## DATA MODEL (PostgreSQL)
 
-- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Admin/Employee/Manager), `PasswordHash`
+- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK to User), `IsUpForSwap` (bool)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string in DB), `CreatedAt`
 
@@ -149,7 +149,9 @@ components/
 - `GET /api/shifts/mine` - User's shifts
 - `GET /api/shifts/claimable` - Available shifts
 - `POST /api/shifts` - Create shift
-- `POST /api/shifts/admin` - Create shift (admin only)
+- `POST /api/shifts/admin` - Create shift (manager only)
+- `PUT /api/shifts/{id}` - Update shift (manager only)
+- `DELETE /api/shifts/{id}` - Delete shift (manager only)
 - `PUT /api/shifts/{id}/take` - Claim shift
 - `PUT /api/shifts/{id}/cancel-swap` - Cancel offering
 - `POST /api/swaprequests/initiate` - Offer shift to marketplace
