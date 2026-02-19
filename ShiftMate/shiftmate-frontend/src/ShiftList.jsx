@@ -70,6 +70,8 @@ const ShiftList = () => {
             await declineSwapRequest(requestId);
             toast.success("Förfrågan har nekats.");
             setPendingRequests(prev => prev.filter(r => r.id !== requestId));
+            // Meddela notifikationssystemet att förfrågningar har ändrats
+            window.dispatchEvent(new CustomEvent('swaps-updated'));
         } catch (err) {
             toast.error(err.response?.data?.message || "Något gick fel.");
         } finally {
@@ -84,6 +86,8 @@ const ShiftList = () => {
             toast.success("Bytet har accepterats! Ditt schema uppdateras.");
             setPendingRequests(prev => prev.filter(r => r.id !== requestId));
             fetchShifts();
+            // Meddela notifikationssystemet att förfrågningar har ändrats
+            window.dispatchEvent(new CustomEvent('swaps-updated'));
         } catch (err) {
             toast.error(err.response?.data?.message || "Kunde inte acceptera bytet.");
         } finally {

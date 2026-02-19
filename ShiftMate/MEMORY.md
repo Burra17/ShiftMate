@@ -8,12 +8,50 @@ Update this file at the end of each significant work session.
 ## CURRENT STATUS
 
 - **Active Branch:** `main`
-- **Last Updated:** 2026-02-18
+- **Last Updated:** 2026-02-19
 - **Project State:** Stabil — 74 enhetstester, alla gröna
 
 ---
 
 ## SESSION LOG
+
+### 2026-02-19 - In-App Notification System (feature/notification-system)
+
+- **What was done:**
+  - **Ny NotificationDropdown-komponent:**
+    - `shiftmate-frontend/src/components/NotificationDropdown.jsx` — Klockikon med röd badge (antal, cap 9+), dropdown-panel med inkommande bytesförfrågningar
+    - Klick på klockan öppnar dropdown och nollställer badge
+    - Klick utanför (`mousedown` på `document`) stänger dropdown
+    - Escape-tangent stänger dropdown
+    - Varje förfrågningsrad är en klickbar `Link` till `/mine` (stänger dropdown vid klick)
+    - "Visa alla →" footer-länk navigerar till `/mine`
+    - `align`-prop (`'left'` | `'right'`, default `'right'`) styr åt vilket håll panelen öppnas
+  - **App.jsx uppdaterad:**
+    - Importerar `fetchReceivedSwapRequests` och `NotificationDropdown`
+    - `notifRequests` + `hasUnseen` state i `MainApp`
+    - Polling `useEffect`: hämtar direkt vid mount, sedan var 30:e sekund; `hasUnseen=true` när antal ökar; lyssnar även på `'swaps-updated'` custom event för omedelbar uppdatering
+    - `handleNotifOpen` nollställer badge
+    - Klocka i **sidomenyn** (desktop, `align="left"`, `flex-1` på h1 för att pusha klockan höger)
+    - Klocka som **fast mobil-element** (`md:hidden fixed top-4 right-4 z-40`)
+    - `z-10` på `<aside>` löser stacking context-problem (backdrop-blur skapar isolerad context)
+  - **ShiftList.jsx uppdaterad:**
+    - `handleAccept` och `handleDecline` dispatchar `window.dispatchEvent(new CustomEvent('swaps-updated'))` efter lyckat API-anrop
+    - Notifikationslistan uppdateras omedelbart utan att vänta på 30-sekunders-poll
+  - **Nya filer (1):**
+    - `shiftmate-frontend/src/components/NotificationDropdown.jsx`
+  - **Modifierade filer (2):**
+    - `shiftmate-frontend/src/App.jsx`
+    - `shiftmate-frontend/src/ShiftList.jsx`
+  - **Build OK** — vite build utan fel
+
+- **Beslut tagna:**
+  - `align`-prop istället för hårdkodad position — klockan används på två ställen (sidebar=left, mobil=right)
+  - `z-10` på `<aside>` istället för portal — enklare lösning, inga nya beroenden
+  - Custom DOM-event `'swaps-updated'` för cross-component kommunikation — undviker prop-drilling eller global state
+  - Polling 30s + event-driven uppdatering — bästa av båda (bakgrundssynk + omedelbar respons)
+
+- **Nästa steg:**
+  - Admin: redigera/ta bort pass
 
 ### 2026-02-18 - Code Quality Fixes from Test Audit (refactor/query-improvements, PR #67, merged)
 
@@ -507,6 +545,10 @@ Track important architectural or design decisions here.
 | 2026-02-18 | `SwapRequestStatus` enum med `HasConversion<string>()` | Typsäkerhet utan datamigration — DB-kolumnen förblir text |
 | 2026-02-18 | `TargetUser` som eget fält på `SwapRequestDto` | Korrekt semantik — sluta missbruka `RequestingUser` för målpersonsinfo |
 | 2026-02-18 | `SwapRequestDto.Status` förblir `string` | Bakåtkompatibilitet med frontend — JSON-kontraktet ändras inte |
+| 2026-02-19 | `align`-prop på `NotificationDropdown` | Klockan används på två ställen med olika öppningsriktning (sidebar=left, mobil=right) |
+| 2026-02-19 | `z-10` på `<aside>` | `backdrop-blur` skapar isolerad stacking context — dropdownen blockerades av `<main>` utan explicit z-index |
+| 2026-02-19 | Custom event `'swaps-updated'` för cross-component kommunikation | Undviker prop-drilling/global state — enkelt och effektivt |
+| 2026-02-19 | Polling 30s + event-driven uppdatering | Bakgrundssynk täcker externa ändringar, event ger omedelbar respons vid egna actions |
 
 ---
 
