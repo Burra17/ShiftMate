@@ -1,7 +1,8 @@
 ﻿// importera nödvändiga funktioner och komponenter från react och react-router-dom
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
-import { setLogoutCallback, getUserRole } from './api'; // <--- NYTT: Vi importerar getUserRole
+import { setLogoutCallback, getUserRole, fetchReceivedSwapRequests } from './api';
+import NotificationDropdown from './components/NotificationDropdown';
 
 // importera sid-komponenter
 import Login from './Login';
@@ -21,6 +22,10 @@ const MainApp = ({ onLogout }) => {
     // Kolla om användaren är Admin
     const role = getUserRole();
     const isAdmin = role === 'Admin';
+
+    // State för notifikationssystemet
+    const [notifRequests, setNotifRequests] = useState([]);
+    const [hasUnseen, setHasUnseen] = useState(false);
 
     // Härledd aktiv flik direkt från URL (ingen state behövs)
     const activeTab = location.pathname.substring(1) || 'dashboard';
@@ -45,15 +50,54 @@ const MainApp = ({ onLogout }) => {
         document.title = `${pageTitle} - ShiftMate`;
     }, [activeTab]);
 
+    // Hämta inkommande förfrågningar direkt och polla var 30:e sekund
+    useEffect(() => {
+        let lastCount = 0; // Spårar senaste antal för att detektera nya förfrågningar
+
+        const loadNotifications = async () => {
+            try {
+                const data = await fetchReceivedSwapRequests();
+                setNotifRequests(data);
+                if (data.length > lastCount) {
+                    setHasUnseen(true); // Nya förfrågningar — visa badge
+                }
+                lastCount = data.length;
+            } catch {
+                // Polling misslyckas tyst — ska aldrig krascha appen
+            }
+        };
+
+        loadNotifications(); // Kör direkt vid mount
+        const intervalId = setInterval(loadNotifications, 30_000);
+
+        // Lyssna på händelse från ShiftList när en förfrågan accepteras/nekas
+        window.addEventListener('swaps-updated', loadNotifications);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('swaps-updated', loadNotifications);
+        };
+    }, []);
+
+    // Rensa badge när dropdownen öppnas
+    const handleNotifOpen = () => setHasUnseen(false);
+
     return (
         <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
+            {/* Mobil notifikationsklocka — fast position uppe till höger, dold på desktop */}
+            <div className="md:hidden fixed top-4 right-4 z-40">
+                <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} />
+            </div>
+
             {/* Sidomeny */}
-            <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6">
+            <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6 z-10">
                 <div className="flex items-center gap-3 mb-10 px-2">
                     <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
                         <span className="text-sm">⛽</span>
                     </div>
-                    <h1 className="text-xl font-black tracking-tight text-white">ShiftMate</h1>
+                    <h1 className="text-xl font-black tracking-tight text-white flex-1">ShiftMate</h1>
+                    {/* Notifikationsklocka — alltid synlig i sidomenyn på desktop */}
+                    <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} align="left" />
                 </div>
 
                 {/* Navigationslänkar */}
