@@ -5,7 +5,6 @@ import LoadingSpinner from './components/LoadingSpinner';
 
 // Översätt rollnamn till svenska för visning
 const roleLabels = {
-    Admin: "Admin",
     Manager: "Chef",
     Employee: "Anställd"
 };
@@ -197,7 +196,6 @@ const Profile = ({ onLogout }) => {
     const roleBadge = () => {
         const label = roleLabels[userData.role] || userData.role;
         const styles = {
-            Admin: "text-red-400 bg-red-500/10 border-red-500/30",
             Manager: "text-amber-400 bg-amber-500/10 border-amber-500/30",
             Employee: "text-blue-400 bg-blue-500/10 border-blue-500/30"
         };
