@@ -10,8 +10,8 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 - **Schema** - Komplett schemaöversikt grupperad per datum med alla anställdas skift
 - **Skiftbyten** - Erbjud skift på öppna marknaden eller föreslå direktbyten med kollegor
 - **Bytesförfrågningar** - Acceptera, neka eller avbryt förfrågningar med fullständig livscykel
-- **Admin-panel** - Skapa skift och tilldela till specifika användare (rollbaserad åtkomst)
-- **Rollbaserad navigation** - Admin-funktioner visas bara för administratörer
+- **Manager-panel** - Skapa, redigera och ta bort skift, hantera användare (rollbaserad åtkomst)
+- **Rollbaserad navigation** - Manager-funktioner visas bara för chefer
 
 ## Teknikstack
 
@@ -86,130 +86,57 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 ## Projektets filstruktur
 
 ```
-ShiftMate/
-├── ShiftMate.sln
-├── Dockerfile
 ├── CLAUDE.md                              # Arkitekturdokumentation (Source of Truth)
 ├── MEMORY.md                              # Sessionslogg för utveckling
+├── PROJEKTBESKRIVNING.md                  # Projektbeskrivning
+├── README.md                              # Denna fil
 │
-├── ShiftMate.Domain/                      # Domänlager - Entiteter & enums (inga beroenden)
-│   ├── User.cs
-│   ├── Shift.cs
-│   ├── SwapRequest.cs
-│   └── SwapRequestStatus.cs              # Enum: Pending, Accepted, Declined, Cancelled
-│
-├── ShiftMate.Application/                 # Applikationslager - Affärslogik (CQRS)
-│   ├── DependencyInjection.cs
-│   ├── DTOs/
-│   │   ├── UserDto.cs
-│   │   ├── ShiftDto.cs
-│   │   └── SwapRequestDto.cs
-│   ├── Interfaces/
-│   │   ├── IAppDbContext.cs
-│   │   └── IEmailService.cs
-│   ├── Shifts/
-│   │   ├── Commands/
-│   │   │   ├── CreateShiftCommand.cs
-│   │   │   ├── CreateShiftCommandValidator.cs
-│   │   │   ├── TakeShiftCommand.cs
-│   │   │   ├── TakeShiftCommandHandler.cs
-│   │   │   ├── CancelShiftSwapCommand.cs
-│   │   │   └── CancelShiftSwapCommandHandler.cs
-│   │   └── Queries/
-│   │       ├── GetAllShiftsQuery.cs
-│   │       ├── GetAllShiftsHandler.cs
-│   │       ├── GetMyShiftsQuery.cs
-│   │       └── GetClaimableShiftsQuery.cs
-│   ├── SwapRequests/
-│   │   ├── Commands/
-│   │   │   ├── InitiateSwapCommand.cs
-│   │   │   ├── ProposeDirectSwapCommand.cs
-│   │   │   ├── AcceptSwapCommand.cs
-│   │   │   ├── DeclineSwapRequestCommand.cs
-│   │   │   └── CancelSwapRequestCommand.cs
-│   │   └── Queries/
-│   │       ├── GetAvailableSwapsQuery.cs
-│   │       ├── GetReceivedSwapRequestsQuery.cs
-│   │       └── GetSentSwapRequestsQuery.cs
-│   └── Users/
-│       ├── Commands/
-│       │   ├── RegisterUserCommand.cs
-│       │   ├── RegisterUserCommandHandler.cs
-│       │   ├── RegisterUserCommandValidator.cs
-│       │   ├── LoginCommand.cs
-│       │   └── UpdateProfileCommand.cs
-│       └── Queries/
-│           └── GetAllUsersQuery.cs
-│
-├── ShiftMate.Infrastructure/              # Infrastrukturlager - Dataåtkomst
-│   ├── AppDbContext.cs
-│   ├── DbInitializer.cs
-│   ├── Services/
-│   │   └── ResendEmailService.cs
-│   └── Migrations/
-│       ├── 20260202220054_InitialCreate.cs
-│       ├── 20260203170207_FixRolesAndAddSwapRequests.cs
-│       ├── 20260204131820_AddTargetShiftIdToSwapRequest.cs
-│       └── 20260206165707_AllowUnassignedShifts.cs
-│
-├── ShiftMate.Api/                         # API-lager - Controllers
-│   ├── Program.cs
-│   ├── appsettings.json
-│   └── Controllers/
-│       ├── UsersController.cs
-│       ├── ShiftsController.cs
-│       └── SwapRequestsController.cs
-│
-├── ShiftMate.Tests/                       # Enhetstester (74 tester)
-│   ├── AcceptSwapHandlerTests.cs
-│   ├── CancelShiftSwapCommandHandlerTests.cs
-│   ├── CancelSwapRequestHandlerTests.cs
-│   ├── ChangePasswordHandlerTests.cs
-│   ├── CreateShiftCommandValidatorTests.cs
-│   ├── CreateShiftHandlerTests.cs
-│   ├── DeclineSwapRequestCommandHandlerTests.cs
-│   ├── GetAllShiftsHandlerTests.cs
-│   ├── GetAllUsersHandlerTests.cs
-│   ├── GetAvailableSwapsHandlerTests.cs
-│   ├── GetClaimableShiftsHandlerTests.cs
-│   ├── GetMyShiftsHandlerTests.cs
-│   ├── GetReceivedSwapRequestsHandlerTests.cs
-│   ├── GetSentSwapRequestsHandlerTests.cs
-│   ├── InitiateSwapHandlerTests.cs
-│   ├── LoginHandlerTests.cs
-│   ├── ProposeDirectSwapCommandHandlerTests.cs
-│   ├── RegisterUserCommandHandlerTests.cs
-│   ├── TakeShiftCommandHandlerTests.cs
-│   ├── UpdateProfileHandlerTests.cs
-│   └── Support/
-│       └── TestDbContextFactory.cs
-│
-└── shiftmate-frontend/                    # React-applikation
-    ├── package.json
-    ├── vite.config.js
-    ├── tailwind.config.js
-    ├── index.html
-    ├── .env.development
-    ├── .env.production
-    ├── vercel.json
-    └── src/
-        ├── main.jsx
-        ├── App.jsx
-        ├── api.js
-        ├── index.css
-        ├── Dashboard.jsx
-        ├── Login.jsx
-        ├── Register.jsx
-        ├── ShiftList.jsx
-        ├── MarketPlace.jsx
-        ├── Schedule.jsx
-        ├── Profile.jsx
-        └── components/
-            ├── AuthLayout.jsx
-            └── AdminPanel.jsx
+└── ShiftMate/                             # Solution-mapp
+    ├── ShiftMate.sln
+    ├── Dockerfile
+    │
+    ├── ShiftMate.Domain/                  # Domänlager - Entiteter & enums (inga beroenden)
+    │   ├── User.cs
+    │   ├── Shift.cs
+    │   ├── SwapRequest.cs
+    │   └── SwapRequestStatus.cs
+    │
+    ├── ShiftMate.Application/             # Applikationslager - Affärslogik (CQRS)
+    │   ├── DependencyInjection.cs
+    │   ├── DTOs/
+    │   ├── Interfaces/
+    │   ├── Shifts/Commands/ & Queries/
+    │   ├── SwapRequests/Commands/ & Queries/
+    │   └── Users/Commands/ & Queries/
+    │
+    ├── ShiftMate.Infrastructure/          # Infrastrukturlager - Dataåtkomst
+    │   ├── AppDbContext.cs
+    │   ├── DbInitializer.cs
+    │   ├── Services/
+    │   └── Migrations/
+    │
+    ├── ShiftMate.Api/                     # API-lager - Controllers
+    │   ├── Program.cs
+    │   └── Controllers/
+    │
+    ├── ShiftMate.Tests/                   # Enhetstester (74+ tester)
+    │
+    └── shiftmate-frontend/                # React-applikation
+        ├── src/
+        │   ├── App.jsx
+        │   ├── api.js
+        │   ├── Dashboard.jsx
+        │   ├── ShiftList.jsx
+        │   ├── MarketPlace.jsx
+        │   ├── Schedule.jsx
+        │   ├── Profile.jsx
+        │   └── components/
+        │       ├── AuthLayout.jsx
+        │       └── ManagerPanel.jsx
+        └── README.md
 ```
 
 ## Mer information
 
-- **Arkitekturdokumentation:** Se [CLAUDE.md](ShiftMate/CLAUDE.md) för detaljerade kodregler, mönster och konventioner.
+- **Arkitekturdokumentation:** Se [CLAUDE.md](CLAUDE.md) för detaljerade kodregler, mönster och konventioner.
 - **Frontend-specifik information:** Se [shiftmate-frontend/README.md](ShiftMate/shiftmate-frontend/README.md).

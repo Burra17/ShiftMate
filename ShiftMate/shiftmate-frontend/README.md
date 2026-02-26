@@ -42,7 +42,7 @@ npm run preview
 | Lediga Pass | `MarketPlace.jsx` | Otilldelade och erbjudna skift att ta |
 | Schema | `Schedule.jsx` | Komplett schemaöversikt grupperad per datum |
 | Profil | `Profile.jsx` | Användarinformation och statistik |
-| Admin Panel | `components/AdminPanel.jsx` | Skapa skift och tilldela användare (admin-only) |
+| Manager Panel | `components/ManagerPanel.jsx` | Skapa/redigera/ta bort skift och hantera användare (manager-only) |
 
 ## Toast & Confirm-system
 
@@ -118,7 +118,7 @@ shiftmate-frontend/
     │   └── ToastContext.jsx   # ToastProvider, useToast, useConfirm hooks
     └── components/
         ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
-        ├── AdminPanel.jsx    # Admin-panel för skifthantering
+        ├── ManagerPanel.jsx  # Manager-panel för skifthantering och användarhantering
         └── ui/
             ├── ToastContainer.jsx  # Toast-lista (portal-renderad)
             └── ConfirmModal.jsx    # Bekräftelsedialog (portal-renderad)
@@ -129,7 +129,7 @@ shiftmate-frontend/
 - JWT-token lagras i `localStorage`
 - Axios-interceptor bifogar automatiskt `Authorization: Bearer {token}` till alla anrop
 - Vid 401-svar loggas användaren ut automatiskt
-- Rollkontroll (Admin/Employee) sker via avkodning av JWT-token direkt i klienten
+- Rollkontroll (Manager/Employee) sker via avkodning av JWT-token direkt i klienten
 
 ## Tema
 
