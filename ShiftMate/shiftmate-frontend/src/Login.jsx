@@ -80,9 +80,14 @@ const Login = ({ onLoginSuccess }) => {
                     />
                 </div>
 
-                {/* Fält för lösenord. */}
+                {/* Fält för lösenord med "Glömt lösenord?"-länk */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lösenord</label>
+                    <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lösenord</label>
+                        <Link to="/forgot-password" className="text-[10px] font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest mr-1">
+                            Glömt lösenord?
+                        </Link>
+                    </div>
                     <input
                         type="password"
                         required

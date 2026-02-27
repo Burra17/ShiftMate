@@ -190,5 +190,18 @@ namespace ShiftMate.Application.Services
 
             return Layout("Nytt pass tilldelat", body);
         }
+        // Lösenordsåterställning
+        public static string PasswordReset(string recipientName, string resetPath)
+        {
+            var body = $@"
+      <p style=""margin:0 0 16px;"">Hej {recipientName},</p>
+      <p style=""margin:0 0 16px;"">Vi har fått en förfrågan om att återställa ditt lösenord. Klicka på knappen nedan för att välja ett nytt lösenord.</p>
+{Button("Återställ lösenord", resetPath, Blue)}
+      <p style=""margin:16px 0;color:{TextMuted};font-size:13px;"">
+        Länken är giltig i 1 timme. Om du inte begärde detta kan du ignorera detta meddelande.
+      </p>";
+
+            return Layout("Återställ lösenord", body);
+        }
     }
 }

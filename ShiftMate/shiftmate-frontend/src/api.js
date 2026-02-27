@@ -251,4 +251,20 @@ export const updateUserRole = async (userId, role) => {
     return res.data;
 };
 
+/**
+ * Begär lösenordsåterställning via e-post.
+ */
+export const forgotPassword = async (email) => {
+    const res = await axiosInstance.post('/Users/forgot-password', { email });
+    return res.data;
+};
+
+/**
+ * Återställ lösenord med token från e-post.
+ */
+export const resetPassword = async (token, email, newPassword) => {
+    const res = await axiosInstance.post('/Users/reset-password', { token, email, newPassword });
+    return res.data;
+};
+
 export default axiosInstance;
