@@ -39,11 +39,6 @@ const ForgotPassword = () => {
                     <div className="bg-green-500/20 border border-green-500/30 text-green-300 text-xs font-semibold p-4 rounded-lg text-center">
                         Om e-postadressen finns i systemet har vi skickat en återställningslänk. Kolla din inkorg!
                     </div>
-                    <div className="text-center">
-                        <Link to="/login" className="text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-widest">
-                            Tillbaka till inloggning
-                        </Link>
-                    </div>
                 </div>
             ) : (
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -70,7 +65,12 @@ const ForgotPassword = () => {
                         disabled={loading}
                         className="w-full py-4 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-xl shadow-lg shadow-blue-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 tracking-wide uppercase text-sm"
                     >
-                        {loading ? 'Skickar...' : 'Skicka återställningslänk'}
+                        {loading ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Skickar...
+                            </span>
+                        ) : 'Skicka återställningslänk'}
                     </button>
                 </form>
             )}
