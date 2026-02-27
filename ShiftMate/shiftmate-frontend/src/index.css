@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Dölj webbläsarens inbyggda lösenordsikon (Edge/Chrome) */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 /* Toast-animationer för slide-in/slide-out */
 @keyframes toast-in {
   from { opacity: 0; transform: translateX(100%); }
