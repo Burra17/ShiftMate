@@ -94,8 +94,8 @@ const MainApp = ({ onLogout }) => {
             {/* Sidomeny */}
             <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6 z-10">
                 <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <span className="text-sm">⛽</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden">
+                        <img src="/favicon.svg" alt="ShiftMate" className="w-full h-full" />
                     </div>
                     <h1 className="text-xl font-black tracking-tight text-white flex-1">ShiftMate</h1>
                     {/* Notifikationsklocka — alltid synlig i sidomenyn på desktop */}
@@ -132,7 +132,7 @@ const MainApp = ({ onLogout }) => {
                             <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
                                 {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
                             </h2>
-                            <p className="text-slate-400 mt-2 text-sm">Hantera din tid på macken smidigt.</p>
+                            <p className="text-slate-400 mt-2 text-sm">Hantera din arbetstid smidigt.</p>
                         </header>
                     )}
 

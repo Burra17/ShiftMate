@@ -13,8 +13,8 @@
     </filter>
   </defs>
 
-  <!-- Bakgrund -->
-  <rect width="64" height="64" rx="14" fill="#0f172a"/>
+  <!-- Bakgrund (transparent med subtil kant) -->
+  <rect width="64" height="64" rx="14" fill="#020617"/>
 
   <!-- Övre pil (höger) -->
   <g filter="url(#glow)">
