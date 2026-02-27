@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
@@ -6,8 +6,7 @@ using ShiftMate.Domain;
 
 namespace ShiftMate.Application.SwapRequests.Queries
 {
-    // Returnera en lista av SwapRequestDto
-    public record GetAvailableSwapsQuery : IRequest<List<SwapRequestDto>>;
+    public record GetAvailableSwapsQuery(Guid OrganizationId) : IRequest<List<SwapRequestDto>>;
 
     public class GetAvailableSwapsHandler : IRequestHandler<GetAvailableSwapsQuery, List<SwapRequestDto>>
     {
@@ -22,18 +21,17 @@ namespace ShiftMate.Application.SwapRequests.Queries
         {
             var swaps = await _context.SwapRequests
                 .AsNoTracking()
-                .Include(sr => sr.Shift)           // Hämta passet
-                .Include(sr => sr.RequestingUser)  // <--- VIKTIGT: Hämta användaren också!
+                .Include(sr => sr.Shift)
+                .Include(sr => sr.RequestingUser)
                 .Where(sr => sr.Status == SwapRequestStatus.Pending)
+                .Where(sr => sr.Shift.OrganizationId == request.OrganizationId)
                 .ToListAsync(cancellationToken);
 
-            // Mappa om till DTOs
             var dtos = swaps.Select(sr => new SwapRequestDto
             {
                 Id = sr.Id,
                 Status = sr.Status.ToString(),
-                CreatedAt = sr.CreatedAt, // <--- Nu tar vi med datumet
-
+                CreatedAt = sr.CreatedAt,
                 Shift = new ShiftDto
                 {
                     Id = sr.Shift.Id,
@@ -41,7 +39,6 @@ namespace ShiftMate.Application.SwapRequests.Queries
                     EndTime = sr.Shift.EndTime,
                     IsUpForSwap = sr.Shift.IsUpForSwap
                 },
-
                 RequestingUser = new UserDto
                 {
                     Id = sr.RequestingUser.Id,

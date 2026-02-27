@@ -9,6 +9,7 @@ namespace ShiftMate.Application.Users.Commands
         public Guid TargetUserId { get; init; }
         public string NewRole { get; init; } = string.Empty;
         public Guid RequestingUserId { get; init; }
+        public Guid OrganizationId { get; init; }
     }
 
     public class UpdateUserRoleHandler : IRequestHandler<UpdateUserRoleCommand, bool>
@@ -18,7 +19,6 @@ namespace ShiftMate.Application.Users.Commands
 
         public async Task<bool> Handle(UpdateUserRoleCommand request, CancellationToken cancellationToken)
         {
-            // Förhindra att manager ändrar sin egen roll
             if (request.TargetUserId == request.RequestingUserId)
                 throw new InvalidOperationException("Du kan inte ändra din egen roll.");
 
@@ -28,6 +28,10 @@ namespace ShiftMate.Application.Users.Commands
             var user = await _context.Users.FindAsync(new object[] { request.TargetUserId }, cancellationToken);
             if (user == null)
                 throw new InvalidOperationException("Användaren hittades inte.");
+
+            // Validera att användaren tillhör samma organisation
+            if (user.OrganizationId != request.OrganizationId)
+                throw new InvalidOperationException("Användaren tillhör inte din organisation.");
 
             user.Role = newRole;
             await _context.SaveChangesAsync(cancellationToken);

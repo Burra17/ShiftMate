@@ -10,10 +10,11 @@ namespace ShiftMate.Tests;
 
 public class DeclineSwapRequestCommandHandlerTests
 {
+    private static readonly Guid OrgId = Guid.NewGuid();
+
     [Fact]
     public async Task Handle_Should_Throw_When_SwapRequest_Not_Found()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
         var handler = CreateHandler(context);
 
@@ -23,7 +24,6 @@ public class DeclineSwapRequestCommandHandlerTests
             CurrentUserId = Guid.NewGuid()
         };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Bytesförfrågan kunde inte hittas.");
@@ -34,8 +34,8 @@ public class DeclineSwapRequestCommandHandlerTests
     [Fact]
     public async Task Handle_Should_Throw_When_User_Is_Not_Target()
     {
-        // Arrange - användaren försöker neka en förfrågan som inte riktas till dem
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var requesterId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
@@ -44,16 +44,16 @@ public class DeclineSwapRequestCommandHandlerTests
         context.Users.Add(new User
         {
             Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
             Id = targetId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true,
+            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -68,10 +68,9 @@ public class DeclineSwapRequestCommandHandlerTests
         var command = new DeclineSwapRequestCommand
         {
             SwapRequestId = swapRequestId,
-            CurrentUserId = Guid.NewGuid() // Annan användare, inte target
+            CurrentUserId = Guid.NewGuid()
         };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Du har inte behörighet att neka denna förfrågan.");
@@ -82,8 +81,8 @@ public class DeclineSwapRequestCommandHandlerTests
     [Fact]
     public async Task Handle_Should_Throw_When_Request_Not_Pending()
     {
-        // Arrange - förfrågan är redan hanterad
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var requesterId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
@@ -92,23 +91,23 @@ public class DeclineSwapRequestCommandHandlerTests
         context.Users.Add(new User
         {
             Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
             Id = targetId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true,
+            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.SwapRequests.Add(new SwapRequest
         {
             Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = SwapRequestStatus.Accepted // Redan godkänd
+            TargetUserId = targetId, Status = SwapRequestStatus.Accepted
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -119,7 +118,6 @@ public class DeclineSwapRequestCommandHandlerTests
             CurrentUserId = targetId
         };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Denna förfrågan är inte längre aktiv och kan inte nekas.");
@@ -130,8 +128,8 @@ public class DeclineSwapRequestCommandHandlerTests
     [Fact]
     public async Task Handle_Should_Decline_SwapRequest_Successfully()
     {
-        // Arrange - target-användaren nekar en pending-förfrågan
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var requesterId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
@@ -140,16 +138,16 @@ public class DeclineSwapRequestCommandHandlerTests
         context.Users.Add(new User
         {
             Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
             Id = targetId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true,
+            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -167,10 +165,8 @@ public class DeclineSwapRequestCommandHandlerTests
             CurrentUserId = targetId
         };
 
-        // Act
         await handler.Handle(command, CancellationToken.None);
 
-        // Assert
         var updated = context.SwapRequests.First(sr => sr.Id == swapRequestId);
         updated.Status.Should().Be(SwapRequestStatus.Declined);
 
@@ -182,5 +178,11 @@ public class DeclineSwapRequestCommandHandlerTests
         var mockEmailService = new Mock<IEmailService>();
         var mockLogger = new Mock<ILogger<DeclineSwapRequestCommandHandler>>();
         return new DeclineSwapRequestCommandHandler(context, mockEmailService.Object, mockLogger.Object);
+    }
+
+    private static void SeedOrg(Infrastructure.AppDbContext context)
+    {
+        context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });
+        context.SaveChanges();
     }
 }

@@ -7,10 +7,11 @@ namespace ShiftMate.Tests;
 
 public class InitiateSwapHandlerTests
 {
+    private static readonly Guid OrgId = Guid.NewGuid();
+
     [Fact]
     public async Task Handle_Should_Throw_When_Shift_Not_Found()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
         var handler = new InitiateSwapHandler(context);
 
@@ -20,7 +21,6 @@ public class InitiateSwapHandlerTests
             RequestingUserId = Guid.NewGuid()
         };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Passet hittades inte.");
@@ -31,19 +31,19 @@ public class InitiateSwapHandlerTests
     [Fact]
     public async Task Handle_Should_Throw_When_User_Does_Not_Own_Shift()
     {
-        // Arrange - användaren försöker byta bort någon annans pass
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var ownerId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
 
         context.Users.Add(new User
         {
             Id = ownerId, FirstName = "Owner", LastName = "Ownersson",
-            Email = "owner@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "owner@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = ownerId, IsUpForSwap = false,
+            Id = shiftId, UserId = ownerId, IsUpForSwap = false, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -53,10 +53,9 @@ public class InitiateSwapHandlerTests
         var command = new InitiateSwapCommand
         {
             ShiftId = shiftId,
-            RequestingUserId = Guid.NewGuid() // Annan användare
+            RequestingUserId = Guid.NewGuid()
         };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Du kan inte byta bort någon annans pass!");
@@ -67,19 +66,19 @@ public class InitiateSwapHandlerTests
     [Fact]
     public async Task Handle_Should_Create_SwapRequest_And_Mark_Shift_For_Swap()
     {
-        // Arrange - användaren lägger upp sitt eget pass för byte
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var userId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
 
         context.Users.Add(new User
         {
             Id = userId, FirstName = "Test", LastName = "Testsson",
-            Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = userId, IsUpForSwap = false,
+            Id = shiftId, UserId = userId, IsUpForSwap = false, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -92,10 +91,8 @@ public class InitiateSwapHandlerTests
             RequestingUserId = userId
         };
 
-        // Act
         var resultId = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
         resultId.Should().NotBeEmpty();
 
         var shift = context.Shifts.First(s => s.Id == shiftId);
@@ -108,5 +105,11 @@ public class InitiateSwapHandlerTests
         swapRequest.Status.Should().Be(SwapRequestStatus.Pending);
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static void SeedOrg(Infrastructure.AppDbContext context)
+    {
+        context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });
+        context.SaveChanges();
     }
 }

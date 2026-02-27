@@ -21,21 +21,21 @@ namespace ShiftMate.Api.Controllers
             _mediator = mediator;
         }
 
-        // -----------------------------------------------------------------------
         // 1. SKAPA PASS
-        // -----------------------------------------------------------------------
         [HttpPost]
         public async Task<IActionResult> Create(CreateShiftCommand command)
         {
             try
             {
                 var userId = User.GetUserId();
-                if (userId == null)
+                var orgId = User.GetOrganizationId();
+                if (userId == null || orgId == null)
                 {
                     return Unauthorized("Kunde inte identifiera användaren från token.");
                 }
 
                 command.UserId = userId.Value;
+                command.OrganizationId = orgId.Value;
                 var shiftId = await _mediator.Send(command);
 
                 return Ok(new { Id = shiftId, Message = "Passet har skapats!" });
@@ -50,57 +50,55 @@ namespace ShiftMate.Api.Controllers
             }
         }
 
-        // -----------------------------------------------------------------------
         // 2. HÄMTA MINA PASS
-        // -----------------------------------------------------------------------
         [HttpGet("mine")]
         public async Task<IActionResult> GetMyShifts()
         {
             var userId = User.GetUserId();
-            if (userId == null) return Unauthorized();
+            var orgId = User.GetOrganizationId();
+            if (userId == null || orgId == null) return Unauthorized();
 
-            var query = new GetMyShiftsQuery(userId.Value);
+            var query = new GetMyShiftsQuery(userId.Value, orgId.Value);
             var result = await _mediator.Send(query);
 
             return Ok(result);
         }
 
-        // -----------------------------------------------------------------------
-        // 3. HÄMTA ALLA PASS (Här var ändringen!) 🛠️
-        // -----------------------------------------------------------------------
-        // GET: api/shifts?onlyWithUsers=true
+        // 3. HÄMTA ALLA PASS
         [HttpGet]
         public async Task<ActionResult<List<ShiftDto>>> GetAll([FromQuery] bool onlyWithUsers = false)
         {
-            // Vi tar emot 'onlyWithUsers' från URL:en och skickar den vidare till vår Query.
-            // Nu vet Handlern om den ska filtrera bort vakanta pass eller inte.
-            var shifts = await _mediator.Send(new GetAllShiftsQuery(onlyWithUsers));
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
+
+            var shifts = await _mediator.Send(new GetAllShiftsQuery(orgId.Value, onlyWithUsers));
             return Ok(shifts);
         }
 
-        // -----------------------------------------------------------------------
         // 4. HÄMTA LEDIGA PASS (MarketPlace)
-        // -----------------------------------------------------------------------
         [HttpGet("claimable")]
         public async Task<ActionResult<List<ShiftDto>>> GetClaimableShifts()
         {
-            var shifts = await _mediator.Send(new GetClaimableShiftsQuery());
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
+
+            var shifts = await _mediator.Send(new GetClaimableShiftsQuery(orgId.Value));
             return Ok(shifts);
         }
 
-        // -----------------------------------------------------------------------
         // 5. TA ETT PASS
-        // -----------------------------------------------------------------------
         [HttpPut("{id}/take")]
         public async Task<IActionResult> TakeShift(Guid id)
         {
             var userId = User.GetUserId();
-            if (userId == null) return Unauthorized();
+            var orgId = User.GetOrganizationId();
+            if (userId == null || orgId == null) return Unauthorized();
 
             var command = new TakeShiftCommand
             {
                 ShiftId = id,
-                UserId = userId.Value
+                UserId = userId.Value,
+                OrganizationId = orgId.Value
             };
 
             try
@@ -116,9 +114,7 @@ namespace ShiftMate.Api.Controllers
             }
         }
 
-        // -----------------------------------------------------------------------
         // 6. ÅNGRA MARKNADSFÖRING AV PASS
-        // -----------------------------------------------------------------------
         [HttpPut("{id}/cancel-swap")]
         public async Task<IActionResult> CancelSwap(Guid id)
         {
@@ -144,16 +140,18 @@ namespace ShiftMate.Api.Controllers
             }
         }
 
-        // -----------------------------------------------------------------------
         // 7. MANAGER UPPDATERA PASS
-        // -----------------------------------------------------------------------
         [HttpPut("{id}")]
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> UpdateShift(Guid id, UpdateShiftCommand command)
         {
             try
             {
+                var orgId = User.GetOrganizationId();
+                if (orgId == null) return Unauthorized();
+
                 command.ShiftId = id;
+                command.OrganizationId = orgId.Value;
                 await _mediator.Send(command);
                 return Ok(new { Message = "Passet har uppdaterats!" });
             }
@@ -167,16 +165,17 @@ namespace ShiftMate.Api.Controllers
             }
         }
 
-        // -----------------------------------------------------------------------
         // 8. MANAGER RADERA PASS
-        // -----------------------------------------------------------------------
         [HttpDelete("{id}")]
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteShift(Guid id)
         {
             try
             {
-                await _mediator.Send(new DeleteShiftCommand(id));
+                var orgId = User.GetOrganizationId();
+                if (orgId == null) return Unauthorized();
+
+                await _mediator.Send(new DeleteShiftCommand(id, orgId.Value));
                 return Ok(new { Message = "Passet har raderats!" });
             }
             catch (Exception ex)
@@ -185,16 +184,17 @@ namespace ShiftMate.Api.Controllers
             }
         }
 
-        // -----------------------------------------------------------------------
         // 9. ADMIN SKAPA PASS
-        // -----------------------------------------------------------------------
         [HttpPost("admin")]
-        // Ändrad från [Authorize(Roles = "Admin")] — Admin-rollen är borttagen, Manager är nu den privilegierade rollen
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> AdminCreate(CreateShiftCommand command)
         {
             try
             {
+                var orgId = User.GetOrganizationId();
+                if (orgId == null) return Unauthorized();
+
+                command.OrganizationId = orgId.Value;
                 var shiftId = await _mediator.Send(command);
                 return Ok(new { Id = shiftId, Message = "Administratör: Passet har skapats!" });
             }

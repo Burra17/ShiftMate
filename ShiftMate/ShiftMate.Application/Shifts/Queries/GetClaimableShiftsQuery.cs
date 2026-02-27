@@ -5,9 +5,7 @@ using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Shifts.Queries
 {
-    // Query för att hämta alla pass som är tillgängliga att "ta" (claim).
-    // Detta inkluderar pass som är uppe för byte (IsUpForSwap) samt pass som inte är tilldelade någon användare (UserId = null).
-    public record GetClaimableShiftsQuery : IRequest<List<ShiftDto>>;
+    public record GetClaimableShiftsQuery(Guid OrganizationId) : IRequest<List<ShiftDto>>;
 
     public class GetClaimableShiftsHandler : IRequestHandler<GetClaimableShiftsQuery, List<ShiftDto>>
     {
@@ -22,8 +20,9 @@ namespace ShiftMate.Application.Shifts.Queries
         {
             var shifts = await _context.Shifts
                 .AsNoTracking()
-                .Include(s => s.User) // Inkludera User-objektet för att kunna mappa det till DTO:n.
-                .Where(s => s.IsUpForSwap == true || s.UserId == null) // Filtrera på lediga pass eller pass uppe för byte
+                .Include(s => s.User)
+                .Where(s => s.OrganizationId == request.OrganizationId)
+                .Where(s => s.IsUpForSwap == true || s.UserId == null)
                 .OrderBy(s => s.StartTime)
                 .ToListAsync(cancellationToken);
 
@@ -34,7 +33,6 @@ namespace ShiftMate.Application.Shifts.Queries
                 EndTime = s.EndTime,
                 IsUpForSwap = s.IsUpForSwap,
                 UserId = s.UserId,
-
                 User = s.User != null ? new UserDto
                 {
                     Id = s.User.Id,
@@ -42,7 +40,6 @@ namespace ShiftMate.Application.Shifts.Queries
                     FirstName = s.User.FirstName,
                     LastName = s.User.LastName
                 } : null
-
             }).ToList();
 
             return dtos;

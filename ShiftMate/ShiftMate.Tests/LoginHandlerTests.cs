@@ -8,16 +8,16 @@ namespace ShiftMate.Tests;
 
 public class LoginHandlerTests
 {
+    private static readonly Guid OrgId = Guid.NewGuid();
+
     [Fact]
     public async Task Handle_Should_Throw_When_User_Not_Found()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
         var handler = new LoginHandler(context, CreateConfiguration());
 
         var command = new LoginCommand { Email = "nonexistent@test.com", Password = "password123" };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Fel e-post eller lösenord.");
@@ -28,21 +28,20 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_Should_Throw_When_Password_Is_Wrong()
     {
-        // Arrange - användaren finns men lösenordet stämmer inte
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         context.Users.Add(new User
         {
             Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("correctpassword"),
-            Role = Role.Employee
+            Role = Role.Employee, OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new LoginHandler(context, CreateConfiguration());
         var command = new LoginCommand { Email = "test@test.com", Password = "wrongpassword" };
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Fel e-post eller lösenord.");
@@ -53,24 +52,22 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_Should_Return_Jwt_Token_On_Success()
     {
-        // Arrange - lyckad inloggning
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         context.Users.Add(new User
         {
             Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee
+            Role = Role.Employee, OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new LoginHandler(context, CreateConfiguration());
         var command = new LoginCommand { Email = "test@test.com", Password = "password123" };
 
-        // Act
         var token = await handler.Handle(command, CancellationToken.None);
 
-        // Assert - JWT-token ska returneras (tre delar separerade med punkt)
         token.Should().NotBeNullOrEmpty();
         token.Split('.').Should().HaveCount(3);
 
@@ -80,25 +77,51 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_Should_Match_Email_Case_Insensitively()
     {
-        // Arrange - e-post med olika casing ska fungera
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         context.Users.Add(new User
         {
             Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee
+            Role = Role.Employee, OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new LoginHandler(context, CreateConfiguration());
         var command = new LoginCommand { Email = "Test@TEST.com", Password = "password123" };
 
-        // Act
         var token = await handler.Handle(command, CancellationToken.None);
 
-        // Assert
         token.Should().NotBeNullOrEmpty();
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Include_OrganizationId_In_Token_Claims()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var userId = Guid.NewGuid();
+        context.Users.Add(new User
+        {
+            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Email = "test@test.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = Role.Employee, OrganizationId = OrgId
+        });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new LoginHandler(context, CreateConfiguration());
+        var command = new LoginCommand { Email = "test@test.com", Password = "password123" };
+
+        var token = await handler.Handle(command, CancellationToken.None);
+
+        var jwtHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwt = jwtHandler.ReadJwtToken(token);
+        jwt.Claims.Should().Contain(c => c.Type == "OrganizationId" && c.Value == OrgId.ToString());
+        jwt.Claims.Should().Contain(c => c.Type == "OrganizationName" && c.Value == "Test Org");
 
         TestDbContextFactory.Destroy(context);
     }
@@ -114,5 +137,11 @@ public class LoginHandlerTests
         return new ConfigurationBuilder()
             .AddInMemoryCollection(inMemorySettings)
             .Build();
+    }
+
+    private static void SeedOrg(Infrastructure.AppDbContext context)
+    {
+        context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });
+        context.SaveChanges();
     }
 }

@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
+using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.Shifts.Commands
 {
@@ -12,6 +13,9 @@ namespace ShiftMate.Application.Shifts.Commands
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public Guid? UserId { get; set; }
+
+        [JsonIgnore]
+        public Guid OrganizationId { get; set; }
     }
 
     // 2. LOGIK
@@ -28,7 +32,6 @@ namespace ShiftMate.Application.Shifts.Commands
 
         public async Task<bool> Handle(UpdateShiftCommand request, CancellationToken cancellationToken)
         {
-            // Normalisera tiderna till UTC direkt — Npgsql 8 kräver DateTimeKind.Utc
             var startTimeUtc = DateTime.SpecifyKind(request.StartTime, DateTimeKind.Utc);
             var endTimeUtc = DateTime.SpecifyKind(request.EndTime, DateTimeKind.Utc);
 
@@ -48,6 +51,12 @@ namespace ShiftMate.Application.Shifts.Commands
                 throw new InvalidOperationException("Passet hittades inte.");
             }
 
+            // Validera att passet tillhör samma organisation
+            if (shift.OrganizationId != request.OrganizationId)
+            {
+                throw new InvalidOperationException("Passet tillhör inte din organisation.");
+            }
+
             // 3. KROCK-KONTROLL (om passet tilldelas en användare)
             if (request.UserId.HasValue)
             {
@@ -59,7 +68,12 @@ namespace ShiftMate.Application.Shifts.Commands
                     throw new InvalidOperationException("Användaren hittades inte.");
                 }
 
-                // Kolla krockar — exkludera det egna passet från kontrollen
+                // Validera att användaren tillhör samma organisation
+                if (user.OrganizationId != request.OrganizationId)
+                {
+                    throw new InvalidOperationException("Användaren tillhör inte samma organisation.");
+                }
+
                 var hasOverlap = await _context.Shifts.AnyAsync(s =>
                     s.Id != request.ShiftId &&
                     s.UserId == request.UserId &&

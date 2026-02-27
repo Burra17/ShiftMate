@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ShiftMate.Domain
@@ -12,9 +12,12 @@ namespace ShiftMate.Domain
 
         // Foreign Key: Vem äger passet?
         public Guid? UserId { get; set; }
-
-        // Navigation Property
         public virtual User User { get; set; } = null!;
+
+        // Foreign Key: Vilken organisation tillhör passet?
+        public Guid OrganizationId { get; set; }
+        public virtual Organization Organization { get; set; } = null!;
+
         public virtual ICollection<SwapRequest> SwapRequests { get; set; } = new List<SwapRequest>();
     }
 }

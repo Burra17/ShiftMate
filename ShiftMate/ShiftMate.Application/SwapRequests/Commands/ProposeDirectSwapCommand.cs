@@ -14,8 +14,11 @@ namespace ShiftMate.Application.SwapRequests.Commands
         public Guid MyShiftId { get; set; }     // Passet användaren vill bli av med
         public Guid TargetShiftId { get; set; } // Passet användaren vill ha istället
 
-        [JsonIgnore] // UserId sätts oftast i controllern från JWT-token för säkerhet
+        [JsonIgnore]
         public Guid RequestingUserId { get; set; }
+
+        [JsonIgnore]
+        public Guid OrganizationId { get; set; }
     }
 
     // Handlern: Innehåller affärslogiken för att genomföra bytet
@@ -61,6 +64,10 @@ namespace ShiftMate.Application.SwapRequests.Commands
 
             if (myShift.UserId != request.RequestingUserId)
                 throw new Exception("Du kan bara föreslå byte för pass du själv äger.");
+
+            // Validera att båda passen tillhör samma organisation
+            if (myShift.OrganizationId != request.OrganizationId || targetShift.OrganizationId != request.OrganizationId)
+                throw new Exception("Passen tillhör inte din organisation.");
 
             // ------------------------------------------------------------------------------
             // 3. SPARA BYTESFÖRFRÅGAN (Sker först så att handlingen är säkrad i databasen)

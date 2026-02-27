@@ -7,6 +7,8 @@ namespace ShiftMate.Tests;
 
 public class UserManagementHandlerTests
 {
+    private static readonly Guid OrgId = Guid.NewGuid();
+
     // -------------------------------------------------------
     // DeleteUserHandler
     // -------------------------------------------------------
@@ -14,21 +16,19 @@ public class UserManagementHandlerTests
     [Fact]
     public async Task DeleteUser_Should_Remove_User()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var managerId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
 
-        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager });
-        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new DeleteUserHandler(context);
 
-        // Act
-        var result = await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId }, CancellationToken.None);
+        var result = await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
 
-        // Assert
         result.Should().BeTrue();
         context.Users.Should().NotContain(u => u.Id == targetId);
 
@@ -38,21 +38,19 @@ public class UserManagementHandlerTests
     [Fact]
     public async Task DeleteUser_Should_Throw_When_Deleting_Self()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var managerId = Guid.NewGuid();
 
-        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new DeleteUserHandler(context);
 
-        // Act
         var act = async () => await handler.Handle(
-            new DeleteUserCommand { TargetUserId = managerId, RequestingUserId = managerId },
+            new DeleteUserCommand { TargetUserId = managerId, RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*radera*");
 
@@ -62,22 +60,20 @@ public class UserManagementHandlerTests
     [Fact]
     public async Task DeleteUser_Should_Throw_When_User_Not_Found()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var managerId = Guid.NewGuid();
         var nonExistentId = Guid.NewGuid();
 
-        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new DeleteUserHandler(context);
 
-        // Act
         var act = async () => await handler.Handle(
-            new DeleteUserCommand { TargetUserId = nonExistentId, RequestingUserId = managerId },
+            new DeleteUserCommand { TargetUserId = nonExistentId, RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*hittades inte*");
 
@@ -91,23 +87,21 @@ public class UserManagementHandlerTests
     [Fact]
     public async Task UpdateUserRole_Should_Change_Role()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var managerId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
 
-        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager });
-        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new UpdateUserRoleHandler(context);
 
-        // Act
         var result = await handler.Handle(
-            new UpdateUserRoleCommand { TargetUserId = targetId, NewRole = "Manager", RequestingUserId = managerId },
+            new UpdateUserRoleCommand { TargetUserId = targetId, NewRole = "Manager", RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        // Assert
         result.Should().BeTrue();
         var updatedUser = await context.Users.FindAsync(targetId);
         updatedUser!.Role.Should().Be(Role.Manager);
@@ -118,21 +112,19 @@ public class UserManagementHandlerTests
     [Fact]
     public async Task UpdateUserRole_Should_Throw_When_Updating_Self()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var managerId = Guid.NewGuid();
 
-        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new UpdateUserRoleHandler(context);
 
-        // Act
         var act = async () => await handler.Handle(
-            new UpdateUserRoleCommand { TargetUserId = managerId, NewRole = "Employee", RequestingUserId = managerId },
+            new UpdateUserRoleCommand { TargetUserId = managerId, NewRole = "Employee", RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*ändra din egen roll*");
 
@@ -142,26 +134,30 @@ public class UserManagementHandlerTests
     [Fact]
     public async Task UpdateUserRole_Should_Throw_When_Invalid_Role()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var managerId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
 
-        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager });
-        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new UpdateUserRoleHandler(context);
 
-        // Act
         var act = async () => await handler.Handle(
-            new UpdateUserRoleCommand { TargetUserId = targetId, NewRole = "Superadmin", RequestingUserId = managerId },
+            new UpdateUserRoleCommand { TargetUserId = targetId, NewRole = "Superadmin", RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        // Assert
         await act.Should().ThrowAsync<ArgumentException>()
             .WithMessage("*Ogiltig roll*");
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static void SeedOrg(Infrastructure.AppDbContext context)
+    {
+        context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });
+        context.SaveChanges();
     }
 }

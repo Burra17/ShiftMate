@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.Users.Commands;
@@ -13,7 +13,6 @@ namespace ShiftMate.Api.Controllers
     {
         private readonly IMediator _mediator;
 
-        // Här injicerar vi MediatR
         public UsersController(IMediator mediator)
         {
             _mediator = mediator;
@@ -21,10 +20,13 @@ namespace ShiftMate.Api.Controllers
 
         // GET: api/users
         [HttpGet]
+        [Authorize]
         public async Task<IActionResult> GetAll()
         {
-            // Skicka frågan "Ge mig alla användare" till Application-lagret
-            var query = new GetAllUsersQuery();
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
+
+            var query = new GetAllUsersQuery(orgId.Value);
             var result = await _mediator.Send(query);
 
             return Ok(result);
@@ -68,12 +70,11 @@ namespace ShiftMate.Api.Controllers
             try
             {
                 var token = await _mediator.Send(command);
-                // Vi returnerar token i ett JSON-objekt
                 return Ok(new { Token = token });
             }
             catch (Exception ex)
             {
-                return Unauthorized(ex.Message); // Returnera 401 om inloggningen misslyckas
+                return Unauthorized(ex.Message);
             }
         }
 
@@ -88,13 +89,12 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                // Om handlern kastar ett undantag (t.ex. användare finns redan),
-                // returnera 400 Bad Request med felmeddelandet.
                 return BadRequest(ex.Message);
             }
         }
 
         [HttpPut("profile")]
+        [Authorize]
         public async Task<IActionResult> UpdateProfile(UpdateProfileCommand command)
         {
             var userId = User.GetUserId();
@@ -115,6 +115,7 @@ namespace ShiftMate.Api.Controllers
 
         // PUT: api/Users/change-password
         [HttpPut("change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordCommand command)
         {
             var userId = User.GetUserId();
@@ -139,10 +140,17 @@ namespace ShiftMate.Api.Controllers
         public async Task<IActionResult> DeleteUser(Guid id)
         {
             var requestingUserId = User.GetUserId();
-            if (requestingUserId == null) return Unauthorized();
+            var orgId = User.GetOrganizationId();
+            if (requestingUserId == null || orgId == null) return Unauthorized();
+
             try
             {
-                await _mediator.Send(new DeleteUserCommand { TargetUserId = id, RequestingUserId = requestingUserId.Value });
+                await _mediator.Send(new DeleteUserCommand
+                {
+                    TargetUserId = id,
+                    RequestingUserId = requestingUserId.Value,
+                    OrganizationId = orgId.Value
+                });
                 return Ok(new { Message = "Användaren har tagits bort." });
             }
             catch (Exception ex)
@@ -157,8 +165,16 @@ namespace ShiftMate.Api.Controllers
         public async Task<IActionResult> UpdateRole(Guid id, [FromBody] UpdateUserRoleCommand command)
         {
             var requestingUserId = User.GetUserId();
-            if (requestingUserId == null) return Unauthorized();
-            command = command with { TargetUserId = id, RequestingUserId = requestingUserId.Value };
+            var orgId = User.GetOrganizationId();
+            if (requestingUserId == null || orgId == null) return Unauthorized();
+
+            command = command with
+            {
+                TargetUserId = id,
+                RequestingUserId = requestingUserId.Value,
+                OrganizationId = orgId.Value
+            };
+
             try
             {
                 await _mediator.Send(command);

@@ -34,7 +34,13 @@ namespace ShiftMate.Application.Shifts.Commands
                 throw new Exception("Arbetspasset kunde inte hittas.");
             }
 
-            // 2. KONTROLLERA TILLGÄNGLIGHET (Här var felet!) 🛠️
+            // Validera att passet tillhör samma organisation
+            if (shift.OrganizationId != request.OrganizationId)
+            {
+                throw new Exception("Passet tillhör inte din organisation.");
+            }
+
+            // 2. KONTROLLERA TILLGÄNGLIGHET
             // Vi kastar bara fel om passet INTE är för byte OCH det redan har en ägare.
             // Om UserId är null (öppet pass) så är det fritt fram att ta!
             if (!shift.IsUpForSwap && shift.UserId != null)

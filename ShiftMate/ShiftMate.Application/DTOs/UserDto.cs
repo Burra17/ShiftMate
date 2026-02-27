@@ -1,4 +1,4 @@
-﻿namespace ShiftMate.Application.DTOs
+namespace ShiftMate.Application.DTOs
 {
     public class UserDto
     {
@@ -7,6 +7,7 @@
         public string LastName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
-        // OBS: Ingen PasswordHash här! 🔒
+        public Guid OrganizationId { get; set; }
+        public string OrganizationName { get; set; } = string.Empty;
     }
 }

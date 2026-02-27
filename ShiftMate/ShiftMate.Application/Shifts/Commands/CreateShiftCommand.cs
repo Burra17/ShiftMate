@@ -4,18 +4,19 @@ using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.Shifts.Commands
 {
     // 1. DATA
     public record CreateShiftCommand : IRequest<Guid>
     {
-        // VIKTIGT: Ingen [JsonIgnore] här, annars kan inte Admin välja person!
-        // VIKTIGT: Guid? (nullable) så att vi kan skapa "Öppna pass".
         public Guid? UserId { get; set; }
-
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+
+        [JsonIgnore]
+        public Guid OrganizationId { get; set; }
     }
 
     // 2. LOGIK
@@ -24,13 +25,13 @@ namespace ShiftMate.Application.Shifts.Commands
         private readonly IAppDbContext _context;
         private readonly IValidator<CreateShiftCommand> _validator;
         private readonly IEmailService _emailService;
-        private readonly Microsoft.Extensions.Logging.ILogger<CreateShiftHandler> _logger;
+        private readonly ILogger<CreateShiftHandler> _logger;
 
         public CreateShiftHandler(
             IAppDbContext context,
             IValidator<CreateShiftCommand> validator,
             IEmailService emailService,
-            Microsoft.Extensions.Logging.ILogger<CreateShiftHandler> logger)
+            ILogger<CreateShiftHandler> logger)
         {
             _context = context;
             _validator = validator;
@@ -40,25 +41,20 @@ namespace ShiftMate.Application.Shifts.Commands
 
         public async Task<Guid> Handle(CreateShiftCommand request, CancellationToken cancellationToken)
         {
-            // Normalisera tiderna till UTC direkt — Npgsql 8 kräver DateTimeKind.Utc
-            // för alla queries mot timestamptz-kolumner i PostgreSQL
             var startTimeUtc = DateTime.SpecifyKind(request.StartTime, DateTimeKind.Utc);
             var endTimeUtc = DateTime.SpecifyKind(request.EndTime, DateTimeKind.Utc);
 
             // 1. VALIDERING
             var validationResult = await _validator.ValidateAsync(request, cancellationToken);
-
             if (!validationResult.IsValid)
             {
                 throw new ValidationException(validationResult.Errors);
             }
 
             // 2. KROCK-KONTROLL
-            // Vi kollar bara krockar om passet faktiskt ska tilldelas någon (UserId är inte null)
             Domain.User? assignedUser = null;
             if (request.UserId.HasValue)
             {
-                // Hämta användaren (behövs för både krock-kontroll och email)
                 assignedUser = await _context.Users
                     .FirstOrDefaultAsync(u => u.Id == request.UserId.Value, cancellationToken);
 
@@ -67,7 +63,12 @@ namespace ShiftMate.Application.Shifts.Commands
                     throw new InvalidOperationException("Användaren hittades inte.");
                 }
 
-                // Kolla krockar för just denna användare
+                // Validera att användaren tillhör samma organisation
+                if (assignedUser.OrganizationId != request.OrganizationId)
+                {
+                    throw new InvalidOperationException("Användaren tillhör inte samma organisation.");
+                }
+
                 var hasOverlap = await _context.Shifts.AnyAsync(s =>
                     s.UserId == request.UserId &&
                     s.StartTime < endTimeUtc &&
@@ -88,7 +89,8 @@ namespace ShiftMate.Application.Shifts.Commands
                 UserId = request.UserId,
                 StartTime = startTimeUtc,
                 EndTime = endTimeUtc,
-                IsUpForSwap = false
+                IsUpForSwap = false,
+                OrganizationId = request.OrganizationId
             };
 
             _context.Shifts.Add(shift);
@@ -104,7 +106,7 @@ namespace ShiftMate.Application.Shifts.Commands
                     var shiftTime = $"{startTimeUtc:HH:mm} - {endTimeUtc:HH:mm}";
                     var duration = (endTimeUtc - startTimeUtc).TotalHours;
 
-                    var subject = $"📅 Nytt pass tilldelat: {shiftDate}";
+                    var subject = $"Nytt pass tilldelat: {shiftDate}";
                     var emailBody = Services.EmailTemplateService.ShiftAssigned(
                         assignedUser.FirstName,
                         shiftDate,
