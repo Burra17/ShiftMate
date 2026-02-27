@@ -265,6 +265,8 @@ components/
 ### Public (No Auth)
 - `POST /api/users/login` — Login → returns JWT token
 - `POST /api/users/register` — Register → returns UserDto
+- `POST /api/users/forgot-password` — Request password reset email
+- `POST /api/users/reset-password` — Reset password with token
 - `GET /health` — Health check
 
 ### Authenticated (Any Role)

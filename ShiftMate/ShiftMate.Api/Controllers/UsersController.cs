@@ -30,6 +30,37 @@ namespace ShiftMate.Api.Controllers
             return Ok(result);
         }
 
+        // POST: api/users/forgot-password
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+            }
+            catch
+            {
+                // Returnera alltid samma svar oavsett om e-posten finns eller inte (anti-enumeration)
+            }
+
+            return Ok(new { Message = "Om e-postadressen finns i systemet har vi skickat en återställningslänk." });
+        }
+
+        // POST: api/users/reset-password
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+                return Ok(new { Message = "Lösenordet har återställts! Du kan nu logga in." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message });
+            }
+        }
+
         // POST: api/Users/login
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginCommand command)

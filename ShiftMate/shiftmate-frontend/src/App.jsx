@@ -7,6 +7,8 @@ import NotificationDropdown from './components/NotificationDropdown';
 // importera sid-komponenter
 import Login from './Login';
 import Register from './Register';
+import ForgotPassword from './ForgotPassword';
+import ResetPassword from './ResetPassword';
 import ShiftList from './ShiftList';
 import MarketPlace from './MarketPlace';
 import Schedule from './Schedule';
@@ -213,6 +215,8 @@ function App() {
                 <>
                     <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
                     <Route path="/register" element={<Register />} />
+                    <Route path="/forgot-password" element={<ForgotPassword />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="*" element={<Navigate to="/login" />} />
                 </>
             )}
