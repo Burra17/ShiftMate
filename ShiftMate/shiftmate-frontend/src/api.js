@@ -188,6 +188,32 @@ export const getCurrentUserId = () => {
 };
 
 /**
+ * Hämta den inloggade användarens organisations-ID från JWT-tokenet.
+ */
+export const getOrganizationId = () => {
+    const payload = decodeToken();
+    if (!payload) return null;
+    return payload["OrganizationId"] || null;
+};
+
+/**
+ * Hämta den inloggade användarens organisationsnamn från JWT-tokenet.
+ */
+export const getOrganizationName = () => {
+    const payload = decodeToken();
+    if (!payload) return null;
+    return payload["OrganizationName"] || null;
+};
+
+/**
+ * Hämta alla organisationer (för registreringssidan).
+ */
+export const fetchOrganizations = async () => {
+    const res = await axiosInstance.get('/Organizations');
+    return res.data;
+};
+
+/**
  * Uppdatera den inloggade användarens profil (namn och e-post).
  */
 export const updateProfile = async (data) => {

@@ -7,6 +7,7 @@ namespace ShiftMate.Application.Users.Commands
     {
         public Guid TargetUserId { get; init; }
         public Guid RequestingUserId { get; init; }
+        public Guid OrganizationId { get; init; }
     }
 
     public class DeleteUserHandler : IRequestHandler<DeleteUserCommand, bool>
@@ -16,13 +17,16 @@ namespace ShiftMate.Application.Users.Commands
 
         public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
-            // Förhindra att manager raderar sig själv
             if (request.TargetUserId == request.RequestingUserId)
                 throw new InvalidOperationException("Du kan inte radera ditt eget konto.");
 
             var user = await _context.Users.FindAsync(new object[] { request.TargetUserId }, cancellationToken);
             if (user == null)
                 throw new InvalidOperationException("Användaren hittades inte.");
+
+            // Validera att användaren tillhör samma organisation
+            if (user.OrganizationId != request.OrganizationId)
+                throw new InvalidOperationException("Användaren tillhör inte din organisation.");
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync(cancellationToken);

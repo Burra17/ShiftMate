@@ -1,77 +1,81 @@
-// Importerar nödvändiga React-hooks och komponenter.
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api from './api'; // Importerar en förkonfigurerad Axios-instans för API-anrop.
-import AuthLayout from './components/AuthLayout'; // En layout-komponent för autentiseringssidor.
-import { useToast } from './contexts/ToastContext'; // Globala toast-notifikationer.
+import api, { fetchOrganizations } from './api';
+import AuthLayout from './components/AuthLayout';
+import { useToast } from './contexts/ToastContext';
 
-// Registreringskomponent för nya användare.
 const Register = () => {
-    // Sätt sidtiteln
     useEffect(() => {
         document.title = 'Registrera - ShiftMate';
     }, []);
 
-    // Hook för att programmatiskt navigera användaren, t.ex. efter lyckad registrering.
     const navigate = useNavigate();
     const toast = useToast();
-    
-    // State-variabler för att hålla reda på formulärdata (förnamn, efternamn, etc.).
+
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    
-    const [showPassword, setShowPassword] = useState(false);
+    const [organizationId, setOrganizationId] = useState('');
+    const [organizations, setOrganizations] = useState([]);
 
-    // State för att hantera laddnings- och felmeddelanden i UI.
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    // Funktion som körs när användaren skickar in formuläret.
-    const handleSubmit = async (e) => {
-        e.preventDefault(); // Förhindrar att webbläsaren laddar om sidan.
-        setLoading(true); // Aktiverar laddningsindikator.
-        setError(''); // Återställer eventuella tidigare felmeddelanden.
+    // Hämta organisationer vid sidladdning
+    useEffect(() => {
+        const loadOrgs = async () => {
+            try {
+                const orgs = await fetchOrganizations();
+                setOrganizations(orgs);
+            } catch (err) {
+                console.error("Kunde inte hämta organisationer:", err);
+            }
+        };
+        loadOrgs();
+    }, []);
 
-        // Skapar ett dataobjekt (payload) som ska skickas till API:et.
-        const payload = { 
-            firstName, 
-            lastName, 
-            email: email.trim().toLowerCase(), // Rensar och normaliserar e-postadressen.
-            password 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError('');
+
+        if (!organizationId) {
+            setError('Välj en organisation.');
+            setLoading(false);
+            return;
+        }
+
+        const payload = {
+            firstName,
+            lastName,
+            email: email.trim().toLowerCase(),
+            password,
+            organizationId
         };
 
         try {
-            // Gör ett asynkront API-anrop (POST) för att registrera användaren.
             await api.post('/Users/register', payload);
             toast.success("Konto skapat! Du omdirigeras nu till inloggningssidan.");
-            navigate('/login'); // Omdirigerar användaren till inloggningssidan.
-
+            navigate('/login');
         } catch (err) {
-            // Fångar upp och hanterar eventuella fel från API-anropet.
             console.error("Registreringsfel:", err.response || err);
             if (err.response?.data) {
-                // Visar ett specifikt felmeddelande från servern om det finns.
                 setError(err.response.data);
             } else {
-                // Generiskt felmeddelande om servern inte kan nås.
                 setError("Nätverksfel eller så kunde inte servern nås.");
             }
         } finally {
-            // Denna kod körs alltid, oavsett om anropet lyckades eller misslyckades.
-            setLoading(false); // Avaktiverar laddningsindikatorn.
+            setLoading(false);
         }
     };
 
-    // Renderar JSX (HTML-liknande syntax) för komponenten.
     return (
         <AuthLayout title="ShiftMate" subtitle="Skapa konto för att komma igång">
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Visar ett felmeddelande om 'error'-state inte är tomt. */}
                 {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold p-3 rounded-lg text-center">{error}</div>}
 
-                {/* Formulärsektion för för- och efternamn. */}
                 <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-6 sm:space-y-0">
                     <div className="space-y-2 sm:w-1/2">
                         <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Förnamn</label>
@@ -97,7 +101,23 @@ const Register = () => {
                     </div>
                 </div>
 
-                {/* Formulärsektion för e-post. */}
+                {/* Organisation */}
+                <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Organisation</label>
+                    <select
+                        required
+                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
+                        value={organizationId}
+                        onChange={(e) => setOrganizationId(e.target.value)}
+                    >
+                        <option value="" className="bg-slate-900">Välj organisation...</option>
+                        {organizations.map(org => (
+                            <option key={org.id} value={org.id} className="bg-slate-900">{org.name}</option>
+                        ))}
+                    </select>
+                    <p className="text-[10px] text-slate-600 ml-1">Fråga din chef vilken organisation du tillhör</p>
+                </div>
+
                 <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-post</label>
                     <input
@@ -110,7 +130,6 @@ const Register = () => {
                     />
                 </div>
 
-                {/* Formulärsektion för lösenord. */}
                 <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Lösenord</label>
                     <div className="relative">
@@ -133,7 +152,6 @@ const Register = () => {
                     </div>
                 </div>
 
-                {/* Knapp för att skicka in formuläret. Inaktiveras under laddning. */}
                 <button
                     type="submit"
                     disabled={loading}
@@ -148,7 +166,6 @@ const Register = () => {
                 </button>
             </form>
 
-            {/* Länk till inloggningssidan för användare som redan har ett konto. */}
             <div className="mt-8 pt-6 border-t border-slate-800 text-center">
                 <p className="text-slate-500 text-xs font-medium">
                     Har du redan ett konto?

@@ -38,7 +38,6 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                // FIX: Skickar JSON-objekt så frontend kan läsa felet
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -50,19 +49,20 @@ namespace ShiftMate.Api.Controllers
             try
             {
                 var userId = User.GetUserId();
-                if (userId == null)
+                var orgId = User.GetOrganizationId();
+                if (userId == null || orgId == null)
                 {
                     return Unauthorized(new { message = "Kunde inte identifiera användaren." });
                 }
 
                 command.RequestingUserId = userId.Value;
+                command.OrganizationId = orgId.Value;
 
                 var swapRequestId = await _mediator.Send(command);
                 return Ok(new { SwapRequestId = swapRequestId, Message = "Förslag om direktbyte har skickats!" });
             }
             catch (Exception ex)
             {
-                // FIX: Skickar JSON-objekt så frontend kan läsa felet
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -71,7 +71,10 @@ namespace ShiftMate.Api.Controllers
         [HttpGet("available")]
         public async Task<IActionResult> GetAvailableSwaps()
         {
-            var query = new GetAvailableSwapsQuery();
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
+
+            var query = new GetAvailableSwapsQuery(orgId.Value);
             var result = await _mediator.Send(query);
 
             return Ok(result);
@@ -129,7 +132,6 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                // FIX: Skickar JSON-objekt så frontend kan läsa felet
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -157,7 +159,6 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                // FIX: Skickar JSON-objekt så frontend kan läsa felet
                 return BadRequest(new { message = ex.Message });
             }
         }
@@ -177,7 +178,6 @@ namespace ShiftMate.Api.Controllers
             }
             catch (Exception ex)
             {
-                // FIX: Skickar JSON-objekt så frontend kan läsa felet
                 return BadRequest(new { message = ex.Message });
             }
         }

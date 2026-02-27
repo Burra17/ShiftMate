@@ -7,16 +7,16 @@ namespace ShiftMate.Tests;
 
 public class CancelSwapRequestHandlerTests
 {
+    private static readonly Guid OrgId = Guid.NewGuid();
+
     [Fact]
     public async Task Handle_Should_Throw_When_SwapRequest_Not_Found()
     {
-        // Arrange
         var context = TestDbContextFactory.Create();
         var handler = new CancelSwapRequestHandler(context);
 
         var command = new CancelSwapRequestCommand(Guid.NewGuid(), Guid.NewGuid());
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Hittade inte bytesförfrågan.");
@@ -27,8 +27,8 @@ public class CancelSwapRequestHandlerTests
     [Fact]
     public async Task Handle_Should_Throw_When_User_Is_Not_Requester()
     {
-        // Arrange - användaren försöker ta bort någon annans bytesförfrågan
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var requesterId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
         var swapRequestId = Guid.NewGuid();
@@ -36,11 +36,11 @@ public class CancelSwapRequestHandlerTests
         context.Users.Add(new User
         {
             Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true,
+            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -54,7 +54,6 @@ public class CancelSwapRequestHandlerTests
         var handler = new CancelSwapRequestHandler(context);
         var command = new CancelSwapRequestCommand(swapRequestId, Guid.NewGuid());
 
-        // Act & Assert
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
             .WithMessage("Du får inte ta bort någon annans bytesförfrågan!");
@@ -65,8 +64,8 @@ public class CancelSwapRequestHandlerTests
     [Fact]
     public async Task Handle_Should_Delete_SwapRequest_And_Reset_Shift()
     {
-        // Arrange - användaren avbryter sin egen bytesförfrågan
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var requesterId = Guid.NewGuid();
         var shiftId = Guid.NewGuid();
         var swapRequestId = Guid.NewGuid();
@@ -74,11 +73,11 @@ public class CancelSwapRequestHandlerTests
         context.Users.Add(new User
         {
             Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee
+            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true,
+            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -92,14 +91,18 @@ public class CancelSwapRequestHandlerTests
         var handler = new CancelSwapRequestHandler(context);
         var command = new CancelSwapRequestCommand(swapRequestId, requesterId);
 
-        // Act
         await handler.Handle(command, CancellationToken.None);
 
-        // Assert - förfrågan ska vara borttagen och passet ska inte längre vara markerat
         context.SwapRequests.Should().BeEmpty();
         var shift = context.Shifts.First(s => s.Id == shiftId);
         shift.IsUpForSwap.Should().BeFalse();
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static void SeedOrg(Infrastructure.AppDbContext context)
+    {
+        context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });
+        context.SaveChanges();
     }
 }

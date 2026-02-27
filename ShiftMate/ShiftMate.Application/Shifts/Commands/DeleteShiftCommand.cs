@@ -6,7 +6,7 @@ using ShiftMate.Domain;
 namespace ShiftMate.Application.Shifts.Commands
 {
     // 1. DATA
-    public record DeleteShiftCommand(Guid ShiftId) : IRequest<bool>;
+    public record DeleteShiftCommand(Guid ShiftId, Guid OrganizationId) : IRequest<bool>;
 
     // 2. LOGIK
     public class DeleteShiftHandler : IRequestHandler<DeleteShiftCommand, bool>
@@ -20,7 +20,6 @@ namespace ShiftMate.Application.Shifts.Commands
 
         public async Task<bool> Handle(DeleteShiftCommand request, CancellationToken cancellationToken)
         {
-            // 1. HÄMTA PASSET med tillhörande bytesförfrågningar
             var shift = await _context.Shifts
                 .Include(s => s.SwapRequests)
                 .FirstOrDefaultAsync(s => s.Id == request.ShiftId, cancellationToken);
@@ -30,7 +29,12 @@ namespace ShiftMate.Application.Shifts.Commands
                 throw new InvalidOperationException("Passet hittades inte.");
             }
 
-            // 2. AVBRYT ALLA VÄNTANDE BYTESFÖRFRÅGNINGAR och ta bort dem
+            // Validera att passet tillhör samma organisation
+            if (shift.OrganizationId != request.OrganizationId)
+            {
+                throw new InvalidOperationException("Passet tillhör inte din organisation.");
+            }
+
             foreach (var swapRequest in shift.SwapRequests.ToList())
             {
                 if (swapRequest.Status == SwapRequestStatus.Pending)
@@ -40,7 +44,6 @@ namespace ShiftMate.Application.Shifts.Commands
                 _context.SwapRequests.Remove(swapRequest);
             }
 
-            // 3. TA BORT PASSET
             _context.Shifts.Remove(shift);
             await _context.SaveChangesAsync(cancellationToken);
 

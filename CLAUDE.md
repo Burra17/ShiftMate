@@ -203,24 +203,25 @@ if (userId == null) return Unauthorized();
 
 ```
 ShiftMate.Domain/               # Entities + enums. No dependencies.
-  User.cs, Shift.cs, SwapRequest.cs, SwapRequestStatus.cs
+  User.cs, Shift.cs, SwapRequest.cs, SwapRequestStatus.cs, Organization.cs
 
 ShiftMate.Application/          # Business logic layer (CQRS)
-  DTOs/                         # ShiftDto, UserDto, SwapRequestDto
+  DTOs/                         # ShiftDto, UserDto, SwapRequestDto, OrganizationDto
   Interfaces/                   # IAppDbContext, IEmailService
   [Feature]/Commands/           # Write operations (command + handler in same file)
   [Feature]/Queries/            # Read operations (query + handler in separate files)
+  Organizations/Queries/        # GetAllOrganizationsQuery (public, for registration)
   DependencyInjection.cs        # MediatR + FluentValidation registration
 
 ShiftMate.Infrastructure/       # Data access & external services
   AppDbContext.cs               # EF Core DbContext with relationships
-  DbInitializer.cs              # Seed data (test users & shifts)
+  DbInitializer.cs              # Seed data (2 orgs, test users & shifts)
   Services/                     # ResendEmailService
   Migrations/                   # EF Core migrations
 
 ShiftMate.Api/                  # HTTP layer
   Program.cs                    # DI configuration & middleware pipeline
-  Controllers/                  # Thin controllers (Users, Shifts, SwapRequests)
+  Controllers/                  # Thin controllers (Users, Shifts, SwapRequests, Organizations)
 
 ShiftMate.Tests/                # Unit tests (xUnit + FluentAssertions + Moq)
   Support/TestDbContextFactory.cs
@@ -254,9 +255,14 @@ components/
 
 ## DATA MODEL (PostgreSQL)
 
-- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`
-- **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool)
+- **Organization:** `Id` (Guid), `Name` (string, unique), `CreatedAt` (DateTime)
+- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `OrganizationId` (FK → Organization)
+- **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool), `OrganizationId` (FK → Organization)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string), `CreatedAt`
+
+### Multi-Tenancy
+
+All data is scoped by Organization. Query handlers filter with `.Where(x => x.OrganizationId == orgId)`. Command handlers validate org ownership. The OrganizationId is extracted from JWT claims via `User.GetOrganizationId()` in controllers.
 
 ---
 
@@ -264,9 +270,10 @@ components/
 
 ### Public (No Auth)
 - `POST /api/users/login` — Login → returns JWT token
-- `POST /api/users/register` — Register → returns UserDto
+- `POST /api/users/register` — Register (requires OrganizationId) → returns UserDto
 - `POST /api/users/forgot-password` — Request password reset email
 - `POST /api/users/reset-password` — Reset password with token
+- `GET /api/organizations` — List all organizations (for registration dropdown)
 - `GET /health` — Health check
 
 ### Authenticated (Any Role)
@@ -314,7 +321,7 @@ components/
 - Always validate user ownership before mutations (e.g., user can only cancel their own swap).
 - Use `[Authorize(Roles = "Manager")]` for manager-only endpoints — never check roles in handlers.
 - Hash passwords with BCrypt — never store plaintext.
-- JWT tokens include `UserId`, `Email`, and `Role` as claims.
+- JWT tokens include `UserId`, `Email`, `Role`, `OrganizationId`, and `OrganizationName` as claims.
 - Sanitize all user input via FluentValidation before processing.
 - Frontend: never trust client-side role checks alone — backend enforces authorization.
 
