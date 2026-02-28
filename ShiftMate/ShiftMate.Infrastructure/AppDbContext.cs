@@ -24,11 +24,12 @@ namespace ShiftMate.Infrastructure
                 .HasIndex(o => o.Name)
                 .IsUnique();
 
-            // User → Organization
+            // User → Organization (valfri för SuperAdmin)
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Organization)
                 .WithMany(o => o.Users)
                 .HasForeignKey(u => u.OrganizationId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Shift → Organization

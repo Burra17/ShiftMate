@@ -14,6 +14,7 @@ import MarketPlace from './MarketPlace';
 import Schedule from './Schedule';
 import Profile from './Profile';
 import ManagerPanel from './components/ManagerPanel'; // Managerpanelen för privilegierade användare
+import AdminPanel from './AdminPanel'; // SuperAdmin: hantera organisationer
 import Dashboard from './Dashboard';
 
 // Huvudkomponent för applikationen när en användare är inloggad.
@@ -21,9 +22,10 @@ const MainApp = ({ onLogout }) => {
     const location = useLocation();
     const mainRef = useRef(null);
 
-    // Kolla om användaren är Manager (privilegierad roll)
+    // Kolla om användaren är Manager eller SuperAdmin
     const role = getUserRole();
     const isManager = role === 'Manager';
+    const isSuperAdmin = role === 'SuperAdmin';
 
     // State för notifikationssystemet
     const [notifRequests, setNotifRequests] = useState([]);
@@ -41,9 +43,13 @@ const MainApp = ({ onLogout }) => {
         { id: 'profile', label: 'Profil', path: '/profile', icon: Icons.User },
     ];
 
-    const navItems = isManager
-        ? [...baseNavItems, { id: 'manager', label: 'Hantera', path: '/manager', icon: Icons.Shield }]
-        : baseNavItems;
+    const navItems = isSuperAdmin
+        ? [
+            { id: 'admin', label: 'Admin', path: '/admin', icon: Icons.Settings },
+        ]
+        : isManager
+            ? [...baseNavItems, { id: 'manager', label: 'Hantera', path: '/manager', icon: Icons.Shield }]
+            : baseNavItems;
 
     // Scrolla till toppen och uppdatera titel vid sidbyte
     useEffect(() => {
@@ -52,8 +58,10 @@ const MainApp = ({ onLogout }) => {
         document.title = `${pageTitle} - ShiftMate`;
     }, [activeTab]);
 
-    // Hämta inkommande förfrågningar direkt och polla var 30:e sekund
+    // Hämta inkommande förfrågningar direkt och polla var 30:e sekund (ej för SuperAdmin)
     useEffect(() => {
+        if (isSuperAdmin) return; // SuperAdmin har inga pass/förfrågningar
+
         let lastCount = 0; // Spårar senaste antal för att detektera nya förfrågningar
 
         const loadNotifications = async () => {
@@ -79,17 +87,19 @@ const MainApp = ({ onLogout }) => {
             clearInterval(intervalId);
             window.removeEventListener('swaps-updated', loadNotifications);
         };
-    }, []);
+    }, [isSuperAdmin]);
 
     // Rensa badge när dropdownen öppnas
     const handleNotifOpen = () => setHasUnseen(false);
 
     return (
         <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
-            {/* Mobil notifikationsklocka — fast position uppe till höger, dold på desktop */}
-            <div className="md:hidden fixed top-4 right-4 z-40">
-                <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} />
-            </div>
+            {/* Mobil notifikationsklocka — fast position uppe till höger, dold på desktop (ej för SuperAdmin) */}
+            {!isSuperAdmin && (
+                <div className="md:hidden fixed top-4 right-4 z-40">
+                    <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} />
+                </div>
+            )}
 
             {/* Sidomeny */}
             <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6 z-10">
@@ -98,8 +108,8 @@ const MainApp = ({ onLogout }) => {
                         <img src="/favicon.svg" alt="ShiftMate" className="w-full h-full" />
                     </div>
                     <h1 className="text-xl font-black tracking-tight text-white flex-1">ShiftMate</h1>
-                    {/* Notifikationsklocka — alltid synlig i sidomenyn på desktop */}
-                    <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} align="left" />
+                    {/* Notifikationsklocka — synlig i sidomenyn på desktop (ej för SuperAdmin) */}
+                    {!isSuperAdmin && <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} align="left" />}
                 </div>
 
                 {/* Navigationslänkar */}
@@ -137,13 +147,14 @@ const MainApp = ({ onLogout }) => {
                     )}
 
                     <Routes>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/mine" element={<ShiftList />} />
-                        <Route path="/market" element={<MarketPlace />} />
-                        <Route path="/schedule" element={<Schedule />} />
-                        <Route path="/profile" element={<Profile onLogout={onLogout} />} />
+                        {!isSuperAdmin && <Route path="/dashboard" element={<Dashboard />} />}
+                        {!isSuperAdmin && <Route path="/mine" element={<ShiftList />} />}
+                        {!isSuperAdmin && <Route path="/market" element={<MarketPlace />} />}
+                        {!isSuperAdmin && <Route path="/schedule" element={<Schedule />} />}
+                        {!isSuperAdmin && <Route path="/profile" element={<Profile onLogout={onLogout} />} />}
                         {isManager && <Route path="/manager" element={<ManagerPanel />} />}
-                        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                        {isSuperAdmin && <Route path="/admin" element={<AdminPanel />} />}
+                        <Route path="*" element={<Navigate to={isSuperAdmin ? "/admin" : "/dashboard"} replace />} />
                     </Routes>
                 </div>
             </main>
@@ -184,7 +195,9 @@ const Icons = {
     User: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
     LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>,
     // NY IKON: En sköld för Manager (måste finnas för att inte krascha)
-    Shield: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+    Shield: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
+    // Kugghjulsikon för SuperAdmin
+    Settings: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
 };
 
 
@@ -194,7 +207,8 @@ function App() {
 
     const handleLoginSuccess = () => {
         setIsLoggedIn(true);
-        navigate('/dashboard');
+        const role = getUserRole();
+        navigate(role === 'SuperAdmin' ? '/admin' : '/dashboard');
     };
 
     const handleLogout = () => {

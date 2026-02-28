@@ -13,9 +13,9 @@ namespace ShiftMate.Domain
         public DateTime? ResetTokenExpiresAt { get; set; }
         public Role Role { get; set; }
 
-        // Foreign Key: Vilken organisation tillhör användaren?
-        public Guid OrganizationId { get; set; }
-        public virtual Organization Organization { get; set; } = null!;
+        // Foreign Key: Vilken organisation tillhör användaren? (Nullable för SuperAdmin)
+        public Guid? OrganizationId { get; set; }
+        public virtual Organization? Organization { get; set; }
 
         // Navigation Properties (Hjälper EF Core att koppla ihop tabeller)
         public virtual ICollection<Shift> Shifts { get; set; } = new List<Shift>();
@@ -28,6 +28,7 @@ namespace ShiftMate.Domain
     public enum Role
     {
         Employee,
-        Manager
+        Manager,
+        SuperAdmin
     }
 }
