@@ -214,6 +214,38 @@ export const fetchOrganizations = async () => {
 };
 
 /**
+ * Hämta alla organisationer med detaljer (SuperAdmin).
+ */
+export const fetchOrganizationsDetail = async () => {
+    const res = await axiosInstance.get('/Organizations/admin');
+    return res.data;
+};
+
+/**
+ * Skapa en ny organisation (SuperAdmin).
+ */
+export const createOrganization = async (name) => {
+    const res = await axiosInstance.post('/Organizations', { name });
+    return res.data;
+};
+
+/**
+ * Uppdatera en organisation (SuperAdmin).
+ */
+export const updateOrganization = async (id, name) => {
+    const res = await axiosInstance.put(`/Organizations/${id}`, { name });
+    return res.data;
+};
+
+/**
+ * Radera en organisation (SuperAdmin).
+ */
+export const deleteOrganization = async (id) => {
+    const res = await axiosInstance.delete(`/Organizations/${id}`);
+    return res.data;
+};
+
+/**
  * Uppdatera den inloggade användarens profil (namn och e-post).
  */
 export const updateProfile = async (data) => {

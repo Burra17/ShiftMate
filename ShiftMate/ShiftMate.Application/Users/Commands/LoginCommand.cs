@@ -43,16 +43,21 @@ namespace ShiftMate.Application.Users.Commands
 
             // C. Skapa Token (Nyckeln) 🔑
             // Här lägger vi in informationen som frontend behöver!
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role.ToString()),
                 new Claim("FirstName", user.FirstName),
-                new Claim("LastName", user.LastName),
-                new Claim("OrganizationId", user.OrganizationId.ToString()),
-                new Claim("OrganizationName", user.Organization?.Name ?? "")
+                new Claim("LastName", user.LastName)
             };
+
+            // SuperAdmin har ingen organisation
+            if (user.OrganizationId.HasValue)
+            {
+                claims.Add(new Claim("OrganizationId", user.OrganizationId.Value.ToString()));
+                claims.Add(new Claim("OrganizationName", user.Organization?.Name ?? ""));
+            }
 
             // Hämta hemlig nyckel
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));

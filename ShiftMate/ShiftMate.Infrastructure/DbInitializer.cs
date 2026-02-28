@@ -53,6 +53,26 @@ namespace ShiftMate.Infrastructure
             context.SaveChanges();
 
             // ==========================================
+            // 2b. SKAPA SUPERADMIN (plattformsnivå, ingen organisation)
+            // ==========================================
+            var superAdmin = context.Users.FirstOrDefault(u => u.Email == "superadmin@shiftmate.com");
+            if (superAdmin == null)
+            {
+                superAdmin = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "superadmin@shiftmate.com",
+                    FirstName = "Super",
+                    LastName = "Admin",
+                    Role = Role.SuperAdmin,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin123"),
+                    OrganizationId = null
+                };
+                context.Users.Add(superAdmin);
+                context.SaveChanges();
+            }
+
+            // ==========================================
             // 3. SKAPA ELLER UPPDATERA ANVÄNDARE (Org 1)
             // ==========================================
 

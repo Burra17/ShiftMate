@@ -126,6 +126,32 @@ public class LoginHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
+    [Fact]
+    public async Task Handle_Should_Not_Include_OrganizationId_For_SuperAdmin()
+    {
+        var context = TestDbContextFactory.Create();
+        context.Users.Add(new User
+        {
+            Id = Guid.NewGuid(), FirstName = "Super", LastName = "Admin",
+            Email = "superadmin@test.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperPass123"),
+            Role = Role.SuperAdmin, OrganizationId = null
+        });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new LoginHandler(context, CreateConfiguration());
+        var command = new LoginCommand { Email = "superadmin@test.com", Password = "SuperPass123" };
+
+        var token = await handler.Handle(command, CancellationToken.None);
+
+        var jwtHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+        var jwt = jwtHandler.ReadJwtToken(token);
+        jwt.Claims.Should().NotContain(c => c.Type == "OrganizationId");
+        jwt.Claims.Should().Contain(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "SuperAdmin");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
     private static IConfiguration CreateConfiguration()
     {
         var inMemorySettings = new Dictionary<string, string?>
