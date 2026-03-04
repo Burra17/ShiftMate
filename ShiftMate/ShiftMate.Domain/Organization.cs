@@ -7,6 +7,8 @@ namespace ShiftMate.Domain
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string InviteCode { get; set; } = string.Empty;
+        public DateTime InviteCodeGeneratedAt { get; set; } = DateTime.UtcNow;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // Navigation Properties

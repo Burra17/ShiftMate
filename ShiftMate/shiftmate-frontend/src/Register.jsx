@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import api, { fetchOrganizations } from './api';
+import api from './api';
 import AuthLayout from './components/AuthLayout';
 import { useToast } from './contexts/ToastContext';
 
@@ -16,33 +16,19 @@ const Register = () => {
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [organizationId, setOrganizationId] = useState('');
-    const [organizations, setOrganizations] = useState([]);
+    const [inviteCode, setInviteCode] = useState('');
 
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    // Hämta organisationer vid sidladdning
-    useEffect(() => {
-        const loadOrgs = async () => {
-            try {
-                const orgs = await fetchOrganizations();
-                setOrganizations(orgs);
-            } catch (err) {
-                console.error("Kunde inte hämta organisationer:", err);
-            }
-        };
-        loadOrgs();
-    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
 
-        if (!organizationId) {
-            setError('Välj en organisation.');
+        if (!inviteCode.trim()) {
+            setError('Ange en inbjudningskod.');
             setLoading(false);
             return;
         }
@@ -52,7 +38,7 @@ const Register = () => {
             lastName,
             email: email.trim().toLowerCase(),
             password,
-            organizationId
+            inviteCode: inviteCode.trim().toUpperCase()
         };
 
         try {
@@ -101,21 +87,19 @@ const Register = () => {
                     </div>
                 </div>
 
-                {/* Organisation */}
+                {/* Inbjudningskod */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Organisation</label>
-                    <select
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Inbjudningskod</label>
+                    <input
+                        type="text"
                         required
-                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                        value={organizationId}
-                        onChange={(e) => setOrganizationId(e.target.value)}
-                    >
-                        <option value="" className="bg-slate-900">Välj organisation...</option>
-                        {organizations.map(org => (
-                            <option key={org.id} value={org.id} className="bg-slate-900">{org.name}</option>
-                        ))}
-                    </select>
-                    <p className="text-[10px] text-slate-600 ml-1">Fråga din chef vilken organisation du tillhör</p>
+                        maxLength={8}
+                        className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium uppercase tracking-[0.3em] text-center text-lg"
+                        placeholder="XXXXXXXX"
+                        value={inviteCode}
+                        onChange={(e) => setInviteCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''))}
+                    />
+                    <p className="text-[10px] text-slate-600 ml-1">Fråga din chef om inbjudningskoden till din organisation</p>
                 </div>
 
                 <div className="space-y-2">

@@ -24,6 +24,16 @@ namespace ShiftMate.Infrastructure
                 .HasIndex(o => o.Name)
                 .IsUnique();
 
+            // Organization: InviteCode — obligatorisk, max 8 tecken, unikt index
+            modelBuilder.Entity<Organization>()
+                .Property(o => o.InviteCode)
+                .IsRequired()
+                .HasMaxLength(8);
+
+            modelBuilder.Entity<Organization>()
+                .HasIndex(o => o.InviteCode)
+                .IsUnique();
+
             // User → Organization (valfri för SuperAdmin)
             modelBuilder.Entity<User>()
                 .HasOne(u => u.Organization)

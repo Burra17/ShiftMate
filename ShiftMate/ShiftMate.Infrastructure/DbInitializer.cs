@@ -33,6 +33,8 @@ namespace ShiftMate.Infrastructure
                 {
                     Id = Guid.NewGuid(),
                     Name = "ShiftMate Demo",
+                    InviteCode = "DEMO1234",
+                    InviteCodeGeneratedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };
                 context.Organizations.Add(org1);
@@ -45,6 +47,8 @@ namespace ShiftMate.Infrastructure
                 {
                     Id = Guid.NewGuid(),
                     Name = "Testföretaget AB",
+                    InviteCode = "TEST5678",
+                    InviteCodeGeneratedAt = DateTime.UtcNow,
                     CreatedAt = DateTime.UtcNow
                 };
                 context.Organizations.Add(org2);

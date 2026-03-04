@@ -17,13 +17,14 @@ namespace ShiftMate.Application.Users.Commands
 
         public async Task<UserDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            // 1. Validera att organisationen finns
+            // 1. Validera inbjudningskod och hitta organisation
+            var code = request.InviteCode?.Trim().ToUpperInvariant() ?? "";
             var organization = await _context.Organizations
-                .FirstOrDefaultAsync(o => o.Id == request.OrganizationId, cancellationToken);
+                .FirstOrDefaultAsync(o => o.InviteCode == code, cancellationToken);
 
             if (organization == null)
             {
-                throw new Exception("Organisationen hittades inte.");
+                throw new Exception("Ogiltig inbjudningskod.");
             }
 
             // 2. Normalisera och kontrollera om användaren redan finns
@@ -45,7 +46,7 @@ namespace ShiftMate.Application.Users.Commands
                 Email = email,
                 PasswordHash = passwordHash,
                 Role = Role.Employee,
-                OrganizationId = request.OrganizationId
+                OrganizationId = organization.Id
             };
 
             // 5. Lägg till i databasen och spara
