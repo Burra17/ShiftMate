@@ -4,14 +4,16 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 
 ## Funktioner
 
-- **Användarhantering** - Registrering, inloggning med JWT-autentisering och profilhantering
+- **Användarhantering** - Registrering med inbjudningskod, inloggning med JWT-autentisering och profilhantering
 - **Mina Pass** - Visa dina tilldelade skift och hantera inkommande bytesförfrågningar
 - **Lediga Pass (Marknadsplats)** - Bläddra bland och ta otilldelade eller erbjudna skift
 - **Schema** - Komplett schemaöversikt grupperad per datum med alla anställdas skift
 - **Skiftbyten** - Erbjud skift på öppna marknaden eller föreslå direktbyten med kollegor
 - **Bytesförfrågningar** - Acceptera, neka eller avbryt förfrågningar med fullständig livscykel
-- **Manager-panel** - Skapa, redigera och ta bort skift, hantera användare (rollbaserad åtkomst)
-- **Rollbaserad navigation** - Manager-funktioner visas bara för chefer
+- **Manager-panel** - Skapa, redigera och ta bort skift, hantera användare, visa/förnya inbjudningskod (rollbaserad åtkomst)
+- **Admin-panel** - SuperAdmin kan hantera alla organisationer (skapa, redigera, ta bort)
+- **Inbjudningskod** - Managers delar inbjudningskod, anställda anger den vid registrering
+- **Rollbaserad navigation** - Manager/SuperAdmin-funktioner visas bara för rätt roll
 
 ## Teknikstack
 
@@ -99,7 +101,8 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
     │   ├── User.cs
     │   ├── Shift.cs
     │   ├── SwapRequest.cs
-    │   └── SwapRequestStatus.cs
+    │   ├── SwapRequestStatus.cs
+    │   └── Organization.cs
     │
     ├── ShiftMate.Application/             # Applikationslager - Affärslogik (CQRS)
     │   ├── DependencyInjection.cs
@@ -107,7 +110,8 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
     │   ├── Interfaces/
     │   ├── Shifts/Commands/ & Queries/
     │   ├── SwapRequests/Commands/ & Queries/
-    │   └── Users/Commands/ & Queries/
+    │   ├── Users/Commands/ & Queries/
+    │   └── Organizations/Commands/ & Queries/
     │
     ├── ShiftMate.Infrastructure/          # Infrastrukturlager - Dataåtkomst
     │   ├── AppDbContext.cs
@@ -119,7 +123,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
     │   ├── Program.cs
     │   └── Controllers/
     │
-    ├── ShiftMate.Tests/                   # Enhetstester (74+ tester)
+    ├── ShiftMate.Tests/                   # Enhetstester (116 tester)
     │
     └── shiftmate-frontend/                # React-applikation
         ├── src/
@@ -130,6 +134,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
         │   ├── MarketPlace.jsx
         │   ├── Schedule.jsx
         │   ├── Profile.jsx
+        │   ├── AdminPanel.jsx
         │   └── components/
         │       ├── AuthLayout.jsx
         │       └── ManagerPanel.jsx

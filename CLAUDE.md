@@ -210,7 +210,9 @@ ShiftMate.Application/          # Business logic layer (CQRS)
   Interfaces/                   # IAppDbContext, IEmailService
   [Feature]/Commands/           # Write operations (command + handler in same file)
   [Feature]/Queries/            # Read operations (query + handler in separate files)
-  Organizations/Queries/        # GetAllOrganizationsQuery (public, for registration)
+  Organizations/Commands/        # CreateOrganizationCommand, RegenerateInviteCodeCommand
+  Organizations/Queries/         # GetAllOrganizationsDetailQuery, GetOrganizationInviteCodeQuery
+  Organizations/                 # InviteCodeGenerator (static helper)
   DependencyInjection.cs        # MediatR + FluentValidation registration
 
 ShiftMate.Infrastructure/       # Data access & external services
@@ -245,7 +247,7 @@ contexts/
   ToastContext.jsx              # Toast notifications + confirm dialog (useToast, useConfirm)
 components/
   AuthLayout.jsx                # Shared auth page layout (login/register)
-  ManagerPanel.jsx              # Manager: shift CRUD, user management
+  ManagerPanel.jsx              # Manager: shift CRUD, user management, invite code
   ui/
     ToastContainer.jsx          # Toast notification list (portal-rendered)
     ConfirmModal.jsx            # Confirmation dialog (portal-rendered)
@@ -255,7 +257,7 @@ components/
 
 ## DATA MODEL (PostgreSQL)
 
-- **Organization:** `Id` (Guid), `Name` (string, unique), `CreatedAt` (DateTime)
+- **Organization:** `Id` (Guid), `Name` (string, unique), `InviteCode` (string, max 8, unique), `InviteCodeGeneratedAt` (DateTime), `CreatedAt` (DateTime)
 - **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `OrganizationId` (FK → Organization)
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool), `OrganizationId` (FK → Organization)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string), `CreatedAt`
@@ -270,10 +272,9 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 
 ### Public (No Auth)
 - `POST /api/users/login` — Login → returns JWT token
-- `POST /api/users/register` — Register (requires OrganizationId) → returns UserDto
+- `POST /api/users/register` — Register (requires InviteCode) → returns UserDto
 - `POST /api/users/forgot-password` — Request password reset email
 - `POST /api/users/reset-password` — Reset password with token
-- `GET /api/organizations` — List all organizations (for registration dropdown)
 - `GET /health` — Health check
 
 ### Authenticated (Any Role)
@@ -295,6 +296,8 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - `DELETE /api/swaprequests/{id}` — Cancel request
 
 ### Manager Only
+- `GET /api/organizations/my-invite-code` — View own org's invite code
+- `POST /api/organizations/regenerate-invite-code` — Regenerate invite code
 - `POST /api/shifts/admin` — Create shift and assign to user
 - `PUT /api/shifts/{id}` — Update any shift
 - `DELETE /api/shifts/{id}` — Delete any shift

@@ -37,12 +37,13 @@ npm run preview
 |------|-----|-------------|
 | Dashboard | `Dashboard.jsx` | Startsida med översikt, snabbkort och kommande pass |
 | Inloggning | `Login.jsx` | Inloggning med e-post och lösenord |
-| Registrering | `Register.jsx` | Skapa nytt konto |
+| Registrering | `Register.jsx` | Skapa nytt konto med inbjudningskod |
 | Mina Pass | `ShiftList.jsx` | Användarens skift och inkommande bytesförfrågningar |
 | Lediga Pass | `MarketPlace.jsx` | Otilldelade och erbjudna skift att ta |
 | Schema | `Schedule.jsx` | Komplett schemaöversikt grupperad per datum |
 | Profil | `Profile.jsx` | Användarinformation och statistik |
-| Manager Panel | `components/ManagerPanel.jsx` | Skapa/redigera/ta bort skift och hantera användare (manager-only) |
+| Manager Panel | `components/ManagerPanel.jsx` | Skapa/redigera/ta bort skift, hantera användare, visa/förnya inbjudningskod (manager-only) |
+| Admin Panel | `AdminPanel.jsx` | Hantera alla organisationer (SuperAdmin-only) |
 
 ## Toast & Confirm-system
 
@@ -107,7 +108,8 @@ shiftmate-frontend/
     ├── App.css               # Komponentspecifika stilar
     ├── Dashboard.jsx         # Dashboard med översikt och snabbkort
     ├── Login.jsx             # Inloggningssida
-    ├── Register.jsx          # Registreringssida
+    ├── Register.jsx          # Registreringssida (med inbjudningskod)
+    ├── AdminPanel.jsx        # SuperAdmin: organisationshantering
     ├── ShiftList.jsx         # Mina pass + bytesförfrågningar
     ├── MarketPlace.jsx       # Lediga pass (marknadsplats)
     ├── Schedule.jsx          # Schemaöversikt
