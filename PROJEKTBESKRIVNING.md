@@ -26,9 +26,18 @@ Jag har använt Swagger för första gången för att dokumentera API:et under u
 ### Användarroller
 
 Systemet stödjer tre roller med rollbaserad åtkomstkontroll:
-- **Admin** - Full access: skapa/tilldela pass, se all data, adminpanel
-- **Manager** - Utökad åtkomst för teamhantering
+- **SuperAdmin** - Plattformsadministratör: hantera alla organisationer (skapa, redigera, ta bort)
+- **Manager** - Organisationsadministratör: skapa/tilldela pass, hantera användare, dela inbjudningskod
 - **Employee** - Standardanvändare: egna pass, byten, marknadsplats
+
+### Multi-Tenancy
+
+Systemet stödjer **flera organisationer** med fullständig dataisolering:
+- Varje organisation har en unik **inbjudningskod** (8 tecken) som managers delar med anställda
+- Nya användare registrerar sig med inbjudningskoden istället för att välja organisation
+- All data (pass, byten, användare) är scopad per organisation
+- Managers kan förnya sin organisations inbjudningskod
+- SuperAdmin kan se och hantera alla organisationer via Admin-panelen
 
 ---
 
@@ -207,7 +216,7 @@ public async Task Handle_Should_Throw_When_Shift_Overlaps()
 dotnet test
 ```
 
-Alla 13 tester passerar med grönt resultat.
+Alla 116 tester passerar med grönt resultat.
 
 ---
 
@@ -253,14 +262,16 @@ Resend__ApiKey = ...
 ### Databasschema
 
 ```
-User (Id, FirstName, LastName, Email, PasswordHash, Role)
+Organization (Id, Name, InviteCode, InviteCodeGeneratedAt, CreatedAt)
   │
-  ├── Shift (Id, StartTime, EndTime, UserId?, IsUpForSwap)
-  │
-  └── SwapRequest (Id, ShiftId, RequestingUserId, TargetUserId?, TargetShiftId?, Status, CreatedAt)
+  ├── User (Id, FirstName, LastName, Email, PasswordHash, Role, OrganizationId?)
+  │     │
+  │     ├── Shift (Id, StartTime, EndTime, UserId?, IsUpForSwap, OrganizationId)
+  │     │
+  │     └── SwapRequest (Id, ShiftId, RequestingUserId, TargetUserId?, TargetShiftId?, Status, CreatedAt)
 ```
 
-Migrationer hanteras med **EF Core Migrations** (4 migrationer applicerade) och körs automatiskt vid uppstart via `DbInitializer`.
+Migrationer hanteras med **EF Core Migrations** (6 migrationer applicerade) och körs automatiskt vid uppstart via `DbInitializer`.
 
 ---
 
@@ -346,7 +357,8 @@ main (produktion)
 ### Testdata (Seed)
 
 Vid uppstart seedar `DbInitializer.cs` testdata automatiskt:
-- 4 testanvändare (André, Erik, Sara, Mahmoud) med BCrypt-hashade lösenord
+- 2 organisationer ("ShiftMate Demo" + "Testföretaget AB") med unika inbjudningskoder
+- 4 testanvändare (André, Erik, Sara, Mahmoud) + 1 SuperAdmin med BCrypt-hashade lösenord
 - 13+ arbetspass spridda över 5 dagar med varierande bytesstatusar
 
 ---
