@@ -25,6 +25,7 @@ namespace ShiftMate.Application.Organizations.Queries
                 {
                     Id = o.Id,
                     Name = o.Name,
+                    InviteCode = o.InviteCode,
                     CreatedAt = o.CreatedAt,
                     UserCount = o.Users.Count
                 })

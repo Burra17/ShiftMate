@@ -61,7 +61,9 @@ public class OrganizationHandlerTests
         var id = await handler.Handle(new CreateOrganizationCommand("Nytt Företag"), CancellationToken.None);
 
         id.Should().NotBeEmpty();
-        context.Organizations.Should().ContainSingle(o => o.Name == "Nytt Företag");
+        var org = context.Organizations.Single(o => o.Name == "Nytt Företag");
+        org.InviteCode.Should().HaveLength(8);
+        org.InviteCode.Should().MatchRegex("^[A-Z0-9]{8}$");
 
         TestDbContextFactory.Destroy(context);
     }

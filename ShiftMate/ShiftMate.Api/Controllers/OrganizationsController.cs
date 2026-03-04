@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ShiftMate.Api.Extensions;
 using ShiftMate.Application.Organizations.Commands;
 using ShiftMate.Application.Organizations.Queries;
 
@@ -18,14 +19,6 @@ namespace ShiftMate.Api.Controllers
             _mediator = mediator;
         }
 
-        // GET: api/organizations — Publik endpoint för registreringssidan
-        [HttpGet]
-        public async Task<IActionResult> GetAll()
-        {
-            var result = await _mediator.Send(new GetAllOrganizationsQuery());
-            return Ok(result);
-        }
-
         // GET: api/organizations/admin — SuperAdmin: alla organisationer med detaljer
         [HttpGet("admin")]
         [Authorize(Roles = "SuperAdmin")]
@@ -33,6 +26,49 @@ namespace ShiftMate.Api.Controllers
         {
             var result = await _mediator.Send(new GetAllOrganizationsDetailQuery());
             return Ok(result);
+        }
+
+        // GET: api/organizations/my-invite-code — Manager: visa sin organisations inbjudningskod
+        [HttpGet("my-invite-code")]
+        [Authorize(Roles = "Manager")]
+        public async Task<IActionResult> GetMyInviteCode()
+        {
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
+
+            try
+            {
+                var result = await _mediator.Send(new GetOrganizationInviteCodeQuery(orgId.Value));
+                return Ok(new { result.InviteCode, result.OrganizationName, result.GeneratedAt });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
+            }
+        }
+
+        // POST: api/organizations/{id}/regenerate-invite-code — Manager/SuperAdmin: generera ny kod
+        [HttpPost("{id}/regenerate-invite-code")]
+        [Authorize(Roles = "Manager,SuperAdmin")]
+        public async Task<IActionResult> RegenerateInviteCode(Guid id)
+        {
+            try
+            {
+                var newCode = await _mediator.Send(new RegenerateInviteCodeCommand(id));
+                return Ok(new { InviteCode = newCode, Message = "Ny inbjudningskod har genererats!" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
+            }
         }
 
         // POST: api/organizations — SuperAdmin: skapa ny organisation

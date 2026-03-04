@@ -206,10 +206,18 @@ export const getOrganizationName = () => {
 };
 
 /**
- * Hämta alla organisationer (för registreringssidan).
+ * Hämta inbjudningskod för den inloggade användarens organisation (Manager).
  */
-export const fetchOrganizations = async () => {
-    const res = await axiosInstance.get('/Organizations');
+export const getMyInviteCode = async () => {
+    const res = await axiosInstance.get('/Organizations/my-invite-code');
+    return res.data;
+};
+
+/**
+ * Generera ny inbjudningskod för en organisation (Manager/SuperAdmin).
+ */
+export const regenerateInviteCode = async (orgId) => {
+    const res = await axiosInstance.post(`/Organizations/${orgId}/regenerate-invite-code`);
     return res.data;
 };
 

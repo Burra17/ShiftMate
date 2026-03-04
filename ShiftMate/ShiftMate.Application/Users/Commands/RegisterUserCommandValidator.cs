@@ -20,8 +20,9 @@ namespace ShiftMate.Application.Users.Commands
                 .NotEmpty().WithMessage("Lösenord måste anges.")
                 .MinimumLength(8).WithMessage("Lösenordet måste vara minst 8 tecken långt.");
 
-            RuleFor(x => x.OrganizationId)
-                .NotEmpty().WithMessage("Organisations-ID måste anges.");
+            RuleFor(x => x.InviteCode)
+                .NotEmpty().WithMessage("Inbjudningskod måste anges.")
+                .Length(8).WithMessage("Inbjudningskoden måste vara 8 tecken.");
         }
     }
 }

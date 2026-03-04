@@ -32,6 +32,8 @@ namespace ShiftMate.Application.Organizations.Commands
             {
                 Id = Guid.NewGuid(),
                 Name = name,
+                InviteCode = InviteCodeGenerator.GenerateInviteCode(),
+                InviteCodeGeneratedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
 

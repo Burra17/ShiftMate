@@ -7,6 +7,7 @@ namespace ShiftMate.Tests;
 
 public class RegisterUserCommandHandlerTests
 {
+    private const string ValidInviteCode = "TESTCODE";
     private static readonly Guid OrgId = Guid.NewGuid();
 
     [Fact]
@@ -16,7 +17,7 @@ public class RegisterUserCommandHandlerTests
         SeedOrg(context);
         var handler = new RegisterUserCommandHandler(context);
 
-        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", OrgId);
+        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", ValidInviteCode);
 
         var result = await handler.Handle(command, CancellationToken.None);
 
@@ -47,7 +48,7 @@ public class RegisterUserCommandHandlerTests
         await context.SaveChangesAsync(CancellationToken.None);
 
         var handler = new RegisterUserCommandHandler(context);
-        var command = new RegisterUserCommand("Test", "Testsson", "Test@Test.com", "password123", OrgId);
+        var command = new RegisterUserCommand("Test", "Testsson", "Test@Test.com", "password123", ValidInviteCode);
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
@@ -63,7 +64,7 @@ public class RegisterUserCommandHandlerTests
         SeedOrg(context);
         var handler = new RegisterUserCommandHandler(context);
 
-        var command = new RegisterUserCommand("Test", "Testsson", "Test@TEST.com", "password123", OrgId);
+        var command = new RegisterUserCommand("Test", "Testsson", "Test@TEST.com", "password123", ValidInviteCode);
 
         await handler.Handle(command, CancellationToken.None);
 
@@ -80,7 +81,7 @@ public class RegisterUserCommandHandlerTests
         SeedOrg(context);
         var handler = new RegisterUserCommandHandler(context);
 
-        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", OrgId);
+        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", ValidInviteCode);
 
         await handler.Handle(command, CancellationToken.None);
 
@@ -92,23 +93,47 @@ public class RegisterUserCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_Throw_When_Organization_Not_Found()
+    public async Task Handle_Should_Throw_When_InviteCode_Invalid()
     {
         var context = TestDbContextFactory.Create();
+        SeedOrg(context);
         var handler = new RegisterUserCommandHandler(context);
 
-        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", Guid.NewGuid());
+        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", "WRONGCOD");
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
             .Should().ThrowAsync<Exception>()
-            .WithMessage("*hittades inte*");
+            .WithMessage("*Ogiltig inbjudningskod*");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Accept_Lowercase_InviteCode()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var handler = new RegisterUserCommandHandler(context);
+
+        var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", "testcode");
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        result.Should().NotBeNull();
+        result.OrganizationId.Should().Be(OrgId);
 
         TestDbContextFactory.Destroy(context);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)
     {
-        context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });
+        context.Organizations.Add(new Organization
+        {
+            Id = OrgId,
+            Name = "Test Org",
+            InviteCode = ValidInviteCode,
+            InviteCodeGeneratedAt = DateTime.UtcNow
+        });
         context.SaveChanges();
     }
 }

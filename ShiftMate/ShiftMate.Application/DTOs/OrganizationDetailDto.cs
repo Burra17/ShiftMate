@@ -4,6 +4,7 @@ namespace ShiftMate.Application.DTOs
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = string.Empty;
+        public string InviteCode { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public int UserCount { get; set; }
     }

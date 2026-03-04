@@ -8,5 +8,5 @@ namespace ShiftMate.Application.Users.Commands
         string LastName,
         string Email,
         string Password,
-        Guid OrganizationId) : IRequest<UserDto>;
+        string InviteCode) : IRequest<UserDto>;
 }

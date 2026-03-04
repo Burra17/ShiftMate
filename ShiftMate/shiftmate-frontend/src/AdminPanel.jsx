@@ -199,6 +199,9 @@ const AdminPanel = () => {
                                             Skapad {new Date(org.createdAt).toLocaleDateString('sv-SE')}
                                         </p>
                                     </div>
+                                    <span className="text-xs font-mono font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-lg tracking-widest flex-shrink-0">
+                                        {org.inviteCode}
+                                    </span>
                                     <button
                                         onClick={() => startEditing(org)}
                                         className="px-3 py-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-800 rounded-lg transition-colors text-sm font-bold"
