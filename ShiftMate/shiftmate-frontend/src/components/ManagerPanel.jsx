@@ -6,7 +6,7 @@ import {
     getCurrentUserId,
     getOrganizationId,
     createManagerShift,
-    fetchShifts,
+    fetchShiftsPaginated,
     updateShift,
     deleteShift,
     getMyInviteCode,
@@ -59,9 +59,13 @@ const ManagerPanel = () => {
     const [users, setUsers] = useState([]);
     const [updatingUserId, setUpdatingUserId] = useState(null);
 
-    // State för "Alla Pass"-fliken
+    // State för "Alla Pass"-fliken (med paginering)
     const [allShifts, setAllShifts] = useState([]);
     const [shiftsLoading, setShiftsLoading] = useState(false);
+    const [shiftsPage, setShiftsPage] = useState(1);
+    const [shiftsTotalPages, setShiftsTotalPages] = useState(1);
+    const [shiftsTotalCount, setShiftsTotalCount] = useState(0);
+    const shiftsPageSize = 20;
     const [editingShiftId, setEditingShiftId] = useState(null);
     const [editDate, setEditDate] = useState('');
     const [editStartTime, setEditStartTime] = useState('');
@@ -97,18 +101,20 @@ const ManagerPanel = () => {
         loadUsers();
     }, []);
 
-    // Hämta alla pass när "Alla Pass"-fliken aktiveras
+    // Hämta pass när "Alla Pass"-fliken aktiveras eller sida ändras
     useEffect(() => {
         if (activeTab === 'allShifts') {
-            loadAllShifts();
+            loadAllShifts(shiftsPage);
         }
-    }, [activeTab]);
+    }, [activeTab, shiftsPage]);
 
-    const loadAllShifts = async () => {
+    const loadAllShifts = async (page = 1) => {
         setShiftsLoading(true);
         try {
-            const data = await fetchShifts();
-            setAllShifts(data);
+            const data = await fetchShiftsPaginated({ page, pageSize: shiftsPageSize });
+            setAllShifts(data.items);
+            setShiftsTotalPages(data.totalPages);
+            setShiftsTotalCount(data.totalCount);
         } catch (err) {
             console.error("Kunde inte hämta pass:", err);
             toast.error("Kunde inte hämta pass.");
@@ -307,7 +313,7 @@ const ManagerPanel = () => {
             await updateShift(shiftId, payload);
             toast.success("Passet har uppdaterats!");
             setEditingShiftId(null);
-            await loadAllShifts();
+            await loadAllShifts(shiftsPage);
         } catch (err) {
             const msg = err.response?.data?.message || "Kunde inte uppdatera passet.";
             toast.error(msg);
@@ -322,8 +328,8 @@ const ManagerPanel = () => {
         setDeleteLoading(shiftId);
         try {
             await deleteShift(shiftId);
-            setAllShifts(prev => prev.filter(s => s.id !== shiftId));
             toast.success("Passet har raderats!");
+            await loadAllShifts(shiftsPage);
         } catch (err) {
             const msg = err.response?.data?.message || "Kunde inte radera passet.";
             toast.error(msg);
@@ -516,7 +522,7 @@ const ManagerPanel = () => {
                             </button>
                         )}
                         <span className="text-xs text-slate-500 ml-auto">
-                            {filteredShifts.length} pass
+                            {shiftsTotalCount} pass totalt
                         </span>
                     </div>
 
@@ -704,6 +710,29 @@ const ManagerPanel = () => {
                                     </div>
                                 );
                             })}
+                        </div>
+                    )}
+
+                    {/* Paginering */}
+                    {shiftsTotalPages > 1 && (
+                        <div className="flex items-center justify-center gap-2 pt-4">
+                            <button
+                                onClick={() => setShiftsPage(p => Math.max(1, p - 1))}
+                                disabled={shiftsPage <= 1}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                Föregående
+                            </button>
+                            <span className="text-xs text-slate-400">
+                                Sida {shiftsPage} av {shiftsTotalPages}
+                            </span>
+                            <button
+                                onClick={() => setShiftsPage(p => Math.min(shiftsTotalPages, p + 1))}
+                                disabled={shiftsPage >= shiftsTotalPages}
+                                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                                Nästa
+                            </button>
                         </div>
                     )}
                 </div>

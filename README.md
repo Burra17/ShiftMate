@@ -123,7 +123,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
     │   ├── Program.cs
     │   └── Controllers/
     │
-    ├── ShiftMate.Tests/                   # Enhetstester (187 tester)
+    ├── ShiftMate.Tests/                   # Enhetstester (191 tester)
     │
     └── shiftmate-frontend/                # React-applikation
         ├── src/

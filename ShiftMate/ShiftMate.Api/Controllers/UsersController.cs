@@ -18,15 +18,15 @@ namespace ShiftMate.Api.Controllers
             _mediator = mediator;
         }
 
-        // GET: api/users
+        // GET: api/users (med valfri paginering)
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             var orgId = User.GetOrganizationId();
             if (orgId == null) return Unauthorized();
 
-            var query = new GetAllUsersQuery(orgId.Value);
+            var query = new GetAllUsersQuery(orgId.Value, page, pageSize);
             var result = await _mediator.Send(query);
 
             return Ok(result);

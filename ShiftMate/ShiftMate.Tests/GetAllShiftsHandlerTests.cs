@@ -37,8 +37,9 @@ public class GetAllShiftsHandlerTests
         var handler = new GetAllShiftsHandler(context);
         var result = await handler.Handle(new GetAllShiftsQuery(OrgId), CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result[0].StartTime.Should().BeBefore(result[1].StartTime);
+        result.Items.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.Items[0].StartTime.Should().BeBefore(result.Items[1].StartTime);
 
         TestDbContextFactory.Destroy(context);
     }
@@ -71,8 +72,9 @@ public class GetAllShiftsHandlerTests
         var handler = new GetAllShiftsHandler(context);
         var result = await handler.Handle(new GetAllShiftsQuery(OrgId, OnlyWithUsers: true), CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        result[0].UserId.Should().Be(user.Id);
+        result.Items.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
+        result.Items[0].UserId.Should().Be(user.Id);
 
         TestDbContextFactory.Destroy(context);
     }
@@ -99,11 +101,11 @@ public class GetAllShiftsHandlerTests
         var handler = new GetAllShiftsHandler(context);
         var result = await handler.Handle(new GetAllShiftsQuery(OrgId), CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        result[0].User.Should().NotBeNull();
-        result[0].User!.FirstName.Should().Be("Anna");
-        result[0].User!.Email.Should().Be("anna@test.com");
-        result[0].IsUpForSwap.Should().BeTrue();
+        result.Items.Should().HaveCount(1);
+        result.Items[0].User.Should().NotBeNull();
+        result.Items[0].User!.FirstName.Should().Be("Anna");
+        result.Items[0].User!.Email.Should().Be("anna@test.com");
+        result.Items[0].IsUpForSwap.Should().BeTrue();
 
         TestDbContextFactory.Destroy(context);
     }
@@ -116,7 +118,8 @@ public class GetAllShiftsHandlerTests
 
         var result = await handler.Handle(new GetAllShiftsQuery(OrgId), CancellationToken.None);
 
-        result.Should().BeEmpty();
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
 
         TestDbContextFactory.Destroy(context);
     }
@@ -153,7 +156,70 @@ public class GetAllShiftsHandlerTests
         var handler = new GetAllShiftsHandler(context);
         var result = await handler.Handle(new GetAllShiftsQuery(OrgId), CancellationToken.None);
 
-        result.Should().HaveCount(1);
+        result.Items.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Paginate_When_Page_And_PageSize_Are_Set()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+
+        // Skapa 5 pass
+        for (int i = 0; i < 5; i++)
+        {
+            context.Shifts.Add(new Shift
+            {
+                Id = Guid.NewGuid(), UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
+                StartTime = DateTime.UtcNow.AddDays(i + 1).Date.AddHours(8),
+                EndTime = DateTime.UtcNow.AddDays(i + 1).Date.AddHours(16)
+            });
+        }
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetAllShiftsHandler(context);
+
+        // Hämta sida 1 med 2 per sida
+        var page1 = await handler.Handle(new GetAllShiftsQuery(OrgId, Page: 1, PageSize: 2), CancellationToken.None);
+        page1.Items.Should().HaveCount(2);
+        page1.TotalCount.Should().Be(5);
+        page1.Page.Should().Be(1);
+        page1.PageSize.Should().Be(2);
+        page1.TotalPages.Should().Be(3);
+
+        // Hämta sida 3 (sista) med 2 per sida
+        var page3 = await handler.Handle(new GetAllShiftsQuery(OrgId, Page: 3, PageSize: 2), CancellationToken.None);
+        page3.Items.Should().HaveCount(1);
+        page3.TotalCount.Should().Be(5);
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Return_All_When_No_Pagination_Params()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+
+        for (int i = 0; i < 5; i++)
+        {
+            context.Shifts.Add(new Shift
+            {
+                Id = Guid.NewGuid(), UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
+                StartTime = DateTime.UtcNow.AddDays(i + 1).Date.AddHours(8),
+                EndTime = DateTime.UtcNow.AddDays(i + 1).Date.AddHours(16)
+            });
+        }
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetAllShiftsHandler(context);
+        var result = await handler.Handle(new GetAllShiftsQuery(OrgId), CancellationToken.None);
+
+        result.Items.Should().HaveCount(5);
+        result.TotalCount.Should().Be(5);
 
         TestDbContextFactory.Destroy(context);
     }

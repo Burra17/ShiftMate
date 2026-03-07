@@ -64,15 +64,15 @@ namespace ShiftMate.Api.Controllers
             return Ok(result);
         }
 
-        // 3. HÄMTA ALLA PASS
+        // 3. HÄMTA ALLA PASS (med valfri paginering)
         [HttpGet]
-        public async Task<ActionResult<List<ShiftDto>>> GetAll([FromQuery] bool onlyWithUsers = false)
+        public async Task<IActionResult> GetAll([FromQuery] bool onlyWithUsers = false, [FromQuery] int? page = null, [FromQuery] int? pageSize = null)
         {
             var orgId = User.GetOrganizationId();
             if (orgId == null) return Unauthorized();
 
-            var shifts = await _mediator.Send(new GetAllShiftsQuery(orgId.Value, onlyWithUsers));
-            return Ok(shifts);
+            var result = await _mediator.Send(new GetAllShiftsQuery(orgId.Value, onlyWithUsers, page, pageSize));
+            return Ok(result);
         }
 
         // 4. HÄMTA LEDIGA PASS (MarketPlace)
