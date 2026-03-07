@@ -340,7 +340,7 @@ Follow these steps **in order** for every implementation task:
 4. **Implement** — Write code following the rules above. Match existing patterns exactly. Keep it simple (KISS). Don't add what's not needed (YAGNI).
 5. **Build & test** — Run `dotnet build`, `dotnet test`, and frontend `npm run build`. All must pass.
 6. **Let the user test** — Wait for the user to verify in the browser. Fix issues if needed.
-7. **Update documentation** — CLAUDE.md (new endpoints/structure), README.md, frontend README if relevant.
+7. **Update ALL documentation** — Before committing, always review and update: CLAUDE.md (new endpoints, structure, patterns), README.md (test counts, features, file structure), and frontend README.md if frontend changes were made. Every `.md` file that references changed areas must be updated.
 8. **Commit & push** — Descriptive commit message in English. Push branch to GitHub.
 9. **Create PR** — Use the commit message as title.
 10. **Merge to main** — Only after user approval.
