@@ -101,6 +101,7 @@ All responses use consistent JSON structure:
 
 ```
 Success:  { "Message": "...", "Id": "..." }  or  [array of DTOs]
+Paginated: { "Items": [...], "TotalCount": N, "Page": N, "PageSize": N, "TotalPages": N }
 Error:    { "Error": true, "Message": "..." }
 Login:    { "Token": "jwt.string" }
 ```
@@ -206,7 +207,7 @@ ShiftMate.Domain/               # Entities + enums. No dependencies.
   User.cs, Shift.cs, SwapRequest.cs, SwapRequestStatus.cs, Organization.cs
 
 ShiftMate.Application/          # Business logic layer (CQRS)
-  DTOs/                         # ShiftDto, UserDto, SwapRequestDto, OrganizationDto
+  DTOs/                         # ShiftDto, UserDto, SwapRequestDto, OrganizationDto, PagedResult<T>
   Interfaces/                   # IAppDbContext, IEmailService
   [Feature]/Commands/           # Write operations (command + handler in same file)
   [Feature]/Queries/            # Read operations (query + handler in separate files)
@@ -278,9 +279,9 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - `GET /health` — Health check
 
 ### Authenticated (Any Role)
-- `GET /api/users` — Get all users
+- `GET /api/users` — Get all users (?page=1&pageSize=20 for pagination)
 - `PUT /api/users/profile` — Update own profile
-- `GET /api/shifts` — All shifts (?onlyWithUsers=true)
+- `GET /api/shifts` — All shifts (?onlyWithUsers=true&page=1&pageSize=20 for pagination)
 - `GET /api/shifts/mine` — Current user's shifts
 - `GET /api/shifts/claimable` — Available unassigned shifts
 - `POST /api/shifts` — Create own shift

@@ -29,9 +29,10 @@ public class GetAllUsersHandlerTests
         var handler = new GetAllUsersHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result.Should().Contain(u => u.Email == "anna@test.com");
-        result.Should().Contain(u => u.Email == "erik@test.com");
+        result.Items.Should().HaveCount(2);
+        result.TotalCount.Should().Be(2);
+        result.Items.Should().Contain(u => u.Email == "anna@test.com");
+        result.Items.Should().Contain(u => u.Email == "erik@test.com");
 
         TestDbContextFactory.Destroy(context);
     }
@@ -51,8 +52,8 @@ public class GetAllUsersHandlerTests
         var handler = new GetAllUsersHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        var userDto = result[0];
+        result.Items.Should().HaveCount(1);
+        var userDto = result.Items[0];
         userDto.FirstName.Should().Be("Anna");
         var properties = userDto.GetType().GetProperties();
         properties.Should().NotContain(p => p.Name == "PasswordHash");
@@ -68,7 +69,8 @@ public class GetAllUsersHandlerTests
 
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
-        result.Should().BeEmpty();
+        result.Items.Should().BeEmpty();
+        result.TotalCount.Should().Be(0);
 
         TestDbContextFactory.Destroy(context);
     }
@@ -96,8 +98,66 @@ public class GetAllUsersHandlerTests
         var handler = new GetAllUsersHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        result[0].Email.Should().Be("anna@test.com");
+        result.Items.Should().HaveCount(1);
+        result.TotalCount.Should().Be(1);
+        result.Items[0].Email.Should().Be("anna@test.com");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Paginate_When_Page_And_PageSize_Are_Set()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+
+        for (int i = 0; i < 5; i++)
+        {
+            context.Users.Add(new User
+            {
+                Id = Guid.NewGuid(), FirstName = $"User{i}", LastName = "Test",
+                Email = $"user{i}@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            });
+        }
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetAllUsersHandler(context);
+
+        var page1 = await handler.Handle(new GetAllUsersQuery(OrgId, Page: 1, PageSize: 2), CancellationToken.None);
+        page1.Items.Should().HaveCount(2);
+        page1.TotalCount.Should().Be(5);
+        page1.Page.Should().Be(1);
+        page1.PageSize.Should().Be(2);
+        page1.TotalPages.Should().Be(3);
+
+        var page3 = await handler.Handle(new GetAllUsersQuery(OrgId, Page: 3, PageSize: 2), CancellationToken.None);
+        page3.Items.Should().HaveCount(1);
+        page3.TotalCount.Should().Be(5);
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Return_All_When_No_Pagination_Params()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+
+        for (int i = 0; i < 5; i++)
+        {
+            context.Users.Add(new User
+            {
+                Id = Guid.NewGuid(), FirstName = $"User{i}", LastName = "Test",
+                Email = $"user{i}@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            });
+        }
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetAllUsersHandler(context);
+        var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
+
+        result.Items.Should().HaveCount(5);
+        result.TotalCount.Should().Be(5);
 
         TestDbContextFactory.Destroy(context);
     }

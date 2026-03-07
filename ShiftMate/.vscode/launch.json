@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ShiftMate API (HTTPS)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/ShiftMate.Api/bin/Debug/net8.0/ShiftMate.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/ShiftMate.Api",
+            "stopAtEntry": false,
+            "launchSettingsProfile": "https",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        }
+    ]
+}

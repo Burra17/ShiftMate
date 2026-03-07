@@ -5,7 +5,7 @@ using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Shifts.Queries
 {
-    public class GetAllShiftsHandler : IRequestHandler<GetAllShiftsQuery, List<ShiftDto>>
+    public class GetAllShiftsHandler : IRequestHandler<GetAllShiftsQuery, PagedResult<ShiftDto>>
     {
         private readonly IAppDbContext _context;
 
@@ -14,7 +14,7 @@ namespace ShiftMate.Application.Shifts.Queries
             _context = context;
         }
 
-        public async Task<List<ShiftDto>> Handle(GetAllShiftsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ShiftDto>> Handle(GetAllShiftsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Shifts
                 .AsNoTracking()
@@ -27,11 +27,22 @@ namespace ShiftMate.Application.Shifts.Queries
                 query = query.Where(s => s.UserId != null);
             }
 
-            var shifts = await query
-                .OrderBy(s => s.StartTime)
-                .ToListAsync(cancellationToken);
+            var totalCount = await query.CountAsync(cancellationToken);
 
-            var dtos = shifts.Select(s => new ShiftDto
+            query = query.OrderBy(s => s.StartTime);
+
+            // Paginering: om Page anges, använd Skip/Take
+            var page = request.Page ?? 0;
+            var pageSize = request.PageSize ?? 0;
+
+            if (page > 0 && pageSize > 0)
+            {
+                query = query.Skip((page - 1) * pageSize).Take(pageSize);
+            }
+
+            var shifts = await query.ToListAsync(cancellationToken);
+
+            var items = shifts.Select(s => new ShiftDto
             {
                 Id = s.Id,
                 StartTime = s.StartTime,
@@ -47,7 +58,13 @@ namespace ShiftMate.Application.Shifts.Queries
                 } : null
             }).ToList();
 
-            return dtos;
+            return new PagedResult<ShiftDto>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                Page = page > 0 ? page : 1,
+                PageSize = pageSize > 0 ? pageSize : totalCount
+            };
         }
     }
 }

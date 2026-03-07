@@ -70,10 +70,22 @@ export const decodeToken = () => {
 
 /**
  * Hämta alla pass, med valfritt filter för att bara inkludera pass med ägare.
+ * Returnerar array av pass (utan paginering).
  */
 export const fetchShifts = async (onlyWithUsers = false) => {
     const response = await axiosInstance.get('/shifts', {
         params: { onlyWithUsers }
+    });
+    return response.data.items;
+};
+
+/**
+ * Hämta pass med paginering.
+ * Returnerar { items, totalCount, page, pageSize, totalPages }.
+ */
+export const fetchShiftsPaginated = async ({ onlyWithUsers = false, page = 1, pageSize = 20 } = {}) => {
+    const response = await axiosInstance.get('/shifts', {
+        params: { onlyWithUsers, page, pageSize }
     });
     return response.data;
 };
@@ -295,9 +307,21 @@ export const deleteShift = async (shiftId) => {
 
 /**
  * Hämta alla användare.
+ * Returnerar array av användare (utan paginering).
  */
 export const fetchAllUsers = async () => {
     const res = await axiosInstance.get('/Users');
+    return res.data.items;
+};
+
+/**
+ * Hämta användare med paginering.
+ * Returnerar { items, totalCount, page, pageSize, totalPages }.
+ */
+export const fetchAllUsersPaginated = async ({ page = 1, pageSize = 20 } = {}) => {
+    const res = await axiosInstance.get('/Users', {
+        params: { page, pageSize }
+    });
     return res.data;
 };
 
