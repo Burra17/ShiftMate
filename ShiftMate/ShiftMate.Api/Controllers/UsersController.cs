@@ -85,6 +85,10 @@ namespace ShiftMate.Api.Controllers
             {
                 return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
             }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message, Code = "EMAIL_NOT_VERIFIED" });
+            }
             catch (Exception ex)
             {
                 return Unauthorized(ex.Message);
@@ -108,6 +112,41 @@ namespace ShiftMate.Api.Controllers
             {
                 return BadRequest(new { Error = true, Message = ex.Message });
             }
+        }
+
+        // POST: api/users/verify-email
+        [HttpPost("verify-email")]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+                return Ok(new { Message = "E-postadressen har verifierats! Du kan nu logga in." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Ok(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { Error = true, Message = ex.Message });
+            }
+        }
+
+        // POST: api/users/resend-verification
+        [HttpPost("resend-verification")]
+        public async Task<IActionResult> ResendVerification(ResendVerificationCommand command)
+        {
+            try
+            {
+                await _mediator.Send(command);
+            }
+            catch
+            {
+                // Anti-enumeration: returnera alltid samma svar
+            }
+
+            return Ok(new { Message = "Om kontot finns och inte är verifierat har vi skickat ett nytt verifieringsmail." });
         }
 
         [HttpPut("profile")]

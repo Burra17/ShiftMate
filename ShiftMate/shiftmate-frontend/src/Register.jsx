@@ -43,12 +43,12 @@ const Register = () => {
 
         try {
             await api.post('/Users/register', payload);
-            toast.success("Konto skapat! Du omdirigeras nu till inloggningssidan.");
+            toast.success("Konto skapat! Kontrollera din e-post för att verifiera ditt konto.");
             navigate('/login');
         } catch (err) {
             console.error("Registreringsfel:", err.response || err);
-            if (err.response?.data?.Message) {
-                setError(err.response.data.Message);
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
             } else if (err.response?.data && typeof err.response.data === 'string') {
                 setError(err.response.data);
             } else {

@@ -62,7 +62,7 @@ const ResetPassword = () => {
             if (err.code === 'ERR_NETWORK') {
                 setError('Kunde inte nå servern. Kontrollera att den är igång.');
             } else {
-                setError(err.response?.data?.message || err.response?.data?.Message || 'Något gick fel. Försök igen.');
+                setError(err.response?.data?.message || 'Något gick fel. Försök igen.');
             }
         } finally {
             setLoading(false);

@@ -11,6 +11,9 @@ namespace ShiftMate.Domain
         public string PasswordHash { get; set; } = string.Empty;
         public string? ResetTokenHash { get; set; }
         public DateTime? ResetTokenExpiresAt { get; set; }
+        public bool IsEmailVerified { get; set; }
+        public string? EmailVerificationTokenHash { get; set; }
+        public DateTime? EmailVerificationTokenExpiresAt { get; set; }
         public Role Role { get; set; }
 
         // Foreign Key: Vilken organisation tillhör användaren? (Nullable för SuperAdmin)

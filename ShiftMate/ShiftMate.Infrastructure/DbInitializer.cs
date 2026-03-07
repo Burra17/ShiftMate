@@ -70,7 +70,8 @@ namespace ShiftMate.Infrastructure
                     LastName = "Admin",
                     Role = Role.SuperAdmin,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin123"),
-                    OrganizationId = null
+                    OrganizationId = null,
+                    IsEmailVerified = true
                 };
                 context.Users.Add(superAdmin);
                 context.SaveChanges();
@@ -91,7 +92,8 @@ namespace ShiftMate.Infrastructure
                     LastName = "Pettersson",
                     Role = Role.Employee,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Andre2003"),
-                    OrganizationId = org1.Id
+                    OrganizationId = org1.Id,
+                    IsEmailVerified = true
                 };
                 context.Users.Add(realUser);
             }
@@ -111,7 +113,8 @@ namespace ShiftMate.Infrastructure
                     LastName = "Exempel",
                     Role = Role.Employee,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("dummy_hash_123"),
-                    OrganizationId = org1.Id
+                    OrganizationId = org1.Id,
+                    IsEmailVerified = true
                 };
                 context.Users.Add(erikUser);
             }
@@ -133,7 +136,8 @@ namespace ShiftMate.Infrastructure
                     LastName = "Svensson",
                     Role = Role.Employee,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Svensson123"),
-                    OrganizationId = org1.Id
+                    OrganizationId = org1.Id,
+                    IsEmailVerified = true
                 };
                 context.Users.Add(saraUser);
             }
@@ -153,7 +157,8 @@ namespace ShiftMate.Infrastructure
                     LastName = "Al-Sayed",
                     Role = Role.Employee,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("Mahmoud123"),
-                    OrganizationId = org1.Id
+                    OrganizationId = org1.Id,
+                    IsEmailVerified = true
                 };
                 context.Users.Add(mahmoudUser);
             }
@@ -174,7 +179,8 @@ namespace ShiftMate.Infrastructure
                     LastName = "Användare",
                     Role = Role.Manager,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword("TestPass123"),
-                    OrganizationId = org2.Id
+                    OrganizationId = org2.Id,
+                    IsEmailVerified = true
                 };
                 context.Users.Add(testUser);
             }

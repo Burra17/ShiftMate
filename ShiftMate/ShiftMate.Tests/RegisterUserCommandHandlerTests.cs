@@ -1,7 +1,9 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.Extensions.Logging;
 using Moq;
+using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
@@ -133,7 +135,9 @@ public class RegisterUserCommandHandlerTests
         var validatorMock = new Mock<IValidator<RegisterUserCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<RegisterUserCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new RegisterUserCommandHandler(context, validatorMock.Object);
+        var emailMock = new Mock<IEmailService>();
+        var loggerMock = new Mock<ILogger<RegisterUserCommandHandler>>();
+        return new RegisterUserCommandHandler(context, validatorMock.Object, emailMock.Object, loggerMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

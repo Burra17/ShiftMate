@@ -62,7 +62,7 @@ public class LoginHandlerTests
             Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = true
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -87,7 +87,7 @@ public class LoginHandlerTests
             Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = true
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -112,7 +112,7 @@ public class LoginHandlerTests
             Id = userId, FirstName = "Test", LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = true
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -151,6 +151,30 @@ public class LoginHandlerTests
         var jwt = jwtHandler.ReadJwtToken(token);
         jwt.Claims.Should().NotContain(c => c.Type == "OrganizationId");
         jwt.Claims.Should().Contain(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "SuperAdmin");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task Handle_Should_Throw_When_Email_Not_Verified()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        context.Users.Add(new User
+        {
+            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Email = "test@test.com",
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
+            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = false
+        });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = CreateHandler(context);
+        var command = new LoginCommand { Email = "test@test.com", Password = "password123" };
+
+        await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
+            .Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*inte verifierad*");
 
         TestDbContextFactory.Destroy(context);
     }

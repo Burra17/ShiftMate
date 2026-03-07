@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -49,6 +50,12 @@ namespace ShiftMate.Application.Users.Commands
             if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             {
                 throw new Exception("Fel e-post eller lösenord.");
+            }
+
+            // C. Kontrollera e-postverifiering (SuperAdmin undantas)
+            if (!user.IsEmailVerified && user.Role != Role.SuperAdmin)
+            {
+                throw new InvalidOperationException("E-postadressen är inte verifierad. Kontrollera din inkorg för verifieringslänken.");
             }
 
             // C. Skapa Token (Nyckeln) 🔑
