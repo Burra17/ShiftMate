@@ -228,7 +228,7 @@ const ManagerPanel = () => {
             setActiveQuick(null);
 
         } catch (err) {
-            const errorMsg = err.response?.data?.message || "Något gick fel.";
+            const errorMsg = err.response?.data?.Message || "Något gick fel.";
             toast.error(errorMsg);
         } finally {
             setLoading(false);
@@ -246,7 +246,7 @@ const ManagerPanel = () => {
             );
             toast.success("Rollen har uppdaterats.");
         } catch (err) {
-            const msg = err.response?.data?.message || "Kunde inte uppdatera rollen.";
+            const msg = err.response?.data?.Message || "Kunde inte uppdatera rollen.";
             toast.error(msg);
         } finally {
             setUpdatingUserId(null);
@@ -261,7 +261,7 @@ const ManagerPanel = () => {
             setUsers(prev => prev.filter(u => u.id !== targetUserId));
             toast.success(`${fullName} har tagits bort.`);
         } catch (err) {
-            const msg = err.response?.data?.message || "Kunde inte radera användaren.";
+            const msg = err.response?.data?.Message || "Kunde inte radera användaren.";
             toast.error(msg);
         }
     };
@@ -315,7 +315,7 @@ const ManagerPanel = () => {
             setEditingShiftId(null);
             await loadAllShifts(shiftsPage);
         } catch (err) {
-            const msg = err.response?.data?.message || "Kunde inte uppdatera passet.";
+            const msg = err.response?.data?.Message || "Kunde inte uppdatera passet.";
             toast.error(msg);
         } finally {
             setEditLoading(false);
@@ -331,7 +331,7 @@ const ManagerPanel = () => {
             toast.success("Passet har raderats!");
             await loadAllShifts(shiftsPage);
         } catch (err) {
-            const msg = err.response?.data?.message || "Kunde inte radera passet.";
+            const msg = err.response?.data?.Message || "Kunde inte radera passet.";
             toast.error(msg);
         } finally {
             setDeleteLoading(null);

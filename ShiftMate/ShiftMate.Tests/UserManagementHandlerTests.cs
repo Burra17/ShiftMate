@@ -1,4 +1,7 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Moq;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
@@ -96,7 +99,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateUserRoleHandler(context);
+        var handler = CreateRoleHandler(context);
 
         var result = await handler.Handle(
             new UpdateUserRoleCommand { TargetUserId = targetId, NewRole = "Manager", RequestingUserId = managerId, OrganizationId = OrgId },
@@ -119,7 +122,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateUserRoleHandler(context);
+        var handler = CreateRoleHandler(context);
 
         var act = async () => await handler.Handle(
             new UpdateUserRoleCommand { TargetUserId = managerId, NewRole = "Employee", RequestingUserId = managerId, OrganizationId = OrgId },
@@ -143,7 +146,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateUserRoleHandler(context);
+        var handler = CreateRoleHandler(context);
 
         var act = async () => await handler.Handle(
             new UpdateUserRoleCommand { TargetUserId = targetId, NewRole = "Superadmin", RequestingUserId = managerId, OrganizationId = OrgId },
@@ -153,6 +156,14 @@ public class UserManagementHandlerTests
             .WithMessage("*Ogiltig roll*");
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static UpdateUserRoleHandler CreateRoleHandler(Infrastructure.AppDbContext context)
+    {
+        var validatorMock = new Mock<IValidator<UpdateUserRoleCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateUserRoleCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new UpdateUserRoleHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
@@ -9,15 +10,24 @@ namespace ShiftMate.Application.Users.Commands
     public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, UserDto>
     {
         private readonly IAppDbContext _context;
+        private readonly IValidator<RegisterUserCommand> _validator;
 
-        public RegisterUserCommandHandler(IAppDbContext context)
+        public RegisterUserCommandHandler(IAppDbContext context, IValidator<RegisterUserCommand> validator)
         {
             _context = context;
+            _validator = validator;
         }
 
         public async Task<UserDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            // 1. Validera inbjudningskod och hitta organisation
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
+            // 2. Hitta organisation via inbjudningskod
             var code = request.InviteCode?.Trim().ToUpperInvariant() ?? "";
             var organization = await _context.Organizations
                 .FirstOrDefaultAsync(o => o.InviteCode == code, cancellationToken);
@@ -27,7 +37,7 @@ namespace ShiftMate.Application.Users.Commands
                 throw new Exception("Ogiltig inbjudningskod.");
             }
 
-            // 2. Normalisera och kontrollera om användaren redan finns
+            // 3. Normalisera och kontrollera om användaren redan finns
             var email = request.Email.ToLowerInvariant();
             var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
             if (existingUser != null)
@@ -35,10 +45,10 @@ namespace ShiftMate.Application.Users.Commands
                 throw new Exception($"User with email '{request.Email}' already exists.");
             }
 
-            // 3. Hasha lösenordet med BCrypt
+            // 4. Hasha lösenordet med BCrypt
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
-            // 4. Skapa den nya användaren
+            // 5. Skapa den nya användaren
             var user = new User
             {
                 FirstName = request.FirstName,
@@ -49,11 +59,11 @@ namespace ShiftMate.Application.Users.Commands
                 OrganizationId = organization.Id
             };
 
-            // 5. Lägg till i databasen och spara
+            // 6. Lägg till i databasen och spara
             _context.Users.Add(user);
             await _context.SaveChangesAsync(cancellationToken);
 
-            // 6. Returnera en DTO med den nya användarens information
+            // 7. Returnera en DTO med den nya användarens information
             return new UserDto
             {
                 Id = user.Id,

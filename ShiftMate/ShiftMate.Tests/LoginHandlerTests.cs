@@ -1,5 +1,8 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Extensions.Configuration;
+using Moq;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
@@ -14,7 +17,7 @@ public class LoginHandlerTests
     public async Task Handle_Should_Throw_When_User_Not_Found()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new LoginHandler(context, CreateConfiguration());
+        var handler = CreateHandler(context);
 
         var command = new LoginCommand { Email = "nonexistent@test.com", Password = "password123" };
 
@@ -39,7 +42,7 @@ public class LoginHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new LoginHandler(context, CreateConfiguration());
+        var handler = CreateHandler(context);
         var command = new LoginCommand { Email = "test@test.com", Password = "wrongpassword" };
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
@@ -63,7 +66,7 @@ public class LoginHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new LoginHandler(context, CreateConfiguration());
+        var handler = CreateHandler(context);
         var command = new LoginCommand { Email = "test@test.com", Password = "password123" };
 
         var token = await handler.Handle(command, CancellationToken.None);
@@ -88,7 +91,7 @@ public class LoginHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new LoginHandler(context, CreateConfiguration());
+        var handler = CreateHandler(context);
         var command = new LoginCommand { Email = "Test@TEST.com", Password = "password123" };
 
         var token = await handler.Handle(command, CancellationToken.None);
@@ -113,7 +116,7 @@ public class LoginHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new LoginHandler(context, CreateConfiguration());
+        var handler = CreateHandler(context);
         var command = new LoginCommand { Email = "test@test.com", Password = "password123" };
 
         var token = await handler.Handle(command, CancellationToken.None);
@@ -139,7 +142,7 @@ public class LoginHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new LoginHandler(context, CreateConfiguration());
+        var handler = CreateHandler(context);
         var command = new LoginCommand { Email = "superadmin@test.com", Password = "SuperPass123" };
 
         var token = await handler.Handle(command, CancellationToken.None);
@@ -150,6 +153,14 @@ public class LoginHandlerTests
         jwt.Claims.Should().Contain(c => c.Type == System.Security.Claims.ClaimTypes.Role && c.Value == "SuperAdmin");
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static LoginHandler CreateHandler(Infrastructure.AppDbContext context)
+    {
+        var validatorMock = new Mock<IValidator<LoginCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new LoginHandler(context, CreateConfiguration(), validatorMock.Object);
     }
 
     private static IConfiguration CreateConfiguration()

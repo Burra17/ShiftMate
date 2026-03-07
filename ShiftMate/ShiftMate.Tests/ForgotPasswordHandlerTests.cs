@@ -1,4 +1,6 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ShiftMate.Application.Interfaces;
@@ -90,7 +92,10 @@ public class ForgotPasswordHandlerTests
     {
         emailMock = new Mock<IEmailService>();
         var loggerMock = new Mock<ILogger<ForgotPasswordHandler>>();
-        return new ForgotPasswordHandler(context, emailMock.Object, loggerMock.Object);
+        var validatorMock = new Mock<IValidator<ForgotPasswordCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<ForgotPasswordCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new ForgotPasswordHandler(context, emailMock.Object, loggerMock.Object, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

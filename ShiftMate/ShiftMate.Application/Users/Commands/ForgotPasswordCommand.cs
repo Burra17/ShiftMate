@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -19,39 +20,49 @@ namespace ShiftMate.Application.Users.Commands
         private readonly IAppDbContext _context;
         private readonly IEmailService _emailService;
         private readonly ILogger<ForgotPasswordHandler> _logger;
+        private readonly IValidator<ForgotPasswordCommand> _validator;
 
         public ForgotPasswordHandler(
             IAppDbContext context,
             IEmailService emailService,
-            ILogger<ForgotPasswordHandler> logger)
+            ILogger<ForgotPasswordHandler> logger,
+            IValidator<ForgotPasswordCommand> validator)
         {
             _context = context;
             _emailService = emailService;
             _logger = logger;
+            _validator = validator;
         }
 
         public async Task Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
         {
-            // 1. Hitta användaren (skiftlägesokänsligt)
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
+            // 2. Hitta användaren (skiftlägesokänsligt)
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant(), cancellationToken);
 
             // Anti-enumeration: returnera tyst om användaren inte finns
             if (user == null) return;
 
-            // 2. Generera säker token (64 bytes = 512 bits)
+            // 3. Generera säker token (64 bytes = 512 bits)
             var tokenBytes = RandomNumberGenerator.GetBytes(64);
             var token = Convert.ToBase64String(tokenBytes)
                 .Replace("+", "-")
                 .Replace("/", "_")
                 .TrimEnd('=');
 
-            // 3. Spara BCrypt-hash av token + utgångstid (1 timme)
+            // 4. Spara BCrypt-hash av token + utgångstid (1 timme)
             user.ResetTokenHash = BCrypt.Net.BCrypt.HashPassword(token);
             user.ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1);
             await _context.SaveChangesAsync(cancellationToken);
 
-            // 4. Skicka e-post med återställningslänk
+            // 5. Skicka e-post med återställningslänk
             try
             {
                 var encodedEmail = Uri.EscapeDataString(user.Email);

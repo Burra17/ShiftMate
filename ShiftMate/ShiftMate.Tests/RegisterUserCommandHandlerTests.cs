@@ -1,4 +1,7 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Moq;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
@@ -15,7 +18,7 @@ public class RegisterUserCommandHandlerTests
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
-        var handler = new RegisterUserCommandHandler(context);
+        var handler = CreateHandler(context);
 
         var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", ValidInviteCode);
 
@@ -47,7 +50,7 @@ public class RegisterUserCommandHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new RegisterUserCommandHandler(context);
+        var handler = CreateHandler(context);
         var command = new RegisterUserCommand("Test", "Testsson", "Test@Test.com", "password123", ValidInviteCode);
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
@@ -62,7 +65,7 @@ public class RegisterUserCommandHandlerTests
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
-        var handler = new RegisterUserCommandHandler(context);
+        var handler = CreateHandler(context);
 
         var command = new RegisterUserCommand("Test", "Testsson", "Test@TEST.com", "password123", ValidInviteCode);
 
@@ -79,7 +82,7 @@ public class RegisterUserCommandHandlerTests
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
-        var handler = new RegisterUserCommandHandler(context);
+        var handler = CreateHandler(context);
 
         var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", ValidInviteCode);
 
@@ -97,7 +100,7 @@ public class RegisterUserCommandHandlerTests
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
-        var handler = new RegisterUserCommandHandler(context);
+        var handler = CreateHandler(context);
 
         var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", "WRONGCOD");
 
@@ -113,7 +116,7 @@ public class RegisterUserCommandHandlerTests
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
-        var handler = new RegisterUserCommandHandler(context);
+        var handler = CreateHandler(context);
 
         var command = new RegisterUserCommand("Test", "Testsson", "test@test.com", "password123", "testcode");
 
@@ -123,6 +126,14 @@ public class RegisterUserCommandHandlerTests
         result.OrganizationId.Should().Be(OrgId);
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static RegisterUserCommandHandler CreateHandler(Infrastructure.AppDbContext context)
+    {
+        var validatorMock = new Mock<IValidator<RegisterUserCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<RegisterUserCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new RegisterUserCommandHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

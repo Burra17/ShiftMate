@@ -1,4 +1,7 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Moq;
 using ShiftMate.Application.Organizations.Commands;
 using ShiftMate.Application.Organizations.Queries;
 using ShiftMate.Domain;
@@ -57,7 +60,7 @@ public class OrganizationHandlerTests
     {
         var context = TestDbContextFactory.Create();
 
-        var handler = new CreateOrganizationHandler(context);
+        var handler = CreateCreateHandler(context);
         var id = await handler.Handle(new CreateOrganizationCommand("Nytt Företag"), CancellationToken.None);
 
         id.Should().NotBeEmpty();
@@ -73,7 +76,7 @@ public class OrganizationHandlerTests
     {
         var context = TestDbContextFactory.Create();
 
-        var handler = new CreateOrganizationHandler(context);
+        var handler = CreateCreateHandler(context);
         await handler.Handle(new CreateOrganizationCommand("  Trimmat Namn  "), CancellationToken.None);
 
         context.Organizations.Should().ContainSingle(o => o.Name == "Trimmat Namn");
@@ -88,7 +91,7 @@ public class OrganizationHandlerTests
         context.Organizations.Add(new Organization { Id = Guid.NewGuid(), Name = "Befintlig Org", CreatedAt = DateTime.UtcNow });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new CreateOrganizationHandler(context);
+        var handler = CreateCreateHandler(context);
         var act = () => handler.Handle(new CreateOrganizationCommand("befintlig org"), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -109,7 +112,7 @@ public class OrganizationHandlerTests
         context.Organizations.Add(new Organization { Id = orgId, Name = "Gammalt Namn", CreatedAt = DateTime.UtcNow });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateOrganizationHandler(context);
+        var handler = CreateUpdateHandler(context);
         await handler.Handle(new UpdateOrganizationCommand(orgId, "Nytt Namn"), CancellationToken.None);
 
         context.Organizations.First().Name.Should().Be("Nytt Namn");
@@ -122,7 +125,7 @@ public class OrganizationHandlerTests
     {
         var context = TestDbContextFactory.Create();
 
-        var handler = new UpdateOrganizationHandler(context);
+        var handler = CreateUpdateHandler(context);
         var act = () => handler.Handle(new UpdateOrganizationCommand(Guid.NewGuid(), "Test"), CancellationToken.None);
 
         await act.Should().ThrowAsync<Exception>()
@@ -140,7 +143,7 @@ public class OrganizationHandlerTests
         context.Organizations.Add(new Organization { Id = Guid.NewGuid(), Name = "Org B", CreatedAt = DateTime.UtcNow });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateOrganizationHandler(context);
+        var handler = CreateUpdateHandler(context);
         var act = () => handler.Handle(new UpdateOrganizationCommand(org1Id, "org b"), CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -204,5 +207,21 @@ public class OrganizationHandlerTests
         context.Shifts.Should().BeEmpty();
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static CreateOrganizationHandler CreateCreateHandler(Infrastructure.AppDbContext context)
+    {
+        var validatorMock = new Mock<IValidator<CreateOrganizationCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateOrganizationCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new CreateOrganizationHandler(context, validatorMock.Object);
+    }
+
+    private static UpdateOrganizationHandler CreateUpdateHandler(Infrastructure.AppDbContext context)
+    {
+        var validatorMock = new Mock<IValidator<UpdateOrganizationCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateOrganizationCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new UpdateOrganizationHandler(context, validatorMock.Object);
     }
 }
