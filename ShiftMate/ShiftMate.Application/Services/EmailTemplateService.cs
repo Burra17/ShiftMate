@@ -190,6 +190,20 @@ namespace ShiftMate.Application.Services
 
             return Layout("Nytt pass tilldelat", body);
         }
+        // E-postverifiering
+        public static string EmailVerification(string recipientName, string verifyPath)
+        {
+            var body = $@"
+      <p style=""margin:0 0 16px;"">Hej {recipientName},</p>
+      <p style=""margin:0 0 16px;"">Välkommen till ShiftMate! Klicka på knappen nedan för att verifiera din e-postadress och aktivera ditt konto.</p>
+{Button("Verifiera e-post", verifyPath, Green)}
+      <p style=""margin:16px 0;color:{TextMuted};font-size:13px;"">
+        Länken är giltig i 24 timmar. Om du inte skapade detta konto kan du ignorera detta meddelande.
+      </p>";
+
+            return Layout("Verifiera din e-post", body);
+        }
+
         // Lösenordsåterställning
         public static string PasswordReset(string recipientName, string resetPath)
         {

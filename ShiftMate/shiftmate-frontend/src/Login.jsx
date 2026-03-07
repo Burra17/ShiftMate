@@ -18,12 +18,15 @@ const Login = ({ onLoginSuccess }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [emailNotVerified, setEmailNotVerified] = useState(false);
+    const [resending, setResending] = useState(false);
 
     // Funktion som hanterar formulärinskickning.
     const handleSubmit = async (e) => {
         e.preventDefault(); // Förhindrar standardbeteendet för formuläret (att ladda om sidan).
         setLoading(true); // Indikerar att en process har startat.
         setError(''); // Återställer eventuella tidigare felmeddelanden.
+        setEmailNotVerified(false);
 
         // Förbereder payload med användardata.
         // E-post trimmas och konverteras till gemener för konsekvens.
@@ -50,14 +53,31 @@ const Login = ({ onLoginSuccess }) => {
             // Hanterar olika typer av fel för att ge användaren relevant feedback.
             if (err.code === "ERR_NETWORK") {
                 setError("Kunde inte nå servern. Kontrollera att den är igång.");
+            } else if (err.response?.data?.code === "EMAIL_NOT_VERIFIED") {
+                setEmailNotVerified(true);
+                setError(err.response.data.message);
             } else if (err.response?.status === 401) {
-                setError("Fel e-post eller lösenord."); // Felaktiga inloggningsuppgifter.
+                setError("Fel e-post eller lösenord.");
             } else {
-                setError("Något gick fel vid inloggning."); // Generiskt felmeddelande.
+                setError(err.response?.data?.message || "Något gick fel vid inloggning.");
             }
         } finally {
             // Återställer laddningsstatus oavsett om inloggningen lyckades eller misslyckades.
             setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        setResending(true);
+        try {
+            await api.post('/Users/resend-verification', { email: email.trim().toLowerCase() });
+            setError('');
+            setEmailNotVerified(false);
+            setError('Ett nytt verifieringsmail har skickats. Kontrollera din inkorg.');
+        } catch {
+            setError('Kunde inte skicka verifieringsmail. Försök igen.');
+        } finally {
+            setResending(false);
         }
     };
 
@@ -66,7 +86,21 @@ const Login = ({ onLoginSuccess }) => {
         <AuthLayout title="ShiftMate" subtitle="Välkommen tillbaka!">
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Visar felmeddelande om ett sådant finns. */}
-                {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold p-3 rounded-lg text-center">{error}</div>}
+                {error && !emailNotVerified && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-xs font-semibold p-3 rounded-lg text-center">{error}</div>}
+
+                {emailNotVerified && (
+                    <div className="bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-semibold p-4 rounded-lg text-center space-y-3">
+                        <p>{error}</p>
+                        <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resending}
+                            className="px-4 py-2 bg-amber-500/30 hover:bg-amber-500/50 text-amber-200 rounded-lg transition-all text-xs font-bold uppercase tracking-wider disabled:opacity-50"
+                        >
+                            {resending ? 'Skickar...' : 'Skicka nytt verifieringsmail'}
+                        </button>
+                    </div>
+                )}
 
                 {/* Fält för e-post. */}
                 <div className="space-y-2">
