@@ -157,7 +157,7 @@ const Profile = ({ onLogout }) => {
             setIsEditing(false);
         } catch (err) {
             const data = err.response?.data;
-            const message = data?.Message || (typeof data === 'string' ? data : "Kunde inte uppdatera profilen.");
+            const message = data?.message || (typeof data === 'string' ? data : "Kunde inte uppdatera profilen.");
             toast.error(message);
         } finally {
             setSaving(false);
@@ -187,7 +187,7 @@ const Profile = ({ onLogout }) => {
             setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
         } catch (err) {
             const data = err.response?.data;
-            const message = data?.Message || (typeof data === 'string' ? data : "Kunde inte byta lösenord.");
+            const message = data?.message || (typeof data === 'string' ? data : "Kunde inte byta lösenord.");
             toast.error(message);
         } finally {
             setSavingPassword(false);

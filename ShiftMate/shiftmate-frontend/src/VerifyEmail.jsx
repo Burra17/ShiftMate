@@ -26,11 +26,11 @@ const VerifyEmail = () => {
             try {
                 const response = await api.post('/Users/verify-email', { token, email });
                 setStatus('success');
-                setMessage(response.data.Message || 'E-postadressen har verifierats!');
+                setMessage(response.data.message || 'E-postadressen har verifierats!');
             } catch (err) {
                 setStatus('error');
                 const data = err.response?.data;
-                setMessage(data?.Message || 'Något gick fel vid verifieringen.');
+                setMessage(data?.message || 'Något gick fel vid verifieringen.');
             }
         };
 

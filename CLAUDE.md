@@ -100,13 +100,14 @@ try {
 All responses use consistent JSON structure:
 
 ```
-Success:  { "Message": "...", "Id": "..." }  or  [array of DTOs]
-Paginated: { "Items": [...], "TotalCount": N, "Page": N, "PageSize": N, "TotalPages": N }
-Error:    { "Error": true, "Message": "..." }
-Login:    { "Token": "jwt.string" }
+Success:  { "message": "...", "id": "..." }  or  [array of DTOs]
+Paginated: { "items": [...], "totalCount": N, "page": N, "pageSize": N, "totalPages": N }
+Error:    { "error": true, "message": "..." }
+Login:    { "token": "jwt.string" }
 ```
 
-- Use **PascalCase** for JSON property names (C# default).
+- ASP.NET Core serializes JSON with **camelCase** by default (no custom naming policy configured).
+- Frontend must use **camelCase** when reading response properties (e.g., `data.message`, not `data.Message`).
 - Success messages and error messages in **Swedish**.
 
 ### DTO Mapping Rules
@@ -240,6 +241,10 @@ index.css                       # Global Tailwind styles + animations
 Dashboard.jsx                   # Landing page with overview & quick stats
 Login.jsx                       # Login page
 Register.jsx                    # Registration page
+ForgotPassword.jsx              # Forgot password — request reset email
+ResetPassword.jsx               # Reset password with token from email
+VerifyEmail.jsx                 # Email verification (token from URL)
+AdminPanel.jsx                  # SuperAdmin: organization management
 ShiftList.jsx                   # "Mina Pass" — user's shifts + incoming swap requests
 MarketPlace.jsx                 # "Lediga Pass" — claimable shifts
 Schedule.jsx                    # "Schema" — full schedule grouped by date
@@ -249,9 +254,19 @@ contexts/
 components/
   AuthLayout.jsx                # Shared auth page layout (login/register)
   ManagerPanel.jsx              # Manager: shift CRUD, user management, invite code
+  NotificationDropdown.jsx      # Bell icon with swap request notifications
+  EmptyState.jsx                # Reusable empty state placeholder
+  LoadingSpinner.jsx            # Reusable loading spinner
   ui/
     ToastContainer.jsx          # Toast notification list (portal-rendered)
     ConfirmModal.jsx            # Confirmation dialog (portal-rendered)
+  schedule/
+    NavigationBar.jsx           # Date navigation for schedule views
+    ViewToggle.jsx              # Day/Week/Month view toggle
+    DayView.jsx                 # Daily schedule view
+    WeekView.jsx                # Weekly schedule view
+    MonthView.jsx               # Monthly schedule view
+    ShiftCard.jsx               # Individual shift card in schedule
 ```
 
 ---
@@ -259,7 +274,7 @@ components/
 ## DATA MODEL (PostgreSQL)
 
 - **Organization:** `Id` (Guid), `Name` (string, unique), `InviteCode` (string, max 8, unique), `InviteCodeGeneratedAt` (DateTime), `CreatedAt` (DateTime)
-- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `OrganizationId` (FK → Organization)
+- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `IsEmailVerified` (bool), `EmailVerificationTokenHash`, `EmailVerificationTokenExpiresAt`, `ResetTokenHash`, `ResetTokenExpiresAt`, `OrganizationId` (FK → Organization)
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool), `OrganizationId` (FK → Organization)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string), `CreatedAt`
 
@@ -276,6 +291,8 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - `POST /api/users/register` — Register (requires InviteCode) → returns UserDto
 - `POST /api/users/forgot-password` — Request password reset email
 - `POST /api/users/reset-password` — Reset password with token
+- `POST /api/users/verify-email` — Verify email with token
+- `POST /api/users/resend-verification` — Resend verification email
 - `GET /health` — Health check
 
 ### Authenticated (Any Role)
