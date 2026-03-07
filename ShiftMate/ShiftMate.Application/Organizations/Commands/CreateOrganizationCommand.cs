@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
@@ -10,14 +11,23 @@ namespace ShiftMate.Application.Organizations.Commands
     public class CreateOrganizationHandler : IRequestHandler<CreateOrganizationCommand, Guid>
     {
         private readonly IAppDbContext _context;
+        private readonly IValidator<CreateOrganizationCommand> _validator;
 
-        public CreateOrganizationHandler(IAppDbContext context)
+        public CreateOrganizationHandler(IAppDbContext context, IValidator<CreateOrganizationCommand> validator)
         {
             _context = context;
+            _validator = validator;
         }
 
         public async Task<Guid> Handle(CreateOrganizationCommand request, CancellationToken cancellationToken)
         {
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
             var name = request.Name.Trim();
 
             var exists = await _context.Organizations

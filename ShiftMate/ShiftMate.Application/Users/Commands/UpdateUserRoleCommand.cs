@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain;
@@ -15,10 +16,23 @@ namespace ShiftMate.Application.Users.Commands
     public class UpdateUserRoleHandler : IRequestHandler<UpdateUserRoleCommand, bool>
     {
         private readonly IAppDbContext _context;
-        public UpdateUserRoleHandler(IAppDbContext context) { _context = context; }
+        private readonly IValidator<UpdateUserRoleCommand> _validator;
+
+        public UpdateUserRoleHandler(IAppDbContext context, IValidator<UpdateUserRoleCommand> validator)
+        {
+            _context = context;
+            _validator = validator;
+        }
 
         public async Task<bool> Handle(UpdateUserRoleCommand request, CancellationToken cancellationToken)
         {
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
             if (request.TargetUserId == request.RequestingUserId)
                 throw new InvalidOperationException("Du kan inte ändra din egen roll.");
 

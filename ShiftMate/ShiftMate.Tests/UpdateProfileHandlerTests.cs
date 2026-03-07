@@ -1,4 +1,7 @@
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
+using Moq;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
@@ -13,7 +16,7 @@ public class UpdateProfileHandlerTests
     public async Task Handle_Should_Throw_When_User_Not_Found()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new UpdateProfileHandler(context);
+        var handler = CreateHandler(context);
 
         var command = new UpdateProfileCommand
         {
@@ -44,7 +47,7 @@ public class UpdateProfileHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new UpdateProfileHandler(context);
+        var handler = CreateHandler(context);
         var command = new UpdateProfileCommand
         {
             UserId = userId,
@@ -61,6 +64,14 @@ public class UpdateProfileHandlerTests
         user.Email.Should().Be("new@test.com");
 
         TestDbContextFactory.Destroy(context);
+    }
+
+    private static UpdateProfileHandler CreateHandler(Infrastructure.AppDbContext context)
+    {
+        var validatorMock = new Mock<IValidator<UpdateProfileCommand>>();
+        validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateProfileCommand>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ValidationResult());
+        return new UpdateProfileHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

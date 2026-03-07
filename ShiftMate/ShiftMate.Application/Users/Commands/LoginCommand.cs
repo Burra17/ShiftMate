@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -21,15 +22,24 @@ namespace ShiftMate.Application.Users.Commands
     {
         private readonly IAppDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<LoginCommand> _validator;
 
-        public LoginHandler(IAppDbContext context, IConfiguration configuration)
+        public LoginHandler(IAppDbContext context, IConfiguration configuration, IValidator<LoginCommand> validator)
         {
             _context = context;
             _configuration = configuration;
+            _validator = validator;
         }
 
         public async Task<string> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
             // A. Hitta användaren (skiftlägesokänsligt) med organisation
             var user = await _context.Users
                 .Include(u => u.Organization)

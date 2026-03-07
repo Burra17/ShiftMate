@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -40,6 +41,10 @@ namespace ShiftMate.Api.Controllers
             {
                 await _mediator.Send(command);
             }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
             catch
             {
                 // Returnera alltid samma svar oavsett om e-posten finns eller inte (anti-enumeration)
@@ -57,6 +62,10 @@ namespace ShiftMate.Api.Controllers
                 await _mediator.Send(command);
                 return Ok(new { Message = "Lösenordet har återställts! Du kan nu logga in." });
             }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
             catch (Exception ex)
             {
                 return BadRequest(new { Error = true, Message = ex.Message });
@@ -71,6 +80,10 @@ namespace ShiftMate.Api.Controllers
             {
                 var token = await _mediator.Send(command);
                 return Ok(new { Token = token });
+            }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
             }
             catch (Exception ex)
             {
@@ -87,9 +100,13 @@ namespace ShiftMate.Api.Controllers
                 var result = await _mediator.Send(command);
                 return Ok(result);
             }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { Error = true, Message = ex.Message });
             }
         }
 
@@ -107,9 +124,13 @@ namespace ShiftMate.Api.Controllers
                 await _mediator.Send(command);
                 return Ok(new { Message = "Profilen har uppdaterats!" });
             }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { Error = true, Message = ex.Message });
             }
         }
 
@@ -128,9 +149,13 @@ namespace ShiftMate.Api.Controllers
                 await _mediator.Send(command);
                 return Ok(new { Message = "Lösenordet har ändrats!" });
             }
+            catch (ValidationException vex)
+            {
+                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { Error = true, Message = ex.Message });
             }
         }
 

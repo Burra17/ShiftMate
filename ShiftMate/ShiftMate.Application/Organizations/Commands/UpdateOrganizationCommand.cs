@@ -1,3 +1,4 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
@@ -9,14 +10,23 @@ namespace ShiftMate.Application.Organizations.Commands
     public class UpdateOrganizationHandler : IRequestHandler<UpdateOrganizationCommand>
     {
         private readonly IAppDbContext _context;
+        private readonly IValidator<UpdateOrganizationCommand> _validator;
 
-        public UpdateOrganizationHandler(IAppDbContext context)
+        public UpdateOrganizationHandler(IAppDbContext context, IValidator<UpdateOrganizationCommand> validator)
         {
             _context = context;
+            _validator = validator;
         }
 
         public async Task Handle(UpdateOrganizationCommand request, CancellationToken cancellationToken)
         {
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
             var name = request.Name.Trim();
 
             var organization = await _context.Organizations

@@ -47,7 +47,9 @@ const Register = () => {
             navigate('/login');
         } catch (err) {
             console.error("Registreringsfel:", err.response || err);
-            if (err.response?.data) {
+            if (err.response?.data?.Message) {
+                setError(err.response.data.Message);
+            } else if (err.response?.data && typeof err.response.data === 'string') {
                 setError(err.response.data);
             } else {
                 setError("Nätverksfel eller så kunde inte servern nås.");

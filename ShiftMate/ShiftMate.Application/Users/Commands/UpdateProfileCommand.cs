@@ -1,4 +1,5 @@
-﻿using MediatR;
+﻿using FluentValidation;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
 using System.Text.Json.Serialization;
@@ -17,14 +18,23 @@ namespace ShiftMate.Application.Users.Commands
     public class UpdateProfileHandler : IRequestHandler<UpdateProfileCommand>
     {
         private readonly IAppDbContext _context;
+        private readonly IValidator<UpdateProfileCommand> _validator;
 
-        public UpdateProfileHandler(IAppDbContext context)
+        public UpdateProfileHandler(IAppDbContext context, IValidator<UpdateProfileCommand> validator)
         {
             _context = context;
+            _validator = validator;
         }
 
         public async Task Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
         {
+            // 1. VALIDERING
+            var validationResult = await _validator.ValidateAsync(request, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                throw new ValidationException(validationResult.Errors);
+            }
+
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
