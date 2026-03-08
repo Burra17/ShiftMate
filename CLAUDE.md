@@ -46,6 +46,7 @@ These principles guide every decision in this project:
 - **Core:** React 19, JavaScript (ES6+), functional components only
 - **Build:** Vite 7.2.4
 - **Styling:** Tailwind CSS 4.1.18 (Theme: Neon Dark — `bg-slate-950`, `text-blue-400`)
+- **Typography:** Plus Jakarta Sans (headings/bold), DM Sans (body) via Google Fonts
 - **State/Network:** Axios with JWT interceptor, React Hooks (`useState`, `useEffect`)
 - **Routing:** React Router v7
 - **Notifications:** Toast system via `ToastContext` (success, error, info, warning)
