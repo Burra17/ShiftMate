@@ -261,6 +261,9 @@ components/
   ui/
     ToastContainer.jsx          # Toast notification list (portal-rendered)
     ConfirmModal.jsx            # Confirmation dialog (portal-rendered)
+    DatePicker.jsx              # Custom calendar date picker (Swedish locale, Monday-first)
+    TimePicker.jsx              # Custom two-step time picker (hour → minute grid)
+    UserSelect.jsx              # Custom user dropdown with search and avatars
   schedule/
     NavigationBar.jsx           # Date navigation for schedule views
     ViewToggle.jsx              # Day/Week/Month view toggle

@@ -13,6 +13,9 @@ import {
     regenerateInviteCode
 } from '../api';
 import { useToast, useConfirm } from '../contexts/ToastContext';
+import DatePicker from './ui/DatePicker';
+import TimePicker from './ui/TimePicker';
+import UserSelect from './ui/UserSelect';
 
 // Snabbval för vanliga passtyper
 const QUICK_SHIFTS = [
@@ -210,9 +213,13 @@ const ManagerPanel = () => {
                 endDate = next.toISOString().split('T')[0];
             }
 
+            // Skapa Date-objekt från lokala värden och konvertera till UTC ISO-sträng
+            const localStart = new Date(`${date}T${startTime}`);
+            const localEnd = new Date(`${endDate}T${endTime}`);
+
             const payload = {
-                startTime: `${date}T${startTime}`,
-                endTime: `${endDate}T${endTime}`,
+                startTime: localStart.toISOString(),
+                endTime: localEnd.toISOString(),
                 userId: userId === '' ? null : userId
             };
 
@@ -351,161 +358,153 @@ const ManagerPanel = () => {
         })
         .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
 
-    return (
-        <div className="bg-slate-900/80 backdrop-blur-xl p-6 md:p-8 rounded-3xl border border-slate-800 shadow-2xl relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
+    const tabs = [
+        { id: 'shifts', label: 'Nytt Pass', color: 'purple' },
+        { id: 'allShifts', label: 'Alla Pass', color: 'emerald' },
+        { id: 'users', label: 'Användare', color: 'blue' },
+        { id: 'invite', label: 'Inbjudningskod', color: 'amber' },
+    ];
 
-            {/* Fliknavigation */}
-            <div className="flex gap-2 mb-6 border-b border-slate-800 pb-4 relative z-10">
-                <button
-                    onClick={() => setActiveTab('shifts')}
-                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all
-                        ${activeTab === 'shifts'
-                            ? 'bg-purple-600/20 border border-purple-500 text-purple-300'
-                            : 'text-slate-500 hover:text-white'}`}
-                >
-                    Schemalägg Pass
-                </button>
-                <button
-                    onClick={() => setActiveTab('allShifts')}
-                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all
-                        ${activeTab === 'allShifts'
-                            ? 'bg-emerald-600/20 border border-emerald-500 text-emerald-300'
-                            : 'text-slate-500 hover:text-white'}`}
-                >
-                    Alla Pass
-                </button>
-                <button
-                    onClick={() => setActiveTab('users')}
-                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all
-                        ${activeTab === 'users'
-                            ? 'bg-blue-600/20 border border-blue-500 text-blue-300'
-                            : 'text-slate-500 hover:text-white'}`}
-                >
-                    Användare
-                </button>
-                <button
-                    onClick={() => setActiveTab('invite')}
-                    className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all
-                        ${activeTab === 'invite'
-                            ? 'bg-amber-600/20 border border-amber-500 text-amber-300'
-                            : 'text-slate-500 hover:text-white'}`}
-                >
-                    Inbjudningskod
-                </button>
+    const tabColors = {
+        purple: 'bg-purple-500/10 border-purple-500/30 text-purple-300',
+        emerald: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
+        blue: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
+        amber: 'bg-amber-500/10 border-amber-500/30 text-amber-300',
+    };
+
+    return (
+        <div className="space-y-6">
+
+            {/* Fliknavigation — fristående pill-bar */}
+            <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                {tabs.map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap border
+                            ${activeTab === tab.id
+                                ? tabColors[tab.color]
+                                : 'border-transparent text-slate-500 hover:text-slate-300 hover:bg-slate-800/40'}`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Flik: Schemalägg Pass */}
+            {/* Flik: Nytt Pass */}
             {activeTab === 'shifts' && (
-                <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                <div className="animate-fade-up">
+                    <form onSubmit={handleSubmit} className="space-y-5">
 
-                    {/* Datum */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Datum</label>
-                        <input
-                            type="date"
-                            value={date}
-                            onChange={(e) => setDate(e.target.value)}
-                            required
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                        />
-                    </div>
+                        {/* ── Steg 1: Datum + Snabbval ── */}
+                        <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 space-y-5 overflow-visible relative z-20">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-5 h-5 rounded-md bg-purple-500/15 border border-purple-500/25 flex items-center justify-center">
+                                    <span className="text-[10px] font-extrabold text-purple-400">1</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Välj datum & tid</span>
+                            </div>
 
-                    {/* Snabbval */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Snabbval</label>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                            {QUICK_SHIFTS.map((quick) => (
-                                <button
-                                    key={quick.label}
-                                    type="button"
-                                    onClick={() => handleQuickSelect(quick)}
-                                    className={`py-3 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border
-                                        ${activeQuick === quick.label
-                                            ? 'bg-purple-600/20 border-purple-500 text-purple-300 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
-                                            : 'bg-slate-800/50 border-slate-700 text-slate-400 hover:border-slate-600 hover:text-white'
-                                        }`}
-                                >
-                                    <span className="block text-lg mb-1">{quick.icon}</span>
-                                    {quick.label}
-                                    <span className="block text-[10px] text-slate-500 font-medium mt-0.5">
-                                        {quick.start.replace(':', '.')} - {quick.end.replace(':', '.')}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Start- och sluttid */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Starttid</label>
-                            <input
-                                type="time"
-                                value={startTime}
-                                onChange={(e) => handleStartChange(e.target.value)}
+                            {/* Datum */}
+                            <DatePicker
+                                label="Datum"
+                                value={date}
+                                onChange={setDate}
                                 required
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                             />
+
+                            {/* Snabbval */}
+                            <div className="space-y-1.5">
+                                <label className="text-[11px] font-semibold text-slate-500 ml-1">Snabbval</label>
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                    {QUICK_SHIFTS.map((quick) => (
+                                        <button
+                                            key={quick.label}
+                                            type="button"
+                                            onClick={() => handleQuickSelect(quick)}
+                                            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all border group
+                                                ${activeQuick === quick.label
+                                                    ? 'bg-purple-500/15 border-purple-500/40 text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.12)]'
+                                                    : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:border-slate-600 hover:text-slate-200'
+                                                }`}
+                                        >
+                                            <span className="block text-base mb-1 group-hover:scale-110 transition-transform">{quick.icon}</span>
+                                            <span className="uppercase tracking-wider">{quick.label}</span>
+                                            <span className="block text-[10px] text-slate-500 font-medium mt-0.5">
+                                                {quick.start} – {quick.end}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Start- och sluttid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <TimePicker
+                                    label="Starttid"
+                                    value={startTime}
+                                    onChange={handleStartChange}
+                                    required
+                                />
+                                <TimePicker
+                                    label="Sluttid"
+                                    value={endTime}
+                                    onChange={handleEndChange}
+                                    required
+                                />
+                            </div>
+
+                            {/* Förhandsgranskning av längd */}
+                            {duration && (
+                                <div className="flex items-center gap-2 bg-purple-500/8 border border-purple-500/15 rounded-lg px-3 py-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_#a855f7]"></span>
+                                    <span className="text-xs font-semibold text-purple-300">Passlängd: {duration}</span>
+                                </div>
+                            )}
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Sluttid</label>
-                            <input
-                                type="time"
-                                value={endTime}
-                                onChange={(e) => handleEndChange(e.target.value)}
-                                required
-                                className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+
+                        {/* ── Steg 2: Tilldela personal ── */}
+                        <div className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 space-y-3 overflow-visible relative z-10">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-5 h-5 rounded-md bg-purple-500/15 border border-purple-500/25 flex items-center justify-center">
+                                    <span className="text-[10px] font-extrabold text-purple-400">2</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Tilldela personal</span>
+                            </div>
+
+                            <UserSelect
+                                users={users}
+                                value={userId}
+                                onChange={setUserId}
                             />
+                            <p className="text-[11px] text-slate-500 ml-1">Lämnas det tomt hamnar passet direkt på Lediga pass.</p>
                         </div>
-                    </div>
 
-                    {/* Förhandsgranskning av längd */}
-                    {duration && (
-                        <div className="flex items-center gap-2 px-1">
-                            <span className="w-2 h-2 rounded-full bg-purple-400 shadow-[0_0_8px_#a855f7]"></span>
-                            <span className="text-xs font-bold text-purple-300">Passlängd: {duration}</span>
-                        </div>
-                    )}
-
-                    {/* Välj Personal */}
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Tilldela Personal</label>
-                        <select
-                            value={userId}
-                            onChange={(e) => setUserId(e.target.value)}
-                            className="w-full bg-slate-800 border border-slate-700 text-white rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all appearance-none"
+                        {/* ── Skapa-knapp ── */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-wider transition-all text-sm
+                                ${loading
+                                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-900/30 hover:shadow-purple-500/20 hover:scale-[1.02] active:scale-[0.98]'
+                                }`}
                         >
-                            <option value="">Öppet pass (ingen ägare)</option>
-                            <option disabled>──────────</option>
-                            {users.map(user => (
-                                <option key={user.id} value={user.id}>
-                                    {user.firstName} {user.lastName}
-                                </option>
-                            ))}
-                        </select>
-                        <p className="text-xs text-slate-500 ml-1">Lämnas det tomt hamnar passet direkt på Lediga pass.</p>
-                    </div>
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    Skapar...
+                                </span>
+                            ) : 'Skapa pass'}
+                        </button>
 
-                    {/* Knapp */}
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className={`w-full py-4 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg text-sm
-                            ${loading
-                                ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:shadow-purple-500/25 hover:scale-[1.02] active:scale-[0.98]'
-                            }`}
-                    >
-                        {loading ? 'Skapar...' : 'Skapa pass'}
-                    </button>
-
-                </form>
+                    </form>
+                </div>
             )}
 
             {/* Flik: Alla Pass */}
             {activeTab === 'allShifts' && (
-                <div className="space-y-4 relative z-10">
+                <div className="space-y-4">
                     {/* Datumfilter */}
                     <div className="flex items-center gap-3">
                         <input
@@ -741,7 +740,7 @@ const ManagerPanel = () => {
 
             {/* Flik: Användare */}
             {activeTab === 'users' && (
-                <div className="space-y-3 relative z-10">
+                <div className="space-y-3">
                     {users.length === 0 ? (
                         <p className="text-slate-500 text-sm text-center py-8">Inga användare hittades.</p>
                     ) : (
@@ -808,7 +807,7 @@ const ManagerPanel = () => {
 
             {/* Flik: Inbjudningskod */}
             {activeTab === 'invite' && (
-                <div className="space-y-6 relative z-10">
+                <div className="space-y-6">
                     {inviteLoading ? (
                         <div className="text-center py-12">
                             <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
