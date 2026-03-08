@@ -94,7 +94,7 @@ const MainApp = ({ onLogout }) => {
     const handleNotifOpen = () => setHasUnseen(false);
 
     return (
-        <div className="min-h-screen bg-slate-950 text-gray-100 font-sans flex overflow-hidden">
+        <div className="min-h-screen bg-slate-950 text-gray-100 flex overflow-hidden noise-bg">
             {/* Mobil notifikationsklocka — fast position uppe till höger, dold på desktop (ej för SuperAdmin) */}
             {!isSuperAdmin && (
                 <div className="md:hidden fixed top-4 right-4 z-40">
@@ -103,23 +103,26 @@ const MainApp = ({ onLogout }) => {
             )}
 
             {/* Sidomeny */}
-            <aside className="hidden md:flex flex-col w-72 bg-slate-900/50 backdrop-blur-xl border-r border-slate-800 p-6 z-10">
+            <aside className="hidden md:flex flex-col w-72 bg-slate-900/40 backdrop-blur-2xl border-r border-slate-800/60 p-6 z-10 relative">
+                {/* Subtil glow längs höger kant */}
+                <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-blue-500/15 to-transparent"></div>
+
                 <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden ring-1 ring-blue-500/20">
                         <img src="/favicon.svg" alt="ShiftMate" className="w-full h-full" />
                     </div>
-                    <h1 className="text-xl font-black tracking-tight text-white flex-1">ShiftMate</h1>
+                    <h1 className="text-xl font-extrabold tracking-tight text-white flex-1">ShiftMate</h1>
                     {/* Notifikationsklocka — synlig i sidomenyn på desktop (ej för SuperAdmin) */}
                     {!isSuperAdmin && <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} align="left" />}
                 </div>
 
                 {/* Navigationslänkar */}
-                <nav className="flex-1 space-y-2">
+                <nav className="flex-1 space-y-1">
                     {navItems.map((item) => (
                         <Link to={item.path} key={item.id}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-bold ${activeTab === item.id
-                                ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]'
-                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-semibold relative ${activeTab === item.id
+                                ? 'bg-blue-500/10 text-blue-400 glow-border'
+                                : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
                                 }`}
                         >
                             <item.icon />
@@ -129,21 +132,23 @@ const MainApp = ({ onLogout }) => {
                     ))}
                 </nav>
 
-                <button onClick={onLogout} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-400 transition-colors mt-auto text-sm font-bold">
-                    <Icons.LogOut />
-                    <span>Logga ut</span>
-                </button>
+                <div className="border-t border-slate-800/60 pt-4 mt-4">
+                    <button onClick={onLogout} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-400 transition-colors w-full text-sm font-semibold rounded-xl hover:bg-red-500/5">
+                        <Icons.LogOut />
+                        <span>Logga ut</span>
+                    </button>
+                </div>
             </aside>
 
             {/* Huvudinnehåll */}
             <main ref={mainRef} className="flex-1 overflow-y-auto relative h-screen">
-                <div key={activeTab} className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12">
+                <div key={activeTab} className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12 animate-fade-in">
                     {activeTab !== 'dashboard' && (
                         <header className="mb-8">
-                            <h2 className="text-3xl md:text-4xl font-black text-white tracking-tight">
+                            <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
                                 {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
                             </h2>
-                            <p className="text-slate-400 mt-2 text-sm">Hantera din arbetstid smidigt.</p>
+                            <p className="text-slate-500 mt-2 text-sm font-medium">Hantera din arbetstid smidigt.</p>
                         </header>
                     )}
 
@@ -161,7 +166,9 @@ const MainApp = ({ onLogout }) => {
             </main>
 
             {/* Mobil bottenmeny — visas bara på små skärmar */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-xl border-t border-slate-800 z-50">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-800/60 z-50">
+                {/* Toppkant-glow */}
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
                 <div className="flex justify-around items-center h-16 px-1">
                     {navItems.map((item) => (
                         <Link
@@ -174,7 +181,7 @@ const MainApp = ({ onLogout }) => {
                                 }`}
                         >
                             <item.icon />
-                            <span className="text-[10px] font-bold mt-1 tracking-tight">{item.label}</span>
+                            <span className="text-[10px] font-semibold mt-1 tracking-tight">{item.label}</span>
                             {activeTab === item.id && (
                                 <div className="w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_6px_#3b82f6] mt-0.5"></div>
                             )}
