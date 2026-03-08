@@ -52,6 +52,12 @@ namespace ShiftMate.Application.Users.Commands
                 throw new Exception("Fel e-post eller lösenord.");
             }
 
+            // B2. Kontrollera om kontot är inaktiverat
+            if (!user.IsActive)
+            {
+                throw new Exception("Ditt konto har inaktiverats. Kontakta din chef för mer information.");
+            }
+
             // C. Kontrollera e-postverifiering (SuperAdmin undantas)
             if (!user.IsEmailVerified && user.Role != Role.SuperAdmin)
             {

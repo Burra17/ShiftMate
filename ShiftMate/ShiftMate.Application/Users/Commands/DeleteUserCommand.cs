@@ -1,5 +1,7 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain;
 
 namespace ShiftMate.Application.Users.Commands
 {
@@ -18,17 +20,44 @@ namespace ShiftMate.Application.Users.Commands
         public async Task<bool> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
             if (request.TargetUserId == request.RequestingUserId)
-                throw new InvalidOperationException("Du kan inte radera ditt eget konto.");
+                throw new InvalidOperationException("Du kan inte inaktivera ditt eget konto.");
 
             var user = await _context.Users.FindAsync(new object[] { request.TargetUserId }, cancellationToken);
             if (user == null)
                 throw new InvalidOperationException("Användaren hittades inte.");
 
-            // Validera att användaren tillhör samma organisation
             if (user.OrganizationId != request.OrganizationId)
                 throw new InvalidOperationException("Användaren tillhör inte din organisation.");
 
-            _context.Users.Remove(user);
+            if (!user.IsActive)
+                throw new InvalidOperationException("Användaren är redan inaktiverad.");
+
+            // Soft delete: markera som inaktiv
+            user.IsActive = false;
+            user.DeactivatedAt = DateTime.UtcNow;
+
+            // Frigör användarens tilldelade pass (gör dem lediga)
+            var userShifts = await _context.Shifts
+                .Where(s => s.UserId == request.TargetUserId)
+                .ToListAsync(cancellationToken);
+
+            foreach (var shift in userShifts)
+            {
+                shift.UserId = null;
+                shift.IsUpForSwap = false;
+            }
+
+            // Avbryt alla väntande bytesförfrågningar som involverar användaren
+            var pendingSwaps = await _context.SwapRequests
+                .Where(sr => sr.Status == SwapRequestStatus.Pending &&
+                    (sr.RequestingUserId == request.TargetUserId || sr.TargetUserId == request.TargetUserId))
+                .ToListAsync(cancellationToken);
+
+            foreach (var swap in pendingSwaps)
+            {
+                swap.Status = SwapRequestStatus.Cancelled;
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
             return true;
         }

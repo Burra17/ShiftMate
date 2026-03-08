@@ -162,6 +162,33 @@ public class GetAllUsersHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
+    [Fact]
+    public async Task Handle_Should_Exclude_Inactive_Users()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+
+        context.Users.Add(new User
+        {
+            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
+            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId, IsActive = true
+        });
+        context.Users.Add(new User
+        {
+            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
+            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId, IsActive = false, DeactivatedAt = DateTime.UtcNow
+        });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new GetAllUsersHandler(context);
+        var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
+
+        result.Items.Should().HaveCount(1);
+        result.Items[0].Email.Should().Be("anna@test.com");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
     private static void SeedOrg(Infrastructure.AppDbContext context)
     {
         context.Organizations.Add(new Organization { Id = OrgId, Name = "Test Org" });

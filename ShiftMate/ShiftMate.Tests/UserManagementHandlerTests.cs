@@ -1,6 +1,7 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using ShiftMate.Application.Users.Commands;
 using ShiftMate.Domain;
@@ -13,11 +14,11 @@ public class UserManagementHandlerTests
     private static readonly Guid OrgId = Guid.NewGuid();
 
     // -------------------------------------------------------
-    // DeleteUserHandler
+    // DeleteUserHandler (Soft Delete)
     // -------------------------------------------------------
 
     [Fact]
-    public async Task DeleteUser_Should_Remove_User()
+    public async Task DeleteUser_Should_Deactivate_User()
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
@@ -33,13 +34,75 @@ public class UserManagementHandlerTests
         var result = await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
 
         result.Should().BeTrue();
-        context.Users.Should().NotContain(u => u.Id == targetId);
+        var user = await context.Users.FindAsync(targetId);
+        user.Should().NotBeNull();
+        user!.IsActive.Should().BeFalse();
+        user.DeactivatedAt.Should().NotBeNull();
 
         TestDbContextFactory.Destroy(context);
     }
 
     [Fact]
-    public async Task DeleteUser_Should_Throw_When_Deleting_Self()
+    public async Task DeleteUser_Should_Unassign_Shifts()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var managerId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+        var shiftId = Guid.NewGuid();
+
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
+        context.Shifts.Add(new Shift { Id = shiftId, UserId = targetId, StartTime = DateTime.UtcNow, EndTime = DateTime.UtcNow.AddHours(8), IsUpForSwap = true, OrganizationId = OrgId });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new DeleteUserHandler(context);
+        await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
+
+        var shift = await context.Shifts.FindAsync(shiftId);
+        shift!.UserId.Should().BeNull();
+        shift.IsUpForSwap.Should().BeFalse();
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task DeleteUser_Should_Cancel_Pending_SwapRequests()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var managerId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        var shiftId1 = Guid.NewGuid();
+        var shiftId2 = Guid.NewGuid();
+        var swapId1 = Guid.NewGuid();
+        var swapId2 = Guid.NewGuid();
+
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = otherId, FirstName = "Erik", LastName = "Johansson", Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
+        context.Shifts.Add(new Shift { Id = shiftId1, UserId = targetId, StartTime = DateTime.UtcNow, EndTime = DateTime.UtcNow.AddHours(8), OrganizationId = OrgId });
+        context.Shifts.Add(new Shift { Id = shiftId2, UserId = otherId, StartTime = DateTime.UtcNow, EndTime = DateTime.UtcNow.AddHours(8), OrganizationId = OrgId });
+        // Swap where target user is requesting
+        context.SwapRequests.Add(new SwapRequest { Id = swapId1, ShiftId = shiftId1, RequestingUserId = targetId, TargetUserId = otherId, Status = SwapRequestStatus.Pending });
+        // Swap where target user is the target
+        context.SwapRequests.Add(new SwapRequest { Id = swapId2, ShiftId = shiftId2, RequestingUserId = otherId, TargetUserId = targetId, Status = SwapRequestStatus.Pending });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new DeleteUserHandler(context);
+        await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
+
+        var swap1 = await context.SwapRequests.FindAsync(swapId1);
+        var swap2 = await context.SwapRequests.FindAsync(swapId2);
+        swap1!.Status.Should().Be(SwapRequestStatus.Cancelled);
+        swap2!.Status.Should().Be(SwapRequestStatus.Cancelled);
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task DeleteUser_Should_Throw_When_Deactivating_Self()
     {
         var context = TestDbContextFactory.Create();
         SeedOrg(context);
@@ -55,7 +118,7 @@ public class UserManagementHandlerTests
             CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("*radera*");
+            .WithMessage("*inaktivera*");
 
         TestDbContextFactory.Destroy(context);
     }
@@ -79,6 +142,83 @@ public class UserManagementHandlerTests
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*hittades inte*");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task DeleteUser_Should_Throw_When_Wrong_Organization()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var managerId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+        var otherOrgId = Guid.NewGuid();
+
+        context.Organizations.Add(new Organization { Id = otherOrgId, Name = "Other Org" });
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = otherOrgId });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new DeleteUserHandler(context);
+
+        var act = async () => await handler.Handle(
+            new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId },
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*tillhör inte*");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task DeleteUser_Should_Throw_When_Already_Deactivated()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var managerId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId, IsActive = false, DeactivatedAt = DateTime.UtcNow });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new DeleteUserHandler(context);
+
+        var act = async () => await handler.Handle(
+            new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId },
+            CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*redan inaktiverad*");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
+    [Fact]
+    public async Task DeleteUser_Should_Not_Cancel_Non_Pending_SwapRequests()
+    {
+        var context = TestDbContextFactory.Create();
+        SeedOrg(context);
+        var managerId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        var shiftId = Guid.NewGuid();
+        var acceptedSwapId = Guid.NewGuid();
+
+        context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
+        context.Users.Add(new User { Id = otherId, FirstName = "Erik", LastName = "Johansson", Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
+        context.Shifts.Add(new Shift { Id = shiftId, UserId = targetId, StartTime = DateTime.UtcNow, EndTime = DateTime.UtcNow.AddHours(8), OrganizationId = OrgId });
+        context.SwapRequests.Add(new SwapRequest { Id = acceptedSwapId, ShiftId = shiftId, RequestingUserId = targetId, TargetUserId = otherId, Status = SwapRequestStatus.Accepted });
+        await context.SaveChangesAsync(CancellationToken.None);
+
+        var handler = new DeleteUserHandler(context);
+        await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
+
+        var swap = await context.SwapRequests.FindAsync(acceptedSwapId);
+        swap!.Status.Should().Be(SwapRequestStatus.Accepted);
 
         TestDbContextFactory.Destroy(context);
     }
