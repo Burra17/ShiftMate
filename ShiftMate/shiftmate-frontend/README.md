@@ -123,7 +123,10 @@ shiftmate-frontend/
         ├── ManagerPanel.jsx  # Manager-panel för skifthantering och användarhantering
         └── ui/
             ├── ToastContainer.jsx  # Toast-lista (portal-renderad)
-            └── ConfirmModal.jsx    # Bekräftelsedialog (portal-renderad)
+            ├── ConfirmModal.jsx    # Bekräftelsedialog (portal-renderad)
+            ├── DatePicker.jsx      # Anpassad kalender-datumväljare (sv locale, måndag först)
+            ├── TimePicker.jsx      # Anpassad tvåstegs-tidväljare (timme → minut)
+            └── UserSelect.jsx      # Anpassad dropdown med sök och avatarer
 ```
 
 ## Autentisering
