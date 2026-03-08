@@ -24,7 +24,7 @@ namespace ShiftMate.Application.Users.Queries
             var query = _context.Users
                 .AsNoTracking()
                 .Include(u => u.Organization)
-                .Where(u => u.OrganizationId == request.OrganizationId);
+                .Where(u => u.OrganizationId == request.OrganizationId && u.IsActive);
 
             var totalCount = await query.CountAsync(cancellationToken);
 

@@ -215,7 +215,7 @@ namespace ShiftMate.Api.Controllers
                     RequestingUserId = requestingUserId.Value,
                     OrganizationId = orgId.Value
                 });
-                return Ok(new { Message = "Användaren har tagits bort." });
+                return Ok(new { Message = "Användaren har inaktiverats." });
             }
             catch (Exception ex)
             {

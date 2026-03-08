@@ -274,7 +274,7 @@ components/
 ## DATA MODEL (PostgreSQL)
 
 - **Organization:** `Id` (Guid), `Name` (string, unique), `InviteCode` (string, max 8, unique), `InviteCodeGeneratedAt` (DateTime), `CreatedAt` (DateTime)
-- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `IsEmailVerified` (bool), `EmailVerificationTokenHash`, `EmailVerificationTokenExpiresAt`, `ResetTokenHash`, `ResetTokenExpiresAt`, `OrganizationId` (FK → Organization)
+- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `IsEmailVerified` (bool), `EmailVerificationTokenHash`, `EmailVerificationTokenExpiresAt`, `ResetTokenHash`, `ResetTokenExpiresAt`, `IsActive` (bool, default true), `DeactivatedAt` (DateTime?), `OrganizationId` (FK → Organization)
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool), `OrganizationId` (FK → Organization)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string), `CreatedAt`
 
@@ -319,6 +319,7 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - `POST /api/shifts/admin` — Create shift and assign to user
 - `PUT /api/shifts/{id}` — Update any shift
 - `DELETE /api/shifts/{id}` — Delete any shift
+- `DELETE /api/users/{id}` — Soft delete (deactivate) a user
 
 ---
 

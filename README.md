@@ -10,7 +10,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 - **Schema** - Komplett schemaöversikt grupperad per datum med alla anställdas skift
 - **Skiftbyten** - Erbjud skift på öppna marknaden eller föreslå direktbyten med kollegor
 - **Bytesförfrågningar** - Acceptera, neka eller avbryt förfrågningar med fullständig livscykel
-- **Manager-panel** - Skapa, redigera och ta bort skift, hantera användare, visa/förnya inbjudningskod (rollbaserad åtkomst)
+- **Manager-panel** - Skapa, redigera och ta bort skift, hantera användare (inaktivera med soft delete), visa/förnya inbjudningskod (rollbaserad åtkomst)
 - **Admin-panel** - SuperAdmin kan hantera alla organisationer (skapa, redigera, ta bort)
 - **Inbjudningskod** - Managers delar inbjudningskod, anställda anger den vid registrering
 - **Rollbaserad navigation** - Manager/SuperAdmin-funktioner visas bara för rätt roll
@@ -123,7 +123,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
     │   ├── Program.cs
     │   └── Controllers/
     │
-    ├── ShiftMate.Tests/                   # Enhetstester (191 tester)
+    ├── ShiftMate.Tests/                   # Enhetstester (198 tester)
     │
     └── shiftmate-frontend/                # React-applikation
         ├── src/
