@@ -172,6 +172,7 @@ if (userId == null) return Unauthorized();
 |------|-----------|---------|
 | Page component | `PascalCase.jsx` | `Dashboard.jsx` |
 | Shared component | `components/PascalCase.jsx` | `components/ManagerPanel.jsx` |
+| Feature component | `components/[feature]/PascalCase.jsx` | `components/manager/ShiftForm.jsx` |
 | UI component | `components/ui/PascalCase.jsx` | `components/ui/ConfirmModal.jsx` |
 | Context | `contexts/[Name]Context.jsx` | `contexts/ToastContext.jsx` |
 | API helper | `camelCase` function in `api.js` | `fetchMyShifts()` |
@@ -254,10 +255,15 @@ contexts/
   ToastContext.jsx              # Toast notifications + confirm dialog (useToast, useConfirm)
 components/
   AuthLayout.jsx                # Shared auth page layout (login/register)
-  ManagerPanel.jsx              # Manager: shift CRUD, user management, invite code
+  ManagerPanel.jsx              # Manager tab shell (delegates to manager/ sub-components)
   NotificationDropdown.jsx      # Bell icon with swap request notifications
   EmptyState.jsx                # Reusable empty state placeholder
   LoadingSpinner.jsx            # Reusable loading spinner
+  manager/
+    ShiftForm.jsx               # Create new shift (date, time, quick-select, assign user)
+    ShiftListTab.jsx            # All shifts with edit, delete, pagination
+    UserManagement.jsx          # User list with role change and deactivation
+    InviteCode.jsx              # View/copy/regenerate invite code
   ui/
     ToastContainer.jsx          # Toast notification list (portal-rendered)
     ConfirmModal.jsx            # Confirmation dialog (portal-rendered)
