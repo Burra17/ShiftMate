@@ -41,7 +41,7 @@ npm run preview
 | Mina Pass | `ShiftList.jsx` | Användarens skift och inkommande bytesförfrågningar |
 | Lediga Pass | `MarketPlace.jsx` | Otilldelade och erbjudna skift att ta |
 | Schema | `Schedule.jsx` | Komplett schemaöversikt grupperad per datum |
-| Profil | `Profile.jsx` | Användarinformation och statistik |
+| Profil | `Profile.jsx` | Profilkort med organisationsinfo, statistik och inställningar |
 | Manager Panel | `components/ManagerPanel.jsx` | Skapa/redigera/ta bort skift, hantera användare, visa/förnya inbjudningskod (manager-only) |
 | Admin Panel | `AdminPanel.jsx` | Hantera alla organisationer (SuperAdmin-only) |
 
@@ -113,7 +113,7 @@ shiftmate-frontend/
     ├── ShiftList.jsx         # Mina pass + bytesförfrågningar
     ├── MarketPlace.jsx       # Lediga pass (marknadsplats)
     ├── Schedule.jsx          # Schemaöversikt
-    ├── Profile.jsx           # Profil och statistik
+    ├── Profile.jsx           # Profilkort med org-info, statistik och inställningar
     ├── assets/
     │   └── react.svg
     ├── contexts/

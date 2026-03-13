@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { decodeToken, fetchMyShifts, updateProfile, changePassword, getUserRole } from './api';
+import { useState, useEffect, useRef } from 'react';
+import { decodeToken, fetchMyShifts, updateProfile, changePassword, getUserRole, getOrganizationName } from './api';
 import { useToast } from './contexts/ToastContext';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -11,18 +11,16 @@ const roleLabels = {
 
 const Profile = ({ onLogout }) => {
     const toast = useToast();
-    const [stats, setStats] = useState({
-        monthShifts: 0, monthHours: 0,
-        totalShifts: 0, totalHours: 0,
-        avgMonthlyHours: 0
-    });
+    const profileCardRef = useRef(null);
+    const [stats, setStats] = useState({ totalShifts: 0, totalHours: 0 });
     const [userData, setUserData] = useState({
         firstName: "",
         lastName: "",
         fullName: "",
         initials: "",
         email: "",
-        role: ""
+        role: "",
+        orgName: ""
     });
     const [loading, setLoading] = useState(true);
 
@@ -42,13 +40,13 @@ const Profile = ({ onLogout }) => {
         // 1. LÄS NAMN OCH ROLL FRÅN TOKEN
         const payload = decodeToken();
         const role = getUserRole() || "";
+        const orgName = getOrganizationName() || "";
         if (payload) {
             try {
                 const firstName = payload.FirstName || "";
                 const lastName = payload.LastName || "";
                 const email = payload.email || payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"] || "Användare";
 
-                // Räkna ut namn och initialer
                 let fullName = email.split('@')[0];
                 let initials = fullName.substring(0, 2).toUpperCase();
 
@@ -57,7 +55,7 @@ const Profile = ({ onLogout }) => {
                     initials = (firstName[0] + lastName[0]).toUpperCase();
                 }
 
-                setUserData({ firstName, lastName, fullName, initials, email, role });
+                setUserData({ firstName, lastName, fullName, initials, email, role, orgName });
 
             } catch (e) {
                 console.error("Kunde inte läsa token", e);
@@ -67,39 +65,12 @@ const Profile = ({ onLogout }) => {
         // 2. Hämta statistik
         const fetchStats = async () => {
             try {
-                const shifts = await fetchMyShifts();
-
-                // Beräkna totaler
-                const totalHours = shifts.reduce((sum, shift) => sum + shift.durationHours, 0);
-
-                // Beräkna månadsstatistik — filtrera på nuvarande månad/år
-                const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentYear = now.getFullYear();
-
-                const monthShifts = shifts.filter(shift => {
-                    const start = new Date(shift.startTime);
-                    return start.getMonth() === currentMonth && start.getFullYear() === currentYear;
-                });
-
-                const monthHours = monthShifts.reduce((sum, shift) => sum + shift.durationHours, 0);
-
-                // Beräkna genomsnittliga timmar per månad för progress-indikatorn
-                let avgMonthlyHours = 0;
-                if (shifts.length > 0) {
-                    const months = new Set(shifts.map(s => {
-                        const d = new Date(s.startTime);
-                        return `${d.getFullYear()}-${d.getMonth()}`;
-                    }));
-                    avgMonthlyHours = totalHours / months.size;
-                }
+                const shiftsData = await fetchMyShifts();
+                const totalHours = shiftsData.reduce((sum, s) => sum + s.durationHours, 0);
 
                 setStats({
-                    monthShifts: monthShifts.length,
-                    monthHours: Math.round(monthHours * 10) / 10,
-                    totalShifts: shifts.length,
-                    totalHours: Math.round(totalHours * 10) / 10,
-                    avgMonthlyHours: Math.round(avgMonthlyHours * 10) / 10
+                    totalShifts: shiftsData.length,
+                    totalHours: Math.round(totalHours * 10) / 10
                 });
             } catch (err) {
                 console.error("Kunde inte hämta statistik");
@@ -111,12 +82,7 @@ const Profile = ({ onLogout }) => {
         fetchStats();
     }, []);
 
-    // Beräkna procent för progress-baren (nuvarande månad vs genomsnitt)
-    const monthProgress = stats.avgMonthlyHours > 0
-        ? Math.min(Math.round((stats.monthHours / stats.avgMonthlyHours) * 100), 100)
-        : 0;
-
-    // Öppna redigeringsläge och fyll formuläret med aktuella värden
+    // Öppna redigeringsläge
     const handleEdit = () => {
         setForm({
             firstName: userData.firstName,
@@ -124,9 +90,22 @@ const Profile = ({ onLogout }) => {
             email: userData.email
         });
         setIsEditing(true);
+        setIsChangingPassword(false);
+        setTimeout(() => {
+            profileCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
     };
 
-    // Spara ändringar via API
+    // Öppna lösenordsbyte
+    const handlePasswordClick = () => {
+        setIsChangingPassword(true);
+        setIsEditing(false);
+        setTimeout(() => {
+            profileCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 50);
+    };
+
+    // Spara profiländringar via API
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -136,7 +115,6 @@ const Profile = ({ onLogout }) => {
                 email: form.email
             });
 
-            // Uppdatera lokal state med nya värden
             const fullName = form.firstName && form.lastName
                 ? `${form.firstName} ${form.lastName}`
                 : form.email.split('@')[0];
@@ -166,7 +144,6 @@ const Profile = ({ onLogout }) => {
 
     // Hantera lösenordsbyte
     const handleChangePassword = async () => {
-        // Frontend-validering: kontrollera att nya lösenord matchar
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
             toast.error("Nya lösenorden matchar inte.");
             return;
@@ -194,6 +171,12 @@ const Profile = ({ onLogout }) => {
         }
     };
 
+    const cancelEdit = () => {
+        setIsEditing(false);
+        setIsChangingPassword(false);
+        setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+    };
+
     // Rollbadge — färg baserat på roll
     const roleBadge = () => {
         const label = roleLabels[userData.role] || userData.role;
@@ -209,231 +192,198 @@ const Profile = ({ onLogout }) => {
         );
     };
 
+    // Gemensam input-klass
+    const inputClass = "w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium";
+
     if (loading) return <LoadingSpinner message="Laddar profil..." />;
 
+    // Avgör om vi visar ett formulär (redigera eller lösenord)
+    const showForm = isEditing || isChangingPassword;
+
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
 
-            {/* 1. PROFILKORT */}
-            <div className="bg-slate-900/60 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 flex flex-col items-center text-center relative overflow-hidden group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"></div>
-
-                {/* Avatar med initialer */}
-                <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-pink-600 to-purple-600 mb-4 flex items-center justify-center shadow-[0_0_30px_rgba(236,72,153,0.3)] border-4 border-slate-900">
-                    <span className="text-3xl font-black text-white">
-                        {userData.initials}
-                    </span>
+            {/* ── PROFILKORT ── */}
+            <div ref={profileCardRef} className="animate-fade-up bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-slate-800 relative overflow-hidden">
+                {/* Gradient mesh bakgrund */}
+                <div className="absolute inset-0 opacity-40">
+                    <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-blue-600/20 blur-3xl" />
+                    <div className="absolute -bottom-16 -left-16 w-48 h-48 rounded-full bg-purple-600/15 blur-3xl" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-pink-600/10 blur-3xl" />
                 </div>
 
-                {isEditing ? (
-                    /* Redigeringsformulär */
-                    <div className="w-full max-w-sm space-y-4 mt-2">
-                        <div className="flex space-x-4">
-                            <div className="space-y-2 w-1/2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Förnamn</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                                    value={form.firstName}
-                                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                                />
-                            </div>
-                            <div className="space-y-2 w-1/2">
-                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Efternamn</label>
-                                <input
-                                    type="text"
-                                    required
-                                    className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                                    value={form.lastName}
-                                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-post</label>
-                            <input
-                                type="email"
-                                required
-                                className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                                value={form.email}
-                                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                            />
-                        </div>
-                        <div className="flex space-x-3 pt-2">
-                            <button
-                                onClick={handleSave}
-                                disabled={saving}
-                                className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs"
-                            >
-                                {saving ? 'Sparar...' : 'Spara'}
-                            </button>
-                            <button
-                                onClick={() => setIsEditing(false)}
-                                disabled={saving}
-                                className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all uppercase tracking-widest text-xs"
-                            >
-                                Avbryt
-                            </button>
+                <div className="relative p-8 flex flex-col items-center text-center">
+                    {/* Avatar med glödande ring */}
+                    <div className="relative mb-5">
+                        <div className="absolute -inset-1.5 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500 opacity-60 blur-sm animate-pulse" />
+                        <div className="relative w-24 h-24 rounded-full bg-gradient-to-tr from-blue-600 via-purple-600 to-pink-600 flex items-center justify-center border-4 border-slate-900 shadow-2xl">
+                            <span className="text-3xl font-black text-white">{userData.initials}</span>
                         </div>
                     </div>
-                ) : (
-                    /* Visningsläge */
-                    <>
-                        <h2 className="text-2xl font-black text-white tracking-tight capitalize">
-                            {userData.fullName}
-                        </h2>
-                        <p className="text-sm font-medium text-slate-500 mt-1 mb-3">
-                            {userData.email}
-                        </p>
-                        {/* Rollbadge */}
+
+                    {/* Namn, e-post, org, roll — alltid synligt */}
+                    <h2 className="text-2xl font-black text-white tracking-tight capitalize">
+                        {userData.fullName}
+                    </h2>
+                    <p className="text-sm font-medium text-slate-500 mt-1">
+                        {userData.email}
+                    </p>
+                    {userData.orgName && (
+                        <p className="text-xs font-medium text-slate-600 mt-1">{userData.orgName}</p>
+                    )}
+                    <div className="flex items-center gap-3 mt-3">
                         {userData.role && roleBadge()}
-                    </>
-                )}
-            </div>
-
-            {/* 2. STATISTIK-SEKTION */}
-            <div className="space-y-4">
-                <h3 className="text-xl font-black text-white tracking-tight uppercase">Statistik</h3>
-
-                {/* 2x2 Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                    {/* Månadens pass */}
-                    <div className="bg-pink-500/5 p-6 rounded-3xl border border-slate-800 hover:border-pink-500/30 transition-all group hover:bg-slate-800/80 relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-pink-500 shadow-[0_0_15px_#ec4899]"></div>
-                        <p className="text-xs font-bold text-pink-400 uppercase tracking-widest mb-1">Pass denna månad</p>
-                        <p className="text-4xl font-black text-white group-hover:scale-110 transition-transform origin-left">
-                            {stats.monthShifts}
-                        </p>
                     </div>
 
-                    {/* Månadens timmar + progress */}
-                    <div className="bg-purple-500/5 p-6 rounded-3xl border border-slate-800 hover:border-purple-500/30 transition-all group hover:bg-slate-800/80 relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-purple-500 shadow-[0_0_15px_#a855f7]"></div>
-                        <p className="text-xs font-bold text-purple-400 uppercase tracking-widest mb-1">Timmar denna månad</p>
-                        <p className="text-4xl font-black text-white group-hover:scale-110 transition-transform origin-left">
-                            {stats.monthHours}
-                        </p>
-                        {/* Progress-bar: nuvarande månad vs genomsnitt */}
-                        {stats.avgMonthlyHours > 0 && (
-                            <div className="mt-3 space-y-1">
-                                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-1000"
-                                        style={{ width: `${monthProgress}%` }}
+                    {/* Kompakt statistik-rad */}
+                    {!showForm && (
+                        <div className="flex items-center gap-5 mt-5 pt-5 border-t border-slate-800/60">
+                            <div className="text-center">
+                                <p className="text-xl font-black text-white">{stats.totalShifts}</p>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Pass</p>
+                            </div>
+                            <div className="w-px h-8 bg-slate-800" />
+                            <div className="text-center">
+                                <p className="text-xl font-black text-white">{stats.totalHours}</p>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Timmar</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ── Formulär (redigera profil ELLER byt lösenord) ── */}
+                    {isEditing && (
+                        <div className="w-full max-w-sm space-y-4 mt-6 pt-6 border-t border-slate-800/60">
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Redigera profil</h3>
+                            <div className="flex space-x-4">
+                                <div className="space-y-2 w-1/2">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Förnamn</label>
+                                    <input type="text" required className={inputClass}
+                                        value={form.firstName}
+                                        onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                                     />
                                 </div>
-                                <p className="text-[10px] text-slate-500 font-medium">
-                                    {monthProgress}% av snitt ({stats.avgMonthlyHours}h/mån)
-                                </p>
+                                <div className="space-y-2 w-1/2">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Efternamn</label>
+                                    <input type="text" required className={inputClass}
+                                        value={form.lastName}
+                                        onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                                    />
+                                </div>
                             </div>
-                        )}
-                    </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">E-post</label>
+                                <input type="email" required className={inputClass}
+                                    value={form.email}
+                                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex space-x-3 pt-2">
+                                <button onClick={handleSave} disabled={saving}
+                                    className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs">
+                                    {saving ? 'Sparar...' : 'Spara'}
+                                </button>
+                                <button onClick={cancelEdit} disabled={saving}
+                                    className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all uppercase tracking-widest text-xs">
+                                    Avbryt
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
-                    {/* Totala pass */}
-                    <div className="bg-blue-500/5 p-6 rounded-3xl border border-slate-800 hover:border-blue-500/30 transition-all group hover:bg-slate-800/80 relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 shadow-[0_0_15px_#3b82f6]"></div>
-                        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Totala pass</p>
-                        <p className="text-4xl font-black text-white group-hover:scale-110 transition-transform origin-left">
-                            {stats.totalShifts}
-                        </p>
-                    </div>
-
-                    {/* Totala timmar */}
-                    <div className="bg-indigo-500/5 p-6 rounded-3xl border border-slate-800 hover:border-indigo-500/30 transition-all group hover:bg-slate-800/80 relative overflow-hidden">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500 shadow-[0_0_15px_#6366f1]"></div>
-                        <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest mb-1">Totala timmar</p>
-                        <p className="text-4xl font-black text-white group-hover:scale-110 transition-transform origin-left">
-                            {stats.totalHours}
-                        </p>
-                    </div>
+                    {isChangingPassword && (
+                        <div className="w-full max-w-sm space-y-4 mt-6 pt-6 border-t border-slate-800/60">
+                            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Byt lösenord</h3>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nuvarande lösenord</label>
+                                <input type="password" className={inputClass} placeholder="Ange nuvarande lösenord"
+                                    value={passwordForm.currentPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nytt lösenord</label>
+                                <input type="password" className={inputClass} placeholder="Minst 8 tecken"
+                                    value={passwordForm.newPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Bekräfta nytt lösenord</label>
+                                <input type="password" className={inputClass} placeholder="Upprepa nytt lösenord"
+                                    value={passwordForm.confirmPassword}
+                                    onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                />
+                            </div>
+                            <div className="flex space-x-3 pt-2">
+                                <button onClick={handleChangePassword} disabled={savingPassword}
+                                    className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs">
+                                    {savingPassword ? 'Sparar...' : 'Spara lösenord'}
+                                </button>
+                                <button onClick={cancelEdit} disabled={savingPassword}
+                                    className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all uppercase tracking-widest text-xs">
+                                    Avbryt
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* 3. REDIGERA PROFIL-KNAPP */}
-            {!isEditing && !isChangingPassword && (
-                <button
-                    onClick={handleEdit}
-                    className="w-full py-4 bg-purple-500/10 border border-purple-500/30 text-purple-400 hover:bg-purple-600 hover:text-white hover:border-purple-500 hover:shadow-[0_0_30px_rgba(168,85,247,0.4)] font-black rounded-2xl transition-all duration-300 uppercase tracking-widest"
-                >
-                    ✏️ Redigera profil
-                </button>
-            )}
-
-            {/* 4. BYT LÖSENORD */}
-            {isChangingPassword ? (
-                <div className="bg-slate-900/60 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 space-y-4 relative overflow-hidden">
-                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500 shadow-[0_0_15px_#3b82f6]"></div>
-                    <h3 className="text-sm font-black text-white uppercase tracking-widest">🔒 Byt lösenord</h3>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nuvarande lösenord</label>
-                        <input
-                            type="password"
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                            placeholder="Ange nuvarande lösenord"
-                            value={passwordForm.currentPassword}
-                            onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Nytt lösenord</label>
-                        <input
-                            type="password"
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                            placeholder="Minst 8 tecken"
-                            value={passwordForm.newPassword}
-                            onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Bekräfta nytt lösenord</label>
-                        <input
-                            type="password"
-                            className="w-full px-5 py-4 bg-slate-950/50 border border-slate-800 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all font-medium"
-                            placeholder="Upprepa nytt lösenord"
-                            value={passwordForm.confirmPassword}
-                            onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                        />
-                    </div>
-                    <div className="flex space-x-3 pt-2">
-                        <button
-                            onClick={handleChangePassword}
-                            disabled={savingPassword}
-                            className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 uppercase tracking-widest text-xs"
-                        >
-                            {savingPassword ? 'Sparar...' : '✅ Spara lösenord'}
+            {/* ── INSTÄLLNINGAR — Settings-lista ── */}
+            {!showForm && (
+                <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Inställningar</h3>
+                    <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-slate-800 overflow-hidden divide-y divide-slate-800/80">
+                        {/* Redigera profil */}
+                        <button onClick={handleEdit}
+                            className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/60 transition-colors group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Redigera profil</span>
+                            </div>
+                            <svg className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
                         </button>
-                        <button
-                            onClick={() => {
-                                setIsChangingPassword(false);
-                                setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
-                            }}
-                            disabled={savingPassword}
-                            className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl transition-all uppercase tracking-widest text-xs"
-                        >
-                            ❌ Avbryt
+
+                        {/* Byt lösenord */}
+                        <button onClick={handlePasswordClick}
+                            className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-800/60 transition-colors group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Byt lösenord</span>
+                            </div>
+                            <svg className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                            </svg>
+                        </button>
+
+                        {/* Logga ut */}
+                        <button onClick={onLogout}
+                            className="w-full flex items-center justify-between px-5 py-4 hover:bg-red-500/5 transition-colors group">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                                    <svg className="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                                    </svg>
+                                </div>
+                                <span className="text-sm font-semibold text-red-400/80 group-hover:text-red-400 transition-colors">Logga ut</span>
+                            </div>
                         </button>
                     </div>
                 </div>
-            ) : !isEditing && (
-                <button
-                    onClick={() => setIsChangingPassword(true)}
-                    className="w-full py-4 bg-blue-500/10 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white hover:border-blue-500 hover:shadow-[0_0_30px_rgba(59,130,246,0.4)] font-black rounded-2xl transition-all duration-300 uppercase tracking-widest"
-                >
-                    🔒 Byt lösenord
-                </button>
             )}
 
-            {/* 5. LOGGA UT KNAPP */}
-            <button
-                onClick={onLogout}
-                className="w-full py-4 bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-600 hover:text-white hover:border-red-500 hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] font-black rounded-2xl transition-all duration-300 uppercase tracking-widest"
-            >
-                🚪 Logga ut
-            </button>
-
-            <p className="text-center text-xs text-slate-600 font-mono">
-                ShiftMate v1.0 • Built with ⚛️ & ☕
+            <p className="text-center text-[10px] text-slate-700 font-medium tracking-wide">
+                ShiftMate v1.0
             </p>
         </div>
     );
