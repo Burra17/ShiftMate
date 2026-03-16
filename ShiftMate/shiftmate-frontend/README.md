@@ -120,7 +120,12 @@ shiftmate-frontend/
     │   └── ToastContext.jsx   # ToastProvider, useToast, useConfirm hooks
     └── components/
         ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
-        ├── ManagerPanel.jsx  # Manager-panel för skifthantering och användarhantering
+        ├── ManagerPanel.jsx  # Manager-panel (flik-shell, delegerar till manager/)
+        ├── manager/
+        │   ├── ShiftForm.jsx     # Skapa nytt pass (datum, tid, snabbval, personal)
+        │   ├── ShiftListTab.jsx  # Alla pass med redigering, radering och paginering
+        │   ├── UserManagement.jsx # Hantera användare (rollbyte, inaktivering)
+        │   └── InviteCode.jsx    # Visa/kopiera/generera inbjudningskod
         └── ui/
             ├── ToastContainer.jsx  # Toast-lista (portal-renderad)
             ├── ConfirmModal.jsx    # Bekräftelsedialog (portal-renderad)
