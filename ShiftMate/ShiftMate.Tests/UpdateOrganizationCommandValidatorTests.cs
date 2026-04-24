@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper;
-using ShiftMate.Application.Organizations.Commands;
+using ShiftMate.Application.Organizations.Commands.UpdateOrganization;
 
 namespace ShiftMate.Tests
 {
