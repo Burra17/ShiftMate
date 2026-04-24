@@ -2,13 +2,13 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Shifts.Commands;
 using ShiftMate.Tests.Support;
 using Xunit;
 using ShiftMate.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
+using ShiftMate.Application.Shifts.Commands.CreateShift;
 
 namespace ShiftMate.Tests
 {

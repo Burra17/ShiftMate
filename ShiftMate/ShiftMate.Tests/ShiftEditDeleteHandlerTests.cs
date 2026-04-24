@@ -2,7 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Shifts.Commands;
+using ShiftMate.Application.Shifts.Commands.UpdateShift;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
