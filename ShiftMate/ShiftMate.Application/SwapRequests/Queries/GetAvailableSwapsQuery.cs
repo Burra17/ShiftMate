@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Enums;
 
 namespace ShiftMate.Application.SwapRequests.Queries
 {

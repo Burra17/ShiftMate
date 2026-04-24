@@ -4,7 +4,8 @@ using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using ShiftMate.Application.Users.Commands;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;

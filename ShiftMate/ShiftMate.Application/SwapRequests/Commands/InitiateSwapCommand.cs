@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 using System.Text.Json.Serialization; // <--- 1. VIKTIGT: Lägg till denna
 
 namespace ShiftMate.Application.SwapRequests.Commands

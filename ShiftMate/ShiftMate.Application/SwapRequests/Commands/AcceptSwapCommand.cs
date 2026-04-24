@@ -1,11 +1,11 @@
 ﻿using MediatR;
-﻿using ShiftMate.Application.Interfaces;
-﻿using Microsoft.EntityFrameworkCore;
-using ShiftMate.Domain;
-﻿using System.Text.Json.Serialization; // <--- Behövs för [JsonIgnore]
+using ShiftMate.Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization; // <--- Behövs för [JsonIgnore]
 using Microsoft.Extensions.Logging;
-﻿
-﻿namespace ShiftMate.Application.SwapRequests.Commands
+using ShiftMate.Domain.Enums;
+
+namespace ShiftMate.Application.SwapRequests.Commands
 ﻿{
 ﻿    // Svensk kommentar: Kommandot för att acceptera en bytesförfrågan.
 ﻿    public record AcceptSwapCommand : IRequest

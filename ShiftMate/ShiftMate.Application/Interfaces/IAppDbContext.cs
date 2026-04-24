@@ -1,15 +1,14 @@
 using Microsoft.EntityFrameworkCore;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
 
-namespace ShiftMate.Application.Interfaces
+namespace ShiftMate.Application.Interfaces;
+
+public interface IAppDbContext
 {
-    public interface IAppDbContext
-    {
-        DbSet<User> Users { get; }
-        DbSet<Shift> Shifts { get; }
-        DbSet<SwapRequest> SwapRequests { get; }
-        DbSet<Organization> Organizations { get; }
+    DbSet<User> Users { get; }
+    DbSet<Shift> Shifts { get; }
+    DbSet<SwapRequest> SwapRequests { get; }
+    DbSet<Organization> Organizations { get; }
 
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken);
-    }
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

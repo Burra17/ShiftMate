@@ -1,0 +1,26 @@
+﻿using ShiftMate.Domain.Enums;
+
+namespace ShiftMate.Domain.Entities;
+
+public class SwapRequest
+{
+    public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public SwapRequestStatus Status { get; set; } = SwapRequestStatus.Pending;
+
+    // Foreign Key: Vilket pass gäller det?
+    public Guid ShiftId { get; set; }
+    public Shift Shift { get; set; } = null!;
+
+    // Foreign Key: Vem frågar?
+    public Guid RequestingUserId { get; set; }
+    public User RequestingUser { get; set; } = null!;
+
+    // Foreign Key: Vem får frågan? (Kan vara null om frågan är öppen)
+    public Guid? TargetUserId { get; set; }
+    public User? TargetUser { get; set; }
+
+    // Foreign Key: Gäller bytet ett specifikt pass? (Används för direktbyten)
+    public Guid? TargetShiftId { get; set; }
+    public Shift? TargetShift { get; set; }
+}

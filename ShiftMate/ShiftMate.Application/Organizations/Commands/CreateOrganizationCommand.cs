@@ -2,7 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
 
 namespace ShiftMate.Application.Organizations.Commands
 {

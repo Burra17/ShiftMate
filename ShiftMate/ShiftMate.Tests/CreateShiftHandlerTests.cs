@@ -3,11 +3,12 @@ using FluentValidation;
 using FluentValidation.Results;
 using Moq;
 using ShiftMate.Application.Shifts.Commands;
-using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
 using Xunit;
 using ShiftMate.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 
 namespace ShiftMate.Tests
 {

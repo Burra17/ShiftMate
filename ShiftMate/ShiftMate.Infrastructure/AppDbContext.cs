@@ -1,88 +1,106 @@
 using Microsoft.EntityFrameworkCore;
-using ShiftMate.Domain;
 using ShiftMate.Application.Interfaces;
+using ShiftMate.Domain.Entities;
 
-namespace ShiftMate.Infrastructure
+namespace ShiftMate.Infrastructure;
+
+public class AppDbContext : DbContext, IAppDbContext
 {
-    public class AppDbContext : DbContext, IAppDbContext
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    }
+
+    public DbSet<User> Users { get; set; }
+    public DbSet<Shift> Shifts { get; set; }
+    public DbSet<SwapRequest> SwapRequests { get; set; }
+    public DbSet<Organization> Organizations { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Organization: Unikt namn
+        modelBuilder.Entity<Organization>()
+            .HasIndex(o => o.Name)
+            .IsUnique();
+
+        // Organization: InviteCode — obligatorisk, max 8 tecken, unikt index
+        modelBuilder.Entity<Organization>()
+            .Property(o => o.InviteCode)
+            .IsRequired()
+            .HasMaxLength(8);
+
+        modelBuilder.Entity<Organization>()
+            .HasIndex(o => o.InviteCode)
+            .IsUnique();
+
+        // User: fält + unikt e-postindex + default för CreatedAt
+        modelBuilder.Entity<User>(entity =>
         {
-        }
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
+            entity.Property(u => u.LastName).IsRequired().HasMaxLength(100);
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
+            entity.Property(u => u.PasswordHash).IsRequired().HasMaxLength(256);
+            entity.Property(u => u.CreatedAt).HasDefaultValueSql("NOW()");
+        });
 
-        public DbSet<User> Users { get; set; }
-        public DbSet<Shift> Shifts { get; set; }
-        public DbSet<SwapRequest> SwapRequests { get; set; }
-        public DbSet<Organization> Organizations { get; set; }
+        // User → Organization (valfri för SuperAdmin)
+        modelBuilder.Entity<User>()
+            .HasOne(u => u.Organization)
+            .WithMany(o => o.Users)
+            .HasForeignKey(u => u.OrganizationId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
+        // Shift → Organization
+        modelBuilder.Entity<Shift>()
+            .HasOne(s => s.Organization)
+            .WithMany(o => o.Shifts)
+            .HasForeignKey(s => s.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            // Organization: Unikt namn
-            modelBuilder.Entity<Organization>()
-                .HasIndex(o => o.Name)
-                .IsUnique();
+        // Shift → User (valfri — pass kan vara otilldelade)
+        modelBuilder.Entity<Shift>()
+            .HasOne(s => s.User)
+            .WithMany(u => u.Shifts)
+            .HasForeignKey(s => s.UserId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            // Organization: InviteCode — obligatorisk, max 8 tecken, unikt index
-            modelBuilder.Entity<Organization>()
-                .Property(o => o.InviteCode)
-                .IsRequired()
-                .HasMaxLength(8);
+        // Enum-konverteringar
+        modelBuilder.Entity<User>()
+            .Property(u => u.Role)
+            .HasConversion<string>();
 
-            modelBuilder.Entity<Organization>()
-                .HasIndex(o => o.InviteCode)
-                .IsUnique();
+        modelBuilder.Entity<SwapRequest>()
+            .Property(sr => sr.Status)
+            .HasConversion<string>();
 
-            // User → Organization (valfri för SuperAdmin)
-            modelBuilder.Entity<User>()
-                .HasOne(u => u.Organization)
-                .WithMany(o => o.Users)
-                .HasForeignKey(u => u.OrganizationId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
+        // SwapRequest-relationer
+        modelBuilder.Entity<SwapRequest>()
+            .HasOne(s => s.RequestingUser)
+            .WithMany(u => u.SentSwapRequests)
+            .HasForeignKey(s => s.RequestingUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            // Shift → Organization
-            modelBuilder.Entity<Shift>()
-                .HasOne(s => s.Organization)
-                .WithMany(o => o.Shifts)
-                .HasForeignKey(s => s.OrganizationId)
-                .OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<SwapRequest>()
+            .HasOne(s => s.TargetUser)
+            .WithMany(u => u.ReceivedSwapRequests)
+            .HasForeignKey(s => s.TargetUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            // Enum-konverteringar
-            modelBuilder.Entity<User>()
-                .Property(u => u.Role)
-                .HasConversion<string>();
+        modelBuilder.Entity<SwapRequest>()
+            .HasOne(sr => sr.Shift)
+            .WithMany(s => s.SwapRequests)
+            .HasForeignKey(sr => sr.ShiftId)
+            .OnDelete(DeleteBehavior.Restrict);
 
-            modelBuilder.Entity<SwapRequest>()
-                .Property(sr => sr.Status)
-                .HasConversion<string>();
-
-            // SwapRequest-relationer
-            modelBuilder.Entity<SwapRequest>()
-                .HasOne(s => s.RequestingUser)
-                .WithMany(u => u.SentSwapRequests)
-                .HasForeignKey(s => s.RequestingUserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SwapRequest>()
-                .HasOne(s => s.TargetUser)
-                .WithMany(u => u.ReceivedSwapRequests)
-                .HasForeignKey(s => s.TargetUserId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SwapRequest>()
-                .HasOne(sr => sr.Shift)
-                .WithMany(s => s.SwapRequests)
-                .HasForeignKey(sr => sr.ShiftId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<SwapRequest>()
-                .HasOne(sr => sr.TargetShift)
-                .WithMany()
-                .HasForeignKey(sr => sr.TargetShiftId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
-        }
+        modelBuilder.Entity<SwapRequest>()
+            .HasOne(sr => sr.TargetShift)
+            .WithMany()
+            .HasForeignKey(sr => sr.TargetShiftId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
