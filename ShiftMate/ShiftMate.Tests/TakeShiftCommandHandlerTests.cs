@@ -3,7 +3,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Shifts.Commands;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;

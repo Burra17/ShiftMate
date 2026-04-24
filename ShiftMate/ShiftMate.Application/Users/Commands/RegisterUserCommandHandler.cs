@@ -5,7 +5,8 @@ using Microsoft.Extensions.Logging;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Services;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 using System.Security.Cryptography;
 
 namespace ShiftMate.Application.Users.Commands

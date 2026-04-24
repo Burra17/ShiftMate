@@ -1,11 +1,12 @@
 using FluentAssertions;
 using ShiftMate.Application.SwapRequests.Commands;
-using ShiftMate.Domain;
 using ShiftMate.Tests.Support;
 using Xunit;
 using Moq;
 using ShiftMate.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 
 namespace ShiftMate.Tests
 {

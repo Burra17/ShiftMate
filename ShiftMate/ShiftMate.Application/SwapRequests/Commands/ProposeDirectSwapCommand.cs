@@ -1,10 +1,11 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Domain;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 
 namespace ShiftMate.Application.SwapRequests.Commands
 {

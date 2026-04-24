@@ -1,7 +1,8 @@
 using FluentValidation;
 using MediatR;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 
 namespace ShiftMate.Application.Users.Commands
 {

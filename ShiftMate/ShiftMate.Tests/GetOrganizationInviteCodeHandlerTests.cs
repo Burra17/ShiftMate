@@ -1,6 +1,6 @@
 using FluentAssertions;
 using ShiftMate.Application.Organizations.Queries;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;

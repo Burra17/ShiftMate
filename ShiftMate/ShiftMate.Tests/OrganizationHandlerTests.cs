@@ -4,7 +4,8 @@ using FluentValidation.Results;
 using Moq;
 using ShiftMate.Application.Organizations.Commands;
 using ShiftMate.Application.Organizations.Queries;
-using ShiftMate.Domain;
+using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;

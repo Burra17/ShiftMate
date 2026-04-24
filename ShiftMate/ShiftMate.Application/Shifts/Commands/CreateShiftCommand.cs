@@ -2,9 +2,9 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Domain;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
+using ShiftMate.Domain.Entities;
 
 namespace ShiftMate.Application.Shifts.Commands
 {
@@ -52,7 +52,7 @@ namespace ShiftMate.Application.Shifts.Commands
             }
 
             // 2. KROCK-KONTROLL
-            Domain.User? assignedUser = null;
+            User? assignedUser = null;
             if (request.UserId.HasValue)
             {
                 assignedUser = await _context.Users
