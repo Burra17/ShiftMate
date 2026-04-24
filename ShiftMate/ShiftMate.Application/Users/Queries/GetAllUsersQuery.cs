@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
 

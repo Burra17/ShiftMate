@@ -1,19 +1,13 @@
-﻿namespace ShiftMate.Application.DTOs
+namespace ShiftMate.Application.DTOs;
+
+// DTO för att visa information om en bytesförfrågan, inklusive detaljer om passet som byts och användarna involverade.
+public record SwapRequestDto
 {
-    public class SwapRequestDto
-    {
-        public Guid Id { get; set; }
-        public string Status { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-
-        // Vi bakar in de andra DTO:erna här
-        public ShiftDto? Shift { get; set; }
-        public UserDto? RequestingUser { get; set; }
-
-        // Målpersonen som bytet riktas till (används i skickade förfrågningar)
-        public UserDto? TargetUser { get; set; }
-
-        // Nödvändigt för att visa "passet du ger bort" vid direktbyten
-        public ShiftDto? TargetShift { get; set; }
-    }
+    public Guid Id { get; init; }
+    public string Status { get; init; } = string.Empty;
+    public DateTime CreatedAt { get; init; }
+    public ShiftDto? Shift { get; init; }
+    public UserDto? RequestingUser { get; init; }
+    public UserDto? TargetUser { get; init; }
+    public ShiftDto? TargetShift { get; init; }
 }

@@ -1,4 +1,5 @@
 using MediatR;
+using ShiftMate.Application.Common;
 using ShiftMate.Application.DTOs;
 
 namespace ShiftMate.Application.Shifts.Queries
