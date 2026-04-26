@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;
 using System.IdentityModel.Tokens.Jwt;
@@ -55,7 +56,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, string>
         // C. Kontrollera e-postverifiering (SuperAdmin undantas)
         if (!user.IsEmailVerified && user.Role != Role.SuperAdmin)
         {
-            throw new InvalidOperationException("E-postadressen är inte verifierad. Kontrollera din inkorg för verifieringslänken.");
+            throw new EmailNotVerifiedException("E-postadressen är inte verifierad. Kontrollera din inkorg för verifieringslänken.");
         }
 
         // C. Skapa Token (Nyckeln) 🔑

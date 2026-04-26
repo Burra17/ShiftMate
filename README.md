@@ -98,30 +98,31 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
     ├── Dockerfile
     │
     ├── ShiftMate.Domain/                  # Domänlager - Entiteter & enums (inga beroenden)
-    │   ├── User.cs
-    │   ├── Shift.cs
-    │   ├── SwapRequest.cs
-    │   ├── SwapRequestStatus.cs
-    │   └── Organization.cs
+    │   ├── Entities/                      # User, Shift, SwapRequest, Organization
+    │   └── Enums/                         # Role, SwapRequestStatus
     │
     ├── ShiftMate.Application/             # Applikationslager - Affärslogik (CQRS)
     │   ├── DependencyInjection.cs
+    │   ├── Common/                        # PagedResult + Exceptions/ (NotFound, Forbidden, etc.)
     │   ├── DTOs/
     │   ├── Interfaces/
-    │   ├── Shifts/Commands/ & Queries/
-    │   ├── SwapRequests/Commands/ & Queries/
-    │   ├── Users/Commands/ & Queries/
-    │   └── Organizations/Commands/ & Queries/
+    │   ├── Services/                      # EmailTemplateService
+    │   ├── Shifts/Commands/[X]/ & Queries/[X]/        # Mapp per command/query
+    │   ├── SwapRequests/Commands/[X]/ & Queries/[X]/
+    │   ├── Users/Commands/[X]/ & Queries/[X]/
+    │   └── Organizations/Commands/[X]/ & Queries/[X]/
     │
     ├── ShiftMate.Infrastructure/          # Infrastrukturlager - Dataåtkomst
     │   ├── AppDbContext.cs
     │   ├── DbInitializer.cs
-    │   ├── Services/
+    │   ├── Services/                      # ResendEmailService
     │   └── Migrations/
     │
-    ├── ShiftMate.Api/                     # API-lager - Controllers
+    ├── ShiftMate.Api/                     # API-lager - HTTP
     │   ├── Program.cs
-    │   └── Controllers/
+    │   ├── Controllers/                   # Tunna controllers (ingen try/catch)
+    │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
+    │   └── Extensions/                    # ClaimsPrincipalExtensions
     │
     ├── ShiftMate.Tests/                   # Enhetstester (198 tester)
     │

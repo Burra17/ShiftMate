@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer; // <--- NY: För JWT
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;                // <--- NY: För Token-validering
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using ShiftMate.Api.Middleware;
 using ShiftMate.Application;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Infrastructure;
 using ShiftMate.Infrastructure.Services;
-using Microsoft.Extensions.Logging;
-using System.Text;                                   // <--- NY: För att läsa nyckeln (Encoding)
+using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -139,6 +139,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// Global felhantering — måste ligga tidigt så den fångar allt nedströms
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 
