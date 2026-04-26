@@ -1,12 +1,12 @@
 using FluentAssertions;
-using ShiftMate.Application.SwapRequests.Commands;
+using ShiftMate.Application.SwapRequests.Commands.InitiateSwap;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
 
-public class InitiateSwapHandlerTests
+public class InitiateSwapCommandHandlerTests
 {
     private static readonly Guid OrgId = Guid.NewGuid();
 
@@ -14,7 +14,7 @@ public class InitiateSwapHandlerTests
     public async Task Handle_Should_Throw_When_Shift_Not_Found()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new InitiateSwapHandler(context);
+        var handler = new InitiateSwapCommandHandler(context);
 
         var command = new InitiateSwapCommand
         {
@@ -50,7 +50,7 @@ public class InitiateSwapHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new InitiateSwapHandler(context);
+        var handler = new InitiateSwapCommandHandler(context);
         var command = new InitiateSwapCommand
         {
             ShiftId = shiftId,
@@ -85,7 +85,7 @@ public class InitiateSwapHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new InitiateSwapHandler(context);
+        var handler = new InitiateSwapCommandHandler(context);
         var command = new InitiateSwapCommand
         {
             ShiftId = shiftId,

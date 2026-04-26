@@ -1,5 +1,4 @@
 using FluentAssertions;
-using ShiftMate.Application.SwapRequests.Commands;
 using ShiftMate.Tests.Support;
 using Xunit;
 using Moq;
@@ -7,10 +6,11 @@ using ShiftMate.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
+using ShiftMate.Application.SwapRequests.Commands.AcceptSwap;
 
 namespace ShiftMate.Tests
 {
-    public class AcceptSwapHandlerTests
+    public class AcceptSwapCommandHandlerTests
     {
         private static readonly Guid OrgId = Guid.NewGuid();
 
@@ -20,8 +20,8 @@ namespace ShiftMate.Tests
             var context = TestDbContextFactory.Create();
             SeedOrg(context);
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var myUserId = Guid.NewGuid();
             var otherUserId = Guid.NewGuid();
@@ -76,8 +76,8 @@ namespace ShiftMate.Tests
             var context = TestDbContextFactory.Create();
             SeedOrg(context);
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var acceptorId = Guid.NewGuid();
             var requesterId = Guid.NewGuid();
@@ -128,8 +128,8 @@ namespace ShiftMate.Tests
         {
             var context = TestDbContextFactory.Create();
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var command = new AcceptSwapCommand
             {
@@ -150,8 +150,8 @@ namespace ShiftMate.Tests
             var context = TestDbContextFactory.Create();
             SeedOrg(context);
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var requesterId = Guid.NewGuid();
 
@@ -193,8 +193,8 @@ namespace ShiftMate.Tests
             var context = TestDbContextFactory.Create();
             SeedOrg(context);
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var userAId = Guid.NewGuid();
             var userBId = Guid.NewGuid();
@@ -262,8 +262,8 @@ namespace ShiftMate.Tests
             var context = TestDbContextFactory.Create();
             SeedOrg(context);
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var userAId = Guid.NewGuid();
             var userBId = Guid.NewGuid();
@@ -326,8 +326,8 @@ namespace ShiftMate.Tests
             var context = TestDbContextFactory.Create();
             SeedOrg(context);
             var mockEmailService = new Mock<IEmailService>();
-            var mockLogger = new Mock<ILogger<AcceptSwapHandler>>();
-            var handler = new AcceptSwapHandler(context, mockEmailService.Object, mockLogger.Object);
+            var mockLogger = new Mock<ILogger<AcceptSwapCommandHandler>>();
+            var handler = new AcceptSwapCommandHandler(context, mockEmailService.Object, mockLogger.Object);
 
             var userAId = Guid.NewGuid();
             var userBId = Guid.NewGuid();

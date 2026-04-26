@@ -1,11 +1,11 @@
 using FluentAssertions;
-using ShiftMate.Application.Organizations.Commands;
+using ShiftMate.Application.Organizations.Commands.RegenerateInviteCode;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
 
-public class RegenerateInviteCodeHandlerTests
+public class RegenerateInviteCodeCommandHandlerTests
 {
     [Fact]
     public async Task Handle_Should_Generate_New_Code()
@@ -21,7 +21,7 @@ public class RegenerateInviteCodeHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new RegenerateInviteCodeHandler(context);
+        var handler = new RegenerateInviteCodeCommandHandler(context);
         var result = await handler.Handle(new RegenerateInviteCodeCommand(orgId), CancellationToken.None);
 
         result.Should().NotBeNullOrEmpty();
@@ -39,7 +39,7 @@ public class RegenerateInviteCodeHandlerTests
     public async Task Handle_Should_Throw_When_Org_Not_Found()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new RegenerateInviteCodeHandler(context);
+        var handler = new RegenerateInviteCodeCommandHandler(context);
 
         await FluentActions.Invoking(() => handler.Handle(new RegenerateInviteCodeCommand(Guid.NewGuid()), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()

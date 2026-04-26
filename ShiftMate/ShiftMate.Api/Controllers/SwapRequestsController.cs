@@ -1,9 +1,15 @@
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using ShiftMate.Application.SwapRequests.Commands;
-using ShiftMate.Application.SwapRequests.Queries;
 using ShiftMate.Api.Extensions;
+using ShiftMate.Application.SwapRequests.Commands.AcceptSwap;
+using ShiftMate.Application.SwapRequests.Commands.InitiateSwap;
+using ShiftMate.Application.SwapRequests.Commands.ProposeDirectSwap;
+using ShiftMate.Application.SwapRequests.Queries.GetAvailableSwaps;
+using ShiftMate.Application.SwapRequests.Queries.GetReceivedSwapRequests;
+using ShiftMate.Application.SwapRequests.Commands.CancelSwapRequest;
+using ShiftMate.Application.SwapRequests.Commands.DeclineSwapRequest;
+using ShiftMate.Application.SwapRequests.Queries.GetSentSwapRequests;
 
 namespace ShiftMate.Api.Controllers
 {

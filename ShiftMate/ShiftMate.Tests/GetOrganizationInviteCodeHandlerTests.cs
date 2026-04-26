@@ -1,11 +1,11 @@
 using FluentAssertions;
-using ShiftMate.Application.Organizations.Queries;
+using ShiftMate.Application.Organizations.Queries.GetOrganizationInviteCode;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
 
-public class GetOrganizationInviteCodeHandlerTests
+public class GetOrganizationInviteCodeQueryHandlerTests
 {
     [Fact]
     public async Task Handle_Should_Return_InviteCode()
@@ -22,7 +22,7 @@ public class GetOrganizationInviteCodeHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetOrganizationInviteCodeHandler(context);
+        var handler = new GetOrganizationInviteCodeQueryHandler(context);
         var result = await handler.Handle(new GetOrganizationInviteCodeQuery(orgId), CancellationToken.None);
 
         result.InviteCode.Should().Be("ABC12345");
@@ -36,7 +36,7 @@ public class GetOrganizationInviteCodeHandlerTests
     public async Task Handle_Should_Throw_When_Org_Not_Found()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new GetOrganizationInviteCodeHandler(context);
+        var handler = new GetOrganizationInviteCodeQueryHandler(context);
 
         await FluentActions.Invoking(() => handler.Handle(new GetOrganizationInviteCodeQuery(Guid.NewGuid()), CancellationToken.None))
             .Should().ThrowAsync<InvalidOperationException>()

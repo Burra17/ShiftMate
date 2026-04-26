@@ -1,5 +1,5 @@
 using FluentAssertions;
-using ShiftMate.Application.SwapRequests.Queries;
+using ShiftMate.Application.SwapRequests.Queries.GetSentSwapRequests;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
