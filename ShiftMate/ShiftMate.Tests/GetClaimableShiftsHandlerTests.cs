@@ -1,12 +1,12 @@
 using FluentAssertions;
-using ShiftMate.Application.Shifts.Queries;
+using ShiftMate.Application.Shifts.Queries.GetClaimableShifts;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
 
-public class GetClaimableShiftsHandlerTests
+public class GetClaimableShiftsQueryHandlerTests
 {
     private static readonly Guid OrgId = Guid.NewGuid();
 
@@ -35,7 +35,7 @@ public class GetClaimableShiftsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetClaimableShiftsHandler(context);
+        var handler = new GetClaimableShiftsQueryHandler(context);
         var result = await handler.Handle(new GetClaimableShiftsQuery(OrgId), CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -63,7 +63,7 @@ public class GetClaimableShiftsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetClaimableShiftsHandler(context);
+        var handler = new GetClaimableShiftsQueryHandler(context);
         var result = await handler.Handle(new GetClaimableShiftsQuery(OrgId), CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -93,7 +93,7 @@ public class GetClaimableShiftsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetClaimableShiftsHandler(context);
+        var handler = new GetClaimableShiftsQueryHandler(context);
         var result = await handler.Handle(new GetClaimableShiftsQuery(OrgId), CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -120,7 +120,7 @@ public class GetClaimableShiftsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetClaimableShiftsHandler(context);
+        var handler = new GetClaimableShiftsQueryHandler(context);
         var result = await handler.Handle(new GetClaimableShiftsQuery(OrgId), CancellationToken.None);
 
         result.Should().HaveCount(2);

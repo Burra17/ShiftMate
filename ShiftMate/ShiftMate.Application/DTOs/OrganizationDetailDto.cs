@@ -1,11 +1,11 @@
-namespace ShiftMate.Application.DTOs
+namespace ShiftMate.Application.DTOs;
+
+// DTO för att visa detaljerad information om en organisation, inklusive antal användare.
+public record OrganizationDetailDto
 {
-    public class OrganizationDetailDto
-    {
-        public Guid Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string InviteCode { get; set; } = string.Empty;
-        public DateTime CreatedAt { get; set; }
-        public int UserCount { get; set; }
-    }
+    public Guid Id { get; init; }
+    public string Name { get; init; } = string.Empty;
+    public string InviteCode { get; init; } = string.Empty;
+    public DateTime CreatedAt { get; init; }
+    public int UserCount { get; init; }
 }

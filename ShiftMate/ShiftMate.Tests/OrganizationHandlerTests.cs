@@ -2,8 +2,11 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Organizations.Commands;
+using ShiftMate.Application.Organizations.Commands.CreateOrganization;
+using ShiftMate.Application.Organizations.Commands.DeleteOrganization;
+using ShiftMate.Application.Organizations.Commands.UpdateOrganization;
 using ShiftMate.Application.Organizations.Queries;
+using ShiftMate.Application.Organizations.Queries.GetAllOrganizationsDetails;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -29,7 +32,7 @@ public class OrganizationHandlerTests
         context.Users.Add(new User { Id = Guid.NewGuid(), FirstName = "C", LastName = "D", Email = "c@test.com", PasswordHash = "h", Role = Role.Employee, OrganizationId = org1.Id });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllOrganizationsDetailHandler(context);
+        var handler = new GetAllOrganizationsDetailQueryHandler(context);
         var result = await handler.Handle(new GetAllOrganizationsDetailQuery(), CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -44,7 +47,7 @@ public class OrganizationHandlerTests
     {
         var context = TestDbContextFactory.Create();
 
-        var handler = new GetAllOrganizationsDetailHandler(context);
+        var handler = new GetAllOrganizationsDetailQueryHandler(context);
         var result = await handler.Handle(new GetAllOrganizationsDetailQuery(), CancellationToken.None);
 
         result.Should().BeEmpty();
@@ -165,7 +168,7 @@ public class OrganizationHandlerTests
         context.Organizations.Add(new Organization { Id = orgId, Name = "Ta Bort Mig", CreatedAt = DateTime.UtcNow });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteOrganizationHandler(context);
+        var handler = new DeleteOrganizationCommandHandler(context);
         await handler.Handle(new DeleteOrganizationCommand(orgId), CancellationToken.None);
 
         context.Organizations.Should().BeEmpty();
@@ -178,7 +181,7 @@ public class OrganizationHandlerTests
     {
         var context = TestDbContextFactory.Create();
 
-        var handler = new DeleteOrganizationHandler(context);
+        var handler = new DeleteOrganizationCommandHandler(context);
         var act = () => handler.Handle(new DeleteOrganizationCommand(Guid.NewGuid()), CancellationToken.None);
 
         await act.Should().ThrowAsync<Exception>()
@@ -200,7 +203,7 @@ public class OrganizationHandlerTests
         context.Shifts.Add(new Shift { Id = shiftId, StartTime = DateTime.UtcNow, EndTime = DateTime.UtcNow.AddHours(8), OrganizationId = orgId, UserId = userId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteOrganizationHandler(context);
+        var handler = new DeleteOrganizationCommandHandler(context);
         await handler.Handle(new DeleteOrganizationCommand(orgId), CancellationToken.None);
 
         context.Organizations.Should().BeEmpty();
@@ -210,19 +213,19 @@ public class OrganizationHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static CreateOrganizationHandler CreateCreateHandler(Infrastructure.AppDbContext context)
+    private static CreateOrganizationCommandHandler CreateCreateHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<CreateOrganizationCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<CreateOrganizationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new CreateOrganizationHandler(context, validatorMock.Object);
+        return new CreateOrganizationCommandHandler(context, validatorMock.Object);
     }
 
-    private static UpdateOrganizationHandler CreateUpdateHandler(Infrastructure.AppDbContext context)
+    private static UpdateOrganizationCommandHandler CreateUpdateHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<UpdateOrganizationCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateOrganizationCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new UpdateOrganizationHandler(context, validatorMock.Object);
+        return new UpdateOrganizationCommandHandler(context, validatorMock.Object);
     }
 }

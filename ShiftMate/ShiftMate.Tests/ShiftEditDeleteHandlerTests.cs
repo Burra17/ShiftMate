@@ -2,7 +2,8 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Shifts.Commands;
+using ShiftMate.Application.Shifts.Commands.DeleteShift;
+using ShiftMate.Application.Shifts.Commands.UpdateShift;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -28,7 +29,7 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new UpdateShiftHandler(context, validatorMock.Object);
+            var handler = new UpdateShiftCommandHandler(context, validatorMock.Object);
 
             var command = new UpdateShiftCommand
             {
@@ -66,7 +67,7 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new UpdateShiftHandler(context, validatorMock.Object);
+            var handler = new UpdateShiftCommandHandler(context, validatorMock.Object);
 
             var newStart = DateTime.UtcNow.AddHours(10);
             var newEnd = DateTime.UtcNow.AddHours(18);
@@ -121,7 +122,7 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new UpdateShiftHandler(context, validatorMock.Object);
+            var handler = new UpdateShiftCommandHandler(context, validatorMock.Object);
 
             var command = new UpdateShiftCommand
             {
@@ -164,7 +165,7 @@ namespace ShiftMate.Tests
             validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateShiftCommand>(), It.IsAny<CancellationToken>()))
                          .ReturnsAsync(new ValidationResult());
 
-            var handler = new UpdateShiftHandler(context, validatorMock.Object);
+            var handler = new UpdateShiftCommandHandler(context, validatorMock.Object);
 
             var command = new UpdateShiftCommand
             {
@@ -189,7 +190,7 @@ namespace ShiftMate.Tests
         public async Task DeleteShift_Should_Throw_When_Shift_Not_Found()
         {
             var context = TestDbContextFactory.Create();
-            var handler = new DeleteShiftHandler(context);
+            var handler = new DeleteShiftCommandHandler(context);
 
             await FluentActions.Invoking(() => handler.Handle(new DeleteShiftCommand(Guid.NewGuid(), OrgId), CancellationToken.None))
                 .Should().ThrowAsync<InvalidOperationException>()
@@ -214,7 +215,7 @@ namespace ShiftMate.Tests
             });
             await context.SaveChangesAsync(CancellationToken.None);
 
-            var handler = new DeleteShiftHandler(context);
+            var handler = new DeleteShiftCommandHandler(context);
             var result = await handler.Handle(new DeleteShiftCommand(shiftId, OrgId), CancellationToken.None);
 
             result.Should().BeTrue();
@@ -262,7 +263,7 @@ namespace ShiftMate.Tests
             });
             await context.SaveChangesAsync(CancellationToken.None);
 
-            var handler = new DeleteShiftHandler(context);
+            var handler = new DeleteShiftCommandHandler(context);
             var result = await handler.Handle(new DeleteShiftCommand(shiftId, OrgId), CancellationToken.None);
 
             result.Should().BeTrue();

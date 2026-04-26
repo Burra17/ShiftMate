@@ -1,12 +1,12 @@
 using FluentAssertions;
-using ShiftMate.Application.SwapRequests.Queries;
+using ShiftMate.Application.SwapRequests.Queries.GetAvailableSwaps;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
 
-public class GetAvailableSwapsHandlerTests
+public class GetAvailableSwapsQueryHandlerTests
 {
     private static readonly Guid OrgId = Guid.NewGuid();
 
@@ -47,7 +47,7 @@ public class GetAvailableSwapsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAvailableSwapsHandler(context);
+        var handler = new GetAvailableSwapsQueryHandler(context);
         var result = await handler.Handle(new GetAvailableSwapsQuery(OrgId), CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -83,7 +83,7 @@ public class GetAvailableSwapsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAvailableSwapsHandler(context);
+        var handler = new GetAvailableSwapsQueryHandler(context);
         var result = await handler.Handle(new GetAvailableSwapsQuery(OrgId), CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -99,7 +99,7 @@ public class GetAvailableSwapsHandlerTests
     public async Task Handle_Should_Return_Empty_List_When_No_Pending_Requests()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new GetAvailableSwapsHandler(context);
+        var handler = new GetAvailableSwapsQueryHandler(context);
 
         var result = await handler.Handle(new GetAvailableSwapsQuery(OrgId), CancellationToken.None);
 

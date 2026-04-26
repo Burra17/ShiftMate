@@ -1,5 +1,5 @@
 using FluentAssertions;
-using ShiftMate.Application.Shifts.Commands;
+using ShiftMate.Application.Shifts.Commands.CancelShiftSwap;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;

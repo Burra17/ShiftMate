@@ -1,5 +1,5 @@
 using FluentAssertions;
-using ShiftMate.Application.SwapRequests.Commands;
+using ShiftMate.Application.SwapRequests.Commands.CancelSwapRequest;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -14,7 +14,7 @@ public class CancelSwapRequestHandlerTests
     public async Task Handle_Should_Throw_When_SwapRequest_Not_Found()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new CancelSwapRequestHandler(context);
+        var handler = new CancelSwapRequestCommandHandler(context);
 
         var command = new CancelSwapRequestCommand(Guid.NewGuid(), Guid.NewGuid());
 
@@ -52,7 +52,7 @@ public class CancelSwapRequestHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new CancelSwapRequestHandler(context);
+        var handler = new CancelSwapRequestCommandHandler(context);
         var command = new CancelSwapRequestCommand(swapRequestId, Guid.NewGuid());
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
@@ -89,7 +89,7 @@ public class CancelSwapRequestHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new CancelSwapRequestHandler(context);
+        var handler = new CancelSwapRequestCommandHandler(context);
         var command = new CancelSwapRequestCommand(swapRequestId, requesterId);
 
         await handler.Handle(command, CancellationToken.None);

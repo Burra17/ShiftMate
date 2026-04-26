@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Application.SwapRequests.Commands;
+using ShiftMate.Application.SwapRequests.Commands.DeclineSwapRequest;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;

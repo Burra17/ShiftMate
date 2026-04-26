@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper;
-using ShiftMate.Application.Shifts.Commands;
+using ShiftMate.Application.Shifts.Commands.UpdateShift;
 
 namespace ShiftMate.Tests
 {

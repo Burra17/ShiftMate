@@ -4,7 +4,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.ForgotPassword;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -87,16 +87,16 @@ public class ForgotPasswordHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static ForgotPasswordHandler CreateHandler(
+    private static ForgotPasswordCommandHandler CreateHandler(
         Infrastructure.AppDbContext context,
         out Mock<IEmailService> emailMock)
     {
         emailMock = new Mock<IEmailService>();
-        var loggerMock = new Mock<ILogger<ForgotPasswordHandler>>();
+        var loggerMock = new Mock<ILogger<ForgotPasswordCommandHandler>>();
         var validatorMock = new Mock<IValidator<ForgotPasswordCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<ForgotPasswordCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new ForgotPasswordHandler(context, emailMock.Object, loggerMock.Object, validatorMock.Object);
+        return new ForgotPasswordCommandHandler(context, emailMock.Object, loggerMock.Object, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

@@ -1,12 +1,12 @@
 using FluentAssertions;
-using ShiftMate.Application.Shifts.Queries;
+using ShiftMate.Application.Shifts.Queries.GetMyShifts;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
 
-public class GetMyShiftsHandlerTests
+public class GetMyShiftsQueryHandlerTests
 {
     private static readonly Guid OrgId = Guid.NewGuid();
 
@@ -48,7 +48,7 @@ public class GetMyShiftsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetMyShiftsHandler(context);
+        var handler = new GetMyShiftsQueryHandler(context);
         var result = await handler.Handle(new GetMyShiftsQuery(userId, OrgId), CancellationToken.None);
 
         result.Should().HaveCount(1);
@@ -83,7 +83,7 @@ public class GetMyShiftsHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetMyShiftsHandler(context);
+        var handler = new GetMyShiftsQueryHandler(context);
         var result = await handler.Handle(new GetMyShiftsQuery(userId, OrgId), CancellationToken.None);
 
         result.Should().HaveCount(2);
@@ -96,7 +96,7 @@ public class GetMyShiftsHandlerTests
     public async Task Handle_Should_Return_Empty_List_When_User_Has_No_Shifts()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new GetMyShiftsHandler(context);
+        var handler = new GetMyShiftsQueryHandler(context);
 
         var result = await handler.Handle(new GetMyShiftsQuery(Guid.NewGuid(), OrgId), CancellationToken.None);
 

@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper; // Hjälper oss testa validators
-using ShiftMate.Application.Shifts.Commands;
+using ShiftMate.Application.Shifts.Commands.CreateShift;
 using Xunit; // Själva testmotorn
 
 namespace ShiftMate.Tests

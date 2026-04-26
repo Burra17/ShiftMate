@@ -3,7 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.Configuration;
 using Moq;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.Login;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -180,12 +180,12 @@ public class LoginHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static LoginHandler CreateHandler(Infrastructure.AppDbContext context)
+    private static LoginCommandHandler CreateHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<LoginCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new LoginHandler(context, CreateConfiguration(), validatorMock.Object);
+        return new LoginCommandHandler(context, CreateConfiguration(), validatorMock.Object);
     }
 
     private static IConfiguration CreateConfiguration()
