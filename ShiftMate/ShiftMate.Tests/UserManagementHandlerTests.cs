@@ -1,9 +1,9 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Microsoft.EntityFrameworkCore;
 using Moq;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.DeleteUser;
+using ShiftMate.Application.Users.Commands.UpdateUserRole;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -30,7 +30,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
 
         var result = await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
 
@@ -57,7 +57,7 @@ public class UserManagementHandlerTests
         context.Shifts.Add(new Shift { Id = shiftId, UserId = targetId, StartTime = DateTime.UtcNow, EndTime = DateTime.UtcNow.AddHours(8), IsUpForSwap = true, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
         await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
 
         var shift = await context.Shifts.FindAsync(shiftId);
@@ -91,7 +91,7 @@ public class UserManagementHandlerTests
         context.SwapRequests.Add(new SwapRequest { Id = swapId2, ShiftId = shiftId2, RequestingUserId = otherId, TargetUserId = targetId, Status = SwapRequestStatus.Pending });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
         await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
 
         var swap1 = await context.SwapRequests.FindAsync(swapId1);
@@ -112,7 +112,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
 
         var act = async () => await handler.Handle(
             new DeleteUserCommand { TargetUserId = managerId, RequestingUserId = managerId, OrganizationId = OrgId },
@@ -135,7 +135,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = managerId, FirstName = "Manager", LastName = "Test", Email = "manager@test.com", PasswordHash = "hash", Role = Role.Manager, OrganizationId = OrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
 
         var act = async () => await handler.Handle(
             new DeleteUserCommand { TargetUserId = nonExistentId, RequestingUserId = managerId, OrganizationId = OrgId },
@@ -161,7 +161,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = otherOrgId });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
 
         var act = async () => await handler.Handle(
             new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId },
@@ -185,7 +185,7 @@ public class UserManagementHandlerTests
         context.Users.Add(new User { Id = targetId, FirstName = "Anna", LastName = "Svensson", Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId, IsActive = false, DeactivatedAt = DateTime.UtcNow });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
 
         var act = async () => await handler.Handle(
             new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId },
@@ -215,7 +215,7 @@ public class UserManagementHandlerTests
         context.SwapRequests.Add(new SwapRequest { Id = acceptedSwapId, ShiftId = shiftId, RequestingUserId = targetId, TargetUserId = otherId, Status = SwapRequestStatus.Accepted });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new DeleteUserHandler(context);
+        var handler = new DeleteUserCommandHandler(context);
         await handler.Handle(new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId }, CancellationToken.None);
 
         var swap = await context.SwapRequests.FindAsync(acceptedSwapId);
@@ -299,12 +299,12 @@ public class UserManagementHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static UpdateUserRoleHandler CreateRoleHandler(Infrastructure.AppDbContext context)
+    private static UpdateUserRoleCommandHandler CreateRoleHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<UpdateUserRoleCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateUserRoleCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new UpdateUserRoleHandler(context, validatorMock.Object);
+        return new UpdateUserRoleCommandHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

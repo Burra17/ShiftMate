@@ -1,5 +1,6 @@
 using FluentAssertions;
 using ShiftMate.Application.Users.Queries;
+using ShiftMate.Application.Users.Queries.GetAllUsers;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -27,7 +28,7 @@ public class GetAllUsersHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
         result.Items.Should().HaveCount(2);
@@ -50,7 +51,7 @@ public class GetAllUsersHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
         result.Items.Should().HaveCount(1);
@@ -66,7 +67,7 @@ public class GetAllUsersHandlerTests
     public async Task Handle_Should_Return_Empty_List_When_No_Users()
     {
         var context = TestDbContextFactory.Create();
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
 
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
@@ -96,7 +97,7 @@ public class GetAllUsersHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
         result.Items.Should().HaveCount(1);
@@ -122,7 +123,7 @@ public class GetAllUsersHandlerTests
         }
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
 
         var page1 = await handler.Handle(new GetAllUsersQuery(OrgId, Page: 1, PageSize: 2), CancellationToken.None);
         page1.Items.Should().HaveCount(2);
@@ -154,7 +155,7 @@ public class GetAllUsersHandlerTests
         }
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
         result.Items.Should().HaveCount(5);
@@ -181,7 +182,7 @@ public class GetAllUsersHandlerTests
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
-        var handler = new GetAllUsersHandler(context);
+        var handler = new GetAllUsersQueryHandler(context);
         var result = await handler.Handle(new GetAllUsersQuery(OrgId), CancellationToken.None);
 
         result.Items.Should().HaveCount(1);

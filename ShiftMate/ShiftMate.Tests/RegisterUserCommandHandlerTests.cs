@@ -4,7 +4,7 @@ using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
 using ShiftMate.Application.Interfaces;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.RegisterUser;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;

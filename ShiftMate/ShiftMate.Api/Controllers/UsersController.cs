@@ -2,9 +2,18 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ShiftMate.Application.Users.Commands;
-using ShiftMate.Application.Users.Queries;
 using ShiftMate.Api.Extensions;
+using ShiftMate.Application.Users.Commands.ChangePassword;
+using ShiftMate.Application.Users.Commands.ForgotPassword;
+using ShiftMate.Application.Users.Commands.Login;
+using ShiftMate.Application.Users.Commands.RegisterUser;
+using ShiftMate.Application.Users.Commands.ResendVerification;
+using ShiftMate.Application.Users.Commands.ResetPassword;
+using ShiftMate.Application.Users.Commands.UpdateProfile;
+using ShiftMate.Application.Users.Commands.UpdateUserRole;
+using ShiftMate.Application.Users.Commands.VerifyEmail;
+using ShiftMate.Application.Users.Commands.DeleteUser;
+using ShiftMate.Application.Users.Queries.GetAllUsers;
 
 namespace ShiftMate.Api.Controllers
 {

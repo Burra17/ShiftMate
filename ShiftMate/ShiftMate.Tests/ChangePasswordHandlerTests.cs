@@ -2,7 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.ChangePassword;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -98,12 +98,12 @@ public class ChangePasswordHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static ChangePasswordHandler CreateHandler(Infrastructure.AppDbContext context)
+    private static ChangePasswordCommandHandler CreateHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<ChangePasswordCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<ChangePasswordCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new ChangePasswordHandler(context, validatorMock.Object);
+        return new ChangePasswordCommandHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

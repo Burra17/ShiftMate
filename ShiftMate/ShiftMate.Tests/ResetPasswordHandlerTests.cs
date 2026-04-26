@@ -2,7 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.ResetPassword;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -168,12 +168,12 @@ public class ResetPasswordHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static ResetPasswordHandler CreateHandler(Infrastructure.AppDbContext context)
+    private static ResetPasswordCommandHandler CreateHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<ResetPasswordCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<ResetPasswordCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new ResetPasswordHandler(context, validatorMock.Object);
+        return new ResetPasswordCommandHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)

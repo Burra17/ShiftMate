@@ -2,7 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
-using ShiftMate.Application.Users.Commands;
+using ShiftMate.Application.Users.Commands.UpdateProfile;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 using ShiftMate.Tests.Support;
@@ -67,12 +67,12 @@ public class UpdateProfileHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
-    private static UpdateProfileHandler CreateHandler(Infrastructure.AppDbContext context)
+    private static UpdateProfileCommandHandler CreateHandler(Infrastructure.AppDbContext context)
     {
         var validatorMock = new Mock<IValidator<UpdateProfileCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<UpdateProfileCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new UpdateProfileHandler(context, validatorMock.Object);
+        return new UpdateProfileCommandHandler(context, validatorMock.Object);
     }
 
     private static void SeedOrg(Infrastructure.AppDbContext context)
