@@ -2,9 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Application.DTOs;
-using ShiftMate.Application.Shifts.Queries;
 using ShiftMate.Api.Extensions;
-using FluentValidation;
 using ShiftMate.Application.Shifts.Commands.CreateShift;
 using ShiftMate.Application.Shifts.Commands.UpdateShift;
 using ShiftMate.Application.Shifts.Commands.TakeShift;
@@ -32,29 +30,15 @@ namespace ShiftMate.Api.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreateShiftCommand command)
         {
-            try
-            {
-                var userId = User.GetUserId();
-                var orgId = User.GetOrganizationId();
-                if (userId == null || orgId == null)
-                {
-                    return Unauthorized("Kunde inte identifiera användaren från token.");
-                }
+            var userId = User.GetUserId();
+            var orgId = User.GetOrganizationId();
+            if (userId == null || orgId == null) return Unauthorized();
 
-                command.UserId = userId.Value;
-                command.OrganizationId = orgId.Value;
-                var shiftId = await _mediator.Send(command);
+            command.UserId = userId.Value;
+            command.OrganizationId = orgId.Value;
+            var shiftId = await _mediator.Send(command);
 
-                return Ok(new { Id = shiftId, Message = "Passet har skapats!" });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
-            }
+            return Ok(new { Id = shiftId, Message = "Passet har skapats!" });
         }
 
         // 2. HÄMTA MINA PASS
@@ -108,17 +92,8 @@ namespace ShiftMate.Api.Controllers
                 OrganizationId = orgId.Value
             };
 
-            try
-            {
-                var result = await _mediator.Send(command);
-                if (result) return Ok(new { Message = "Passet har tagits!" });
-
-                return NotFound(new { Error = true, Message = "Kunde inte ta passet." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "Passet har tagits!" });
         }
 
         // 6. ÅNGRA MARKNADSFÖRING AV PASS
@@ -134,17 +109,8 @@ namespace ShiftMate.Api.Controllers
                 UserId = userId.Value
             };
 
-            try
-            {
-                var result = await _mediator.Send(command);
-                if (result) return Ok(new { Message = "Ditt pass är inte längre tillgängligt för byte." });
-
-                return NotFound(new { Error = true, Message = "Kunde inte ångra bytet." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "Ditt pass är inte längre tillgängligt för byte." });
         }
 
         // 7. MANAGER UPPDATERA PASS
@@ -152,24 +118,13 @@ namespace ShiftMate.Api.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> UpdateShift(Guid id, UpdateShiftCommand command)
         {
-            try
-            {
-                var orgId = User.GetOrganizationId();
-                if (orgId == null) return Unauthorized();
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
 
-                command.ShiftId = id;
-                command.OrganizationId = orgId.Value;
-                await _mediator.Send(command);
-                return Ok(new { Message = "Passet har uppdaterats!" });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
-            }
+            command.ShiftId = id;
+            command.OrganizationId = orgId.Value;
+            await _mediator.Send(command);
+            return Ok(new { Message = "Passet har uppdaterats!" });
         }
 
         // 8. MANAGER RADERA PASS
@@ -177,18 +132,11 @@ namespace ShiftMate.Api.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> DeleteShift(Guid id)
         {
-            try
-            {
-                var orgId = User.GetOrganizationId();
-                if (orgId == null) return Unauthorized();
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
 
-                await _mediator.Send(new DeleteShiftCommand(id, orgId.Value));
-                return Ok(new { Message = "Passet har raderats!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
-            }
+            await _mediator.Send(new DeleteShiftCommand(id, orgId.Value));
+            return Ok(new { Message = "Passet har raderats!" });
         }
 
         // 9. ADMIN SKAPA PASS
@@ -196,23 +144,12 @@ namespace ShiftMate.Api.Controllers
         [Authorize(Roles = "Manager")]
         public async Task<IActionResult> AdminCreate(CreateShiftCommand command)
         {
-            try
-            {
-                var orgId = User.GetOrganizationId();
-                if (orgId == null) return Unauthorized();
+            var orgId = User.GetOrganizationId();
+            if (orgId == null) return Unauthorized();
 
-                command.OrganizationId = orgId.Value;
-                var shiftId = await _mediator.Send(command);
-                return Ok(new { Id = shiftId, Message = "Administratör: Passet har skapats!" });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
-            }
+            command.OrganizationId = orgId.Value;
+            var shiftId = await _mediator.Send(command);
+            return Ok(new { Id = shiftId, Message = "Administratör: Passet har skapats!" });
         }
     }
 }

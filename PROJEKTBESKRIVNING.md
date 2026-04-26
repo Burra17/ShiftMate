@@ -151,9 +151,10 @@ Controllers är medvetet **tunna** - de extraherar bara användar-ID från JWT-c
 | Typ | Konvention | Exempel |
 |-----|------------|---------|
 | Commands | PascalCase + "Command" | `CreateShiftCommand` |
-| Handlers | PascalCase + "Handler" | `CreateShiftHandler` |
-| DTOs | PascalCase + "Dto" | `ShiftDto`, `UserDto` |
+| Command handlers | PascalCase + "CommandHandler" | `CreateShiftCommandHandler` |
 | Queries | PascalCase + "Query" | `GetAllShiftsQuery` |
+| Query handlers | PascalCase + "QueryHandler" | `GetAllShiftsQueryHandler` |
+| DTOs | PascalCase + "Dto" | `ShiftDto`, `UserDto` |
 | Privata fält | _camelCase | `_context`, `_emailService` |
 | Frontend-filer | PascalCase (komponenter) | `ShiftList.jsx`, `MarketPlace.jsx` |
 

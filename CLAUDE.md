@@ -68,43 +68,46 @@ These principles guide every decision in this project:
 
 ### Backend Rules
 
-1. **Controllers** must be thin — receive HTTP request, extract user from JWT claims, delegate to MediatR (`_mediator.Send()`), catch exceptions, return HTTP response. No business logic.
+1. **Controllers** must be thin — receive HTTP request, extract user from JWT claims, delegate to MediatR (`_mediator.Send()`), return HTTP response. **No try/catch** — `ExceptionHandlingMiddleware` maps thrown exceptions to status codes globally. No business logic.
 2. **Entities** must NEVER be returned from the API. Always map to **DTOs**.
-3. **Business logic** lives exclusively in `Application/Commands` or `Application/Queries` handlers.
-4. **New commands/queries** must follow the existing CQRS pattern with `IRequestHandler<TCommand, TResult>`.
+3. **Business logic** lives exclusively in `Application/[Feature]/Commands/[Name]/` or `Application/[Feature]/Queries/[Name]/` handlers.
+4. **New commands/queries** must follow the existing CQRS pattern: each command/query in its own folder with command, handler, and (if needed) validator as separate files (`{Name}Command.cs`, `{Name}CommandHandler.cs`, `{Name}CommandValidator.cs`).
 5. **Validation** uses FluentValidation in the Application layer. Every command that accepts user input SHOULD have a validator.
-6. **Reference examples:** Look at existing files like `CreateShiftCommand.cs` or `ShiftsController.cs` for style and patterns.
+6. **Reference examples:** Look at `Shifts/Commands/CreateShift/` (command + handler + validator) or `ShiftsController.cs` for style and patterns.
 
 ### Error Handling Pattern
 
-Handlers throw exceptions, controllers catch and convert to HTTP responses:
+Handlers throw exceptions; `ExceptionHandlingMiddleware` (in `Api/Middleware/`) maps them to HTTP status codes globally. **Controllers must not have try/catch.**
 
 ```csharp
-// In handlers — throw on invalid state
-throw new ValidationException(validationResult.Errors);   // Input validation
-throw new InvalidOperationException("Message in Swedish"); // Business rule violation
-throw new Exception("Message in Swedish");                 // General errors
+// In handlers — throw the most specific exception type
+throw new ValidationException(validationResult.Errors);    // FluentValidation → 400
+throw new NotFoundException("Passet hittades inte.");      // → 404
+throw new ForbiddenException("Du har inte behörighet.");   // → 403
+throw new ConflictException("E-posten finns redan.");      // → 409
+throw new EmailNotVerifiedException("...");                // → 400 + Code: "EMAIL_NOT_VERIFIED"
+throw new InvalidOperationException("Business rule msg."); // → 400 (generic business rule)
 
-// In controllers — consistent try/catch pattern
-try {
-    var result = await _mediator.Send(command);
-    return Ok(new { Message = "Framgångsmeddelande", result });
-} catch (ValidationException vex) {
-    return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors });
-} catch (Exception ex) {
-    return BadRequest(new { Error = true, Message = $"Ett fel uppstod: {ex.Message}" });
-}
+// In controllers — no try/catch. Just delegate.
+var result = await _mediator.Send(command);
+return Ok(new { Message = "Framgångsmeddelande", result });
 ```
+
+Custom exceptions live in `Application/Common/Exceptions/`. Add new ones there if you need a status code that isn't covered yet.
+
+**Anti-enumeration exception:** `ForgotPassword` and `ResendVerification` controllers keep an inline `try { } catch { }` that swallows errors silently — this is intentional so the response is identical regardless of whether the email exists.
 
 ### API Response Format
 
 All responses use consistent JSON structure:
 
 ```
-Success:  { "message": "...", "id": "..." }  or  [array of DTOs]
-Paginated: { "items": [...], "totalCount": N, "page": N, "pageSize": N, "totalPages": N }
-Error:    { "error": true, "message": "..." }
-Login:    { "token": "jwt.string" }
+Success:           { "message": "...", "id": "..." }  or  [array of DTOs]
+Paginated:         { "items": [...], "totalCount": N, "page": N, "pageSize": N, "totalPages": N }
+Error (generic):   { "error": true, "message": "..." }
+Error (validation):{ "error": true, "message": "Valideringsfel: ...", "details": ["...", "..."] }
+Error (special):   { "error": true, "message": "...", "code": "EMAIL_NOT_VERIFIED" }
+Login:             { "token": "jwt.string" }
 ```
 
 - ASP.NET Core serializes JSON with **camelCase** by default (no custom naming policy configured).
@@ -157,14 +160,18 @@ if (userId == null) return Unauthorized();
 
 | What | Convention | Example |
 |------|-----------|---------|
+| Folder per command | `[Feature]/Commands/[VerbEntity]/` | `Shifts/Commands/CreateShift/` |
+| Folder per query | `[Feature]/Queries/[GetWhat]/` | `Shifts/Queries/GetAllShifts/` |
 | Command | `[Verb][Entity]Command.cs` | `CreateShiftCommand.cs` |
-| Command handler | Inside same file as command | Class: `CreateShiftCommandHandler` |
-| Command validator | Separate file: `[Command]Validator.cs` | `CreateShiftCommandValidator.cs` |
+| Command handler | Separate file: `[Verb][Entity]CommandHandler.cs` | `CreateShiftCommandHandler.cs` |
+| Command validator | Separate file: `[Verb][Entity]CommandValidator.cs` | `CreateShiftCommandValidator.cs` |
 | Query | `[Get][What]Query.cs` | `GetAllShiftsQuery.cs` |
-| Query handler | Separate file: `[Get][What]Handler.cs` | `GetAllShiftsHandler.cs` |
-| DTO | `[Entity]Dto.cs` | `ShiftDto.cs` |
+| Query handler | Separate file: `[Get][What]QueryHandler.cs` | `GetAllShiftsQueryHandler.cs` |
+| Custom exception | `[Name]Exception.cs` in `Application/Common/Exceptions/` | `NotFoundException.cs` |
+| DTO | `[Entity]Dto.cs` in `Application/DTOs/` | `ShiftDto.cs` |
 | Controller | `[Entity plural]Controller.cs` | `ShiftsController.cs` |
 | Interface | `I[Name].cs` | `IAppDbContext.cs` |
+| Middleware | `[Name]Middleware.cs` in `Api/Middleware/` | `ExceptionHandlingMiddleware.cs` |
 
 ### Frontend
 
@@ -206,30 +213,41 @@ if (userId == null) return Unauthorized();
 ### Backend
 
 ```
-ShiftMate.Domain/               # Entities + enums. No dependencies.
-  User.cs, Shift.cs, SwapRequest.cs, SwapRequestStatus.cs, Organization.cs
+ShiftMate.Domain/                                # Entities + enums. No dependencies.
+  Entities/                                      # User.cs, Shift.cs, SwapRequest.cs, Organization.cs
+  Enums/                                         # Role.cs, SwapRequestStatus.cs
 
-ShiftMate.Application/          # Business logic layer (CQRS)
-  DTOs/                         # ShiftDto, UserDto, SwapRequestDto, OrganizationDto, PagedResult<T>
-  Interfaces/                   # IAppDbContext, IEmailService
-  [Feature]/Commands/           # Write operations (command + handler in same file)
-  [Feature]/Queries/            # Read operations (query + handler in separate files)
-  Organizations/Commands/        # CreateOrganizationCommand, RegenerateInviteCodeCommand
-  Organizations/Queries/         # GetAllOrganizationsDetailQuery, GetOrganizationInviteCodeQuery
-  Organizations/                 # InviteCodeGenerator (static helper)
-  DependencyInjection.cs        # MediatR + FluentValidation registration
+ShiftMate.Application/                           # Business logic layer (CQRS)
+  Common/
+    PagedResult.cs                               # Generic pagination wrapper
+    Exceptions/                                  # NotFoundException, ForbiddenException,
+                                                 # ConflictException, EmailNotVerifiedException
+  DTOs/                                          # ShiftDto, UserDto, SwapRequestDto, OrganizationDto
+  Interfaces/                                    # IAppDbContext, IEmailService
+  Services/                                      # EmailTemplateService (static helper)
+  [Feature]/Commands/[VerbEntity]/               # One folder per command — contains:
+                                                 #   - {Name}Command.cs
+                                                 #   - {Name}CommandHandler.cs
+                                                 #   - {Name}CommandValidator.cs (if needed)
+  [Feature]/Queries/[GetWhat]/                   # One folder per query — contains:
+                                                 #   - {Name}Query.cs
+                                                 #   - {Name}QueryHandler.cs
+  Organizations/InviteCodeGenerator.cs           # Feature-local static helper
+  DependencyInjection.cs                         # MediatR + FluentValidation registration
 
-ShiftMate.Infrastructure/       # Data access & external services
-  AppDbContext.cs               # EF Core DbContext with relationships
-  DbInitializer.cs              # Seed data (2 orgs, test users & shifts)
-  Services/                     # ResendEmailService
-  Migrations/                   # EF Core migrations
+ShiftMate.Infrastructure/                        # Data access & external services
+  AppDbContext.cs                                # EF Core DbContext with relationships
+  DbInitializer.cs                               # Seed data (2 orgs, test users & shifts)
+  Services/                                      # ResendEmailService
+  Migrations/                                    # EF Core migrations
 
-ShiftMate.Api/                  # HTTP layer
-  Program.cs                    # DI configuration & middleware pipeline
-  Controllers/                  # Thin controllers (Users, Shifts, SwapRequests, Organizations)
+ShiftMate.Api/                                   # HTTP layer
+  Program.cs                                     # DI configuration & middleware pipeline
+  Controllers/                                   # Thin controllers — no try/catch
+  Middleware/                                    # ExceptionHandlingMiddleware (global error mapping)
+  Extensions/                                    # ClaimsPrincipalExtensions (User.GetUserId(), etc.)
 
-ShiftMate.Tests/                # Unit tests (xUnit + FluentAssertions + Moq)
+ShiftMate.Tests/                                 # Unit tests (xUnit + FluentAssertions + Moq)
   Support/TestDbContextFactory.cs
 ```
 
@@ -284,7 +302,7 @@ components/
 ## DATA MODEL (PostgreSQL)
 
 - **Organization:** `Id` (Guid), `Name` (string, unique), `InviteCode` (string, max 8, unique), `InviteCodeGeneratedAt` (DateTime), `CreatedAt` (DateTime)
-- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager), `PasswordHash`, `IsEmailVerified` (bool), `EmailVerificationTokenHash`, `EmailVerificationTokenExpiresAt`, `ResetTokenHash`, `ResetTokenExpiresAt`, `IsActive` (bool, default true), `DeactivatedAt` (DateTime?), `OrganizationId` (FK → Organization)
+- **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager/SuperAdmin), `PasswordHash`, `IsEmailVerified` (bool), `EmailVerificationTokenHash`, `EmailVerificationTokenExpiresAt`, `ResetTokenHash`, `ResetTokenExpiresAt`, `IsActive` (bool, default true), `DeactivatedAt` (DateTime?), `OrganizationId` (FK → Organization)
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool), `OrganizationId` (FK → Organization)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string), `CreatedAt`
 
@@ -308,6 +326,7 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 ### Authenticated (Any Role)
 - `GET /api/users` — Get all users (?page=1&pageSize=20 for pagination)
 - `PUT /api/users/profile` — Update own profile
+- `PUT /api/users/change-password` — Change own password
 - `GET /api/shifts` — All shifts (?onlyWithUsers=true&page=1&pageSize=20 for pagination)
 - `GET /api/shifts/mine` — Current user's shifts
 - `GET /api/shifts/claimable` — Available unassigned shifts
@@ -325,11 +344,18 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 
 ### Manager Only
 - `GET /api/organizations/my-invite-code` — View own org's invite code
-- `POST /api/organizations/regenerate-invite-code` — Regenerate invite code
+- `POST /api/organizations/{id}/regenerate-invite-code` — Regenerate invite code
 - `POST /api/shifts/admin` — Create shift and assign to user
 - `PUT /api/shifts/{id}` — Update any shift
 - `DELETE /api/shifts/{id}` — Delete any shift
 - `DELETE /api/users/{id}` — Soft delete (deactivate) a user
+- `PUT /api/users/{id}/role` — Change a user's role
+
+### SuperAdmin Only
+- `GET /api/organizations/admin` — All organizations with details
+- `POST /api/organizations` — Create new organization
+- `PUT /api/organizations/{id}` — Update organization
+- `DELETE /api/organizations/{id}` — Delete organization (cascades to users + shifts)
 
 ---
 

@@ -3,189 +3,126 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Api.Extensions;
 using ShiftMate.Application.SwapRequests.Commands.AcceptSwap;
+using ShiftMate.Application.SwapRequests.Commands.CancelSwapRequest;
+using ShiftMate.Application.SwapRequests.Commands.DeclineSwapRequest;
 using ShiftMate.Application.SwapRequests.Commands.InitiateSwap;
 using ShiftMate.Application.SwapRequests.Commands.ProposeDirectSwap;
 using ShiftMate.Application.SwapRequests.Queries.GetAvailableSwaps;
 using ShiftMate.Application.SwapRequests.Queries.GetReceivedSwapRequests;
-using ShiftMate.Application.SwapRequests.Commands.CancelSwapRequest;
-using ShiftMate.Application.SwapRequests.Commands.DeclineSwapRequest;
 using ShiftMate.Application.SwapRequests.Queries.GetSentSwapRequests;
 
-namespace ShiftMate.Api.Controllers
+// CONTROLLER FÖR BYTESFÖRFRÅGNINGAR
+namespace ShiftMate.Api.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+[Authorize]
+public class SwapRequestsController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    [Authorize]
-    public class SwapRequestsController : ControllerBase
+    private readonly IMediator _mediator;
+
+    public SwapRequestsController(IMediator mediator)
     {
-        private readonly IMediator _mediator;
+        _mediator = mediator;
+    }
 
-        public SwapRequestsController(IMediator mediator)
+    // POST: api/SwapRequests/initiate
+    [HttpPost("initiate")]
+    public async Task<IActionResult> InitiateSwap(InitiateSwapCommand command)
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
+
+        command.RequestingUserId = userId.Value;
+
+        var swapRequestId = await _mediator.Send(command);
+        return Ok(new { SwapRequestId = swapRequestId, Message = "Bytesförfrågan skapad!" });
+    }
+
+    // POST: api/SwapRequests/propose-direct
+    [HttpPost("propose-direct")]
+    public async Task<IActionResult> ProposeDirectSwap(ProposeDirectSwapCommand command)
+    {
+        var userId = User.GetUserId();
+        var orgId = User.GetOrganizationId();
+        if (userId == null || orgId == null) return Unauthorized();
+
+        command.RequestingUserId = userId.Value;
+        command.OrganizationId = orgId.Value;
+
+        var swapRequestId = await _mediator.Send(command);
+        return Ok(new { SwapRequestId = swapRequestId, Message = "Förslag om direktbyte har skickats!" });
+    }
+
+    // GET: api/SwapRequests/available
+    [HttpGet("available")]
+    public async Task<IActionResult> GetAvailableSwaps()
+    {
+        var orgId = User.GetOrganizationId();
+        if (orgId == null) return Unauthorized();
+
+        var result = await _mediator.Send(new GetAvailableSwapsQuery(orgId.Value));
+        return Ok(result);
+    }
+
+    // GET: api/SwapRequests/received
+    [HttpGet("received")]
+    public async Task<IActionResult> GetReceivedSwapRequests()
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
+
+        var result = await _mediator.Send(new GetReceivedSwapRequestsQuery { CurrentUserId = userId.Value });
+        return Ok(result);
+    }
+
+    // GET: api/SwapRequests/sent
+    [HttpGet("sent")]
+    public async Task<IActionResult> GetSentSwapRequests()
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
+
+        var result = await _mediator.Send(new GetSentSwapRequestsQuery { CurrentUserId = userId.Value });
+        return Ok(result);
+    }
+
+    // POST: api/SwapRequests/accept
+    [HttpPost("accept")]
+    public async Task<IActionResult> AcceptSwap(AcceptSwapCommand command)
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
+
+        command.CurrentUserId = userId.Value;
+
+        await _mediator.Send(command);
+        return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
+    }
+
+    // POST: api/SwapRequests/{id}/decline
+    [HttpPost("{id}/decline")]
+    public async Task<IActionResult> DeclineSwapRequest(Guid id)
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
+
+        await _mediator.Send(new DeclineSwapRequestCommand
         {
-            _mediator = mediator;
-        }
+            SwapRequestId = id,
+            CurrentUserId = userId.Value
+        });
+        return Ok(new { Message = "Bytesförfrågan har nekats." });
+    }
 
-        // POST: api/SwapRequests/initiate
-        [HttpPost("initiate")]
-        public async Task<IActionResult> InitiateSwap(InitiateSwapCommand command)
-        {
-            try
-            {
-                var userId = User.GetUserId();
-                if (userId == null)
-                {
-                    return Unauthorized(new { message = "Kunde inte identifiera användaren." });
-                }
+    // DELETE: api/SwapRequests/{id}
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> CancelSwapRequest(Guid id)
+    {
+        var userId = User.GetUserId();
+        if (userId == null) return Unauthorized();
 
-                command.RequestingUserId = userId.Value;
-
-                var swapRequestId = await _mediator.Send(command);
-                return Ok(new { SwapRequestId = swapRequestId, Message = "Bytesförfrågan skapad!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        // POST: api/SwapRequests/propose-direct
-        [HttpPost("propose-direct")]
-        public async Task<IActionResult> ProposeDirectSwap(ProposeDirectSwapCommand command)
-        {
-            try
-            {
-                var userId = User.GetUserId();
-                var orgId = User.GetOrganizationId();
-                if (userId == null || orgId == null)
-                {
-                    return Unauthorized(new { message = "Kunde inte identifiera användaren." });
-                }
-
-                command.RequestingUserId = userId.Value;
-                command.OrganizationId = orgId.Value;
-
-                var swapRequestId = await _mediator.Send(command);
-                return Ok(new { SwapRequestId = swapRequestId, Message = "Förslag om direktbyte har skickats!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        // GET: api/SwapRequests/available
-        [HttpGet("available")]
-        public async Task<IActionResult> GetAvailableSwaps()
-        {
-            var orgId = User.GetOrganizationId();
-            if (orgId == null) return Unauthorized();
-
-            var query = new GetAvailableSwapsQuery(orgId.Value);
-            var result = await _mediator.Send(query);
-
-            return Ok(result);
-        }
-
-        // GET: api/SwapRequests/received
-        [HttpGet("received")]
-        public async Task<IActionResult> GetReceivedSwapRequests()
-        {
-            var userId = User.GetUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { message = "Kunde inte identifiera användaren." });
-            }
-
-            var query = new GetReceivedSwapRequestsQuery
-            {
-                CurrentUserId = userId.Value
-            };
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
-
-        // GET: api/SwapRequests/sent
-        [HttpGet("sent")]
-        public async Task<IActionResult> GetSentSwapRequests()
-        {
-            var userId = User.GetUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new { message = "Kunde inte identifiera användaren." });
-            }
-
-            var query = new GetSentSwapRequestsQuery
-            {
-                CurrentUserId = userId.Value
-            };
-            var result = await _mediator.Send(query);
-            return Ok(result);
-        }
-
-        // POST: api/SwapRequests/accept
-        [HttpPost("accept")]
-        public async Task<IActionResult> AcceptSwap(AcceptSwapCommand command)
-        {
-            try
-            {
-                var userId = User.GetUserId();
-                if (userId == null) return Unauthorized(new { message = "Ingen behörighet." });
-
-                command.CurrentUserId = userId.Value;
-
-                await _mediator.Send(command);
-                return Ok(new { Message = "Grattis! Bytet är genomfört och passet är nu ditt." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        // POST: api/SwapRequests/{id}/decline
-        [HttpPost("{id}/decline")]
-        public async Task<IActionResult> DeclineSwapRequest(Guid id)
-        {
-            try
-            {
-                var userId = User.GetUserId();
-                if (userId == null)
-                {
-                    return Unauthorized(new { message = "Kunde inte identifiera användaren." });
-                }
-
-                var command = new DeclineSwapRequestCommand
-                {
-                    SwapRequestId = id,
-                    CurrentUserId = userId.Value
-                };
-
-                await _mediator.Send(command);
-                return Ok(new { Message = "Bytesförfrågan har nekats." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
-
-        // DELETE: api/SwapRequests/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> CancelSwapRequest(Guid id)
-        {
-            try
-            {
-                var userId = User.GetUserId();
-                if (userId == null) return Unauthorized(new { message = "Ingen behörighet." });
-
-                await _mediator.Send(new CancelSwapRequestCommand(id, userId.Value));
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
+        await _mediator.Send(new CancelSwapRequestCommand(id, userId.Value));
+        return NoContent();
     }
 }

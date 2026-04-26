@@ -1,9 +1,9 @@
-using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Api.Extensions;
 using ShiftMate.Application.Users.Commands.ChangePassword;
+using ShiftMate.Application.Users.Commands.DeleteUser;
 using ShiftMate.Application.Users.Commands.ForgotPassword;
 using ShiftMate.Application.Users.Commands.Login;
 using ShiftMate.Application.Users.Commands.RegisterUser;
@@ -12,9 +12,9 @@ using ShiftMate.Application.Users.Commands.ResetPassword;
 using ShiftMate.Application.Users.Commands.UpdateProfile;
 using ShiftMate.Application.Users.Commands.UpdateUserRole;
 using ShiftMate.Application.Users.Commands.VerifyEmail;
-using ShiftMate.Application.Users.Commands.DeleteUser;
 using ShiftMate.Application.Users.Queries.GetAllUsers;
 
+// CONTROLLER FÖR ANVÄNDARE
 namespace ShiftMate.Api.Controllers
 {
     [Route("api/[controller]")]
@@ -36,28 +36,17 @@ namespace ShiftMate.Api.Controllers
             var orgId = User.GetOrganizationId();
             if (orgId == null) return Unauthorized();
 
-            var query = new GetAllUsersQuery(orgId.Value, page, pageSize);
-            var result = await _mediator.Send(query);
-
+            var result = await _mediator.Send(new GetAllUsersQuery(orgId.Value, page, pageSize));
             return Ok(result);
         }
 
         // POST: api/users/forgot-password
+        // Anti-enumeration: sväljer alla fel så svaret är samma oavsett om e-posten finns.
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command)
         {
-            try
-            {
-                await _mediator.Send(command);
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch
-            {
-                // Returnera alltid samma svar oavsett om e-posten finns eller inte (anti-enumeration)
-            }
+            try { await _mediator.Send(command); }
+            catch { /* tyst — anti-enumeration */ }
 
             return Ok(new { Message = "Om e-postadressen finns i systemet har vi skickat en återställningslänk." });
         }
@@ -66,94 +55,41 @@ namespace ShiftMate.Api.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordCommand command)
         {
-            try
-            {
-                await _mediator.Send(command);
-                return Ok(new { Message = "Lösenordet har återställts! Du kan nu logga in." });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "Lösenordet har återställts! Du kan nu logga in." });
         }
 
         // POST: api/Users/login
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginCommand command)
         {
-            try
-            {
-                var token = await _mediator.Send(command);
-                return Ok(new { Token = token });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message, Code = "EMAIL_NOT_VERIFIED" });
-            }
-            catch (Exception ex)
-            {
-                return Unauthorized(ex.Message);
-            }
+            var token = await _mediator.Send(command);
+            return Ok(new { Token = token });
         }
 
         // POST: api/users/register
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterUserCommand command)
         {
-            try
-            {
-                var result = await _mediator.Send(command);
-                return Ok(result);
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
 
         // POST: api/users/verify-email
         [HttpPost("verify-email")]
         public async Task<IActionResult> VerifyEmail(VerifyEmailCommand command)
         {
-            try
-            {
-                await _mediator.Send(command);
-                return Ok(new { Message = "E-postadressen har verifierats! Du kan nu logga in." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Ok(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "E-postadressen har verifierats! Du kan nu logga in." });
         }
 
         // POST: api/users/resend-verification
+        // Anti-enumeration: sväljer alla fel så svaret är samma oavsett om kontot finns.
         [HttpPost("resend-verification")]
         public async Task<IActionResult> ResendVerification(ResendVerificationCommand command)
         {
-            try
-            {
-                await _mediator.Send(command);
-            }
-            catch
-            {
-                // Anti-enumeration: returnera alltid samma svar
-            }
+            try { await _mediator.Send(command); }
+            catch { /* tyst — anti-enumeration */ }
 
             return Ok(new { Message = "Om kontot finns och inte är verifierat har vi skickat ett nytt verifieringsmail." });
         }
@@ -166,20 +102,8 @@ namespace ShiftMate.Api.Controllers
             if (userId == null) return Unauthorized();
 
             command.UserId = userId.Value;
-
-            try
-            {
-                await _mediator.Send(command);
-                return Ok(new { Message = "Profilen har uppdaterats!" });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "Profilen har uppdaterats!" });
         }
 
         // PUT: api/Users/change-password
@@ -191,20 +115,8 @@ namespace ShiftMate.Api.Controllers
             if (userId == null) return Unauthorized();
 
             command.UserId = userId.Value;
-
-            try
-            {
-                await _mediator.Send(command);
-                return Ok(new { Message = "Lösenordet har ändrats!" });
-            }
-            catch (ValidationException vex)
-            {
-                return BadRequest(new { Error = true, Message = "Valideringsfel: " + vex.Message, Details = vex.Errors.Select(e => e.ErrorMessage) });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "Lösenordet har ändrats!" });
         }
 
         // DELETE: api/users/{id}
@@ -216,20 +128,13 @@ namespace ShiftMate.Api.Controllers
             var orgId = User.GetOrganizationId();
             if (requestingUserId == null || orgId == null) return Unauthorized();
 
-            try
+            await _mediator.Send(new DeleteUserCommand
             {
-                await _mediator.Send(new DeleteUserCommand
-                {
-                    TargetUserId = id,
-                    RequestingUserId = requestingUserId.Value,
-                    OrganizationId = orgId.Value
-                });
-                return Ok(new { Message = "Användaren har inaktiverats." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+                TargetUserId = id,
+                RequestingUserId = requestingUserId.Value,
+                OrganizationId = orgId.Value
+            });
+            return Ok(new { Message = "Användaren har inaktiverats." });
         }
 
         // PUT: api/users/{id}/role
@@ -248,15 +153,8 @@ namespace ShiftMate.Api.Controllers
                 OrganizationId = orgId.Value
             };
 
-            try
-            {
-                await _mediator.Send(command);
-                return Ok(new { Message = "Rollen har uppdaterats." });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Error = true, Message = ex.Message });
-            }
+            await _mediator.Send(command);
+            return Ok(new { Message = "Rollen har uppdaterats." });
         }
     }
 }

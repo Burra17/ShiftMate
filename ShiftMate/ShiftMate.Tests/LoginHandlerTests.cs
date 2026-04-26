@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.Configuration;
 using Moq;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Users.Commands.Login;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
@@ -174,7 +175,7 @@ public class LoginHandlerTests
         var command = new LoginCommand { Email = "test@test.com", Password = "password123" };
 
         await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
-            .Should().ThrowAsync<InvalidOperationException>()
+            .Should().ThrowAsync<EmailNotVerifiedException>()
             .WithMessage("*inte verifierad*");
 
         TestDbContextFactory.Destroy(context);
