@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Organizations.Commands.DeleteOrganization;
@@ -23,7 +24,7 @@ public class DeleteOrganizationCommandHandler : IRequestHandler<DeleteOrganizati
 
         if (organization == null)
         {
-            throw new Exception("Organisationen hittades inte.");
+            throw new NotFoundException("Organisationen hittades inte.");
         }
 
         // Radera i FK-ordning: förfrågningar → pass → användare → organisation

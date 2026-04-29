@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Services;
@@ -48,7 +49,7 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, U
 
         if (organization == null)
         {
-            throw new Exception("Ogiltig inbjudningskod.");
+            throw new InvalidOperationException("Ogiltig inbjudningskod.");
         }
 
         // 3. Normalisera och kontrollera om användaren redan finns
@@ -56,7 +57,7 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, U
         var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
         if (existingUser != null)
         {
-            throw new Exception($"User with email '{request.Email}' already exists.");
+            throw new ConflictException($"User with email '{request.Email}' already exists.");
         }
 
         // 4. Hasha lösenordet med BCrypt

@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Users.Commands.UpdateProfile;
@@ -29,7 +30,7 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand>
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
-        if (user == null) throw new Exception("Användaren hittades inte.");
+        if (user == null) throw new NotFoundException("Användaren hittades inte.");
 
         // Uppdatera fälten
         user.FirstName = request.FirstName;

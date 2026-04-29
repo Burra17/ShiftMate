@@ -34,19 +34,19 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand>
         const string errorMessage = "Ogiltig eller utgången återställningslänk.";
 
         if (user == null)
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 3. Kontrollera att det finns en aktiv token
         if (string.IsNullOrEmpty(user.ResetTokenHash))
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 4. Kontrollera utgångstid
         if (user.ResetTokenExpiresAt == null || user.ResetTokenExpiresAt < DateTime.UtcNow)
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 5. Verifiera token mot lagrad hash
         if (!BCrypt.Net.BCrypt.Verify(request.Token, user.ResetTokenHash))
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 6. Allt ok — sätt nytt lösenord och rensa token
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);

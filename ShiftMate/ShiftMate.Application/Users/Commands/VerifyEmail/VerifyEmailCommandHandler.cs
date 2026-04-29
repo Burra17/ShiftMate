@@ -23,7 +23,7 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand>
             .FirstOrDefaultAsync(u => u.Email == request.Email.ToLowerInvariant(), cancellationToken);
 
         if (user == null)
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 2. Redan verifierad?
         if (user.IsEmailVerified)
@@ -31,15 +31,15 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand>
 
         // 3. Kontrollera att det finns en aktiv token
         if (string.IsNullOrEmpty(user.EmailVerificationTokenHash))
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 4. Kontrollera utgångstid
         if (user.EmailVerificationTokenExpiresAt == null || user.EmailVerificationTokenExpiresAt < DateTime.UtcNow)
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 5. Verifiera token mot lagrad hash
         if (!BCrypt.Net.BCrypt.Verify(request.Token, user.EmailVerificationTokenHash))
-            throw new Exception(errorMessage);
+            throw new InvalidOperationException(errorMessage);
 
         // 6. Markera som verifierad och rensa token
         user.IsEmailVerified = true;

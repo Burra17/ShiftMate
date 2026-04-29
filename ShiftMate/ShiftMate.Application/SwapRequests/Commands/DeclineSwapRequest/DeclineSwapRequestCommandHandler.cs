@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;
 
@@ -36,19 +37,19 @@ public class DeclineSwapRequestCommandHandler : IRequestHandler<DeclineSwapReque
         // 2. Validera att förfrågan existerar.
         if (swapRequest == null)
         {
-            throw new Exception("Bytesförfrågan kunde inte hittas.");
+            throw new NotFoundException("Bytesförfrågan kunde inte hittas.");
         }
 
         // 3. Säkerhetskontroll: Endast mottagaren får neka.
         if (swapRequest.TargetUserId != request.CurrentUserId)
         {
-            throw new Exception("Du har inte behörighet att neka denna förfrågan.");
+            throw new ForbiddenException("Du har inte behörighet att neka denna förfrågan.");
         }
 
         // 4. Validera att förfrågan fortfarande är aktiv.
         if (swapRequest.Status != SwapRequestStatus.Pending)
         {
-            throw new Exception("Denna förfrågan är inte längre aktiv och kan inte nekas.");
+            throw new InvalidOperationException("Denna förfrågan är inte längre aktiv och kan inte nekas.");
         }
 
         // 5. Uppdatera status till "Declined".

@@ -1,4 +1,5 @@
 using MediatR;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -31,13 +32,13 @@ public class TakeShiftCommandHandler : IRequestHandler<TakeShiftCommand, bool>
 
         if (shift == null)
         {
-            throw new Exception("Arbetspasset kunde inte hittas.");
+            throw new NotFoundException("Arbetspasset kunde inte hittas.");
         }
 
         // Validera att passet tillhör samma organisation
         if (shift.OrganizationId != request.OrganizationId)
         {
-            throw new Exception("Passet tillhör inte din organisation.");
+            throw new ForbiddenException("Passet tillhör inte din organisation.");
         }
 
         // 2. KONTROLLERA TILLGÄNGLIGHET
@@ -45,7 +46,7 @@ public class TakeShiftCommandHandler : IRequestHandler<TakeShiftCommand, bool>
         // Om UserId är null (öppet pass) så är det fritt fram att ta!
         if (!shift.IsUpForSwap && shift.UserId != null)
         {
-            throw new Exception("Detta pass är inte tillgängligt för att tas.");
+            throw new InvalidOperationException("Detta pass är inte tillgängligt för att tas.");
         }
 
         // 3. Hämta användaren
@@ -55,7 +56,7 @@ public class TakeShiftCommandHandler : IRequestHandler<TakeShiftCommand, bool>
 
         if (user == null)
         {
-            throw new Exception("Användaren kunde inte hittas.");
+            throw new NotFoundException("Användaren kunde inte hittas.");
         }
 
         // 4. KROCK-KONTROLL
@@ -70,7 +71,7 @@ public class TakeShiftCommandHandler : IRequestHandler<TakeShiftCommand, bool>
 
         if (hasShiftOnSameDay)
         {
-            throw new Exception("Du kan inte ta ett pass på en dag där du redan har ett annat pass.");
+            throw new InvalidOperationException("Du kan inte ta ett pass på en dag där du redan har ett annat pass.");
         }
 
         // 5. UTFÖR UPPDATERINGEN

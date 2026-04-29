@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Users.Commands.ChangePassword;
@@ -31,11 +32,11 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
             .FirstOrDefaultAsync(u => u.Id == request.UserId, cancellationToken);
 
         if (user == null)
-            throw new Exception("Användaren hittades inte.");
+            throw new NotFoundException("Användaren hittades inte.");
 
         // 3. Verifiera att nuvarande lösenord stämmer
         if (!BCrypt.Net.BCrypt.Verify(request.CurrentPassword, user.PasswordHash))
-            throw new Exception("Nuvarande lösenord är felaktigt.");
+            throw new InvalidOperationException("Nuvarande lösenord är felaktigt.");
 
         // 4. Hasha och spara det nya lösenordet
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
