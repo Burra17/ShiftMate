@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Organizations.Commands.UpdateOrganization;
@@ -33,7 +34,7 @@ public class UpdateOrganizationCommandHandler : IRequestHandler<UpdateOrganizati
 
         if (organization == null)
         {
-            throw new Exception("Organisationen hittades inte.");
+            throw new NotFoundException("Organisationen hittades inte.");
         }
 
         var duplicate = await _context.Organizations

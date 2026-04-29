@@ -44,13 +44,13 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, string>
         // B. Validera lösenord med BCrypt
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            throw new Exception("Fel e-post eller lösenord.");
+            throw new InvalidOperationException("Fel e-post eller lösenord.");
         }
 
         // B2. Kontrollera om kontot är inaktiverat
         if (!user.IsActive)
         {
-            throw new Exception("Ditt konto har inaktiverats. Kontakta din chef för mer information.");
+            throw new InvalidOperationException("Ditt konto har inaktiverats. Kontakta din chef för mer information.");
         }
 
         // C. Kontrollera e-postverifiering (SuperAdmin undantas)

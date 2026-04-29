@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
@@ -24,13 +25,13 @@ public class InitiateSwapCommandHandler : IRequestHandler<InitiateSwapCommand, G
 
         if (shift == null)
         {
-            throw new Exception("Passet hittades inte.");
+            throw new NotFoundException("Passet hittades inte.");
         }
 
         // B. Säkerhetskoll: Äger du verkligen det här passet?
         if (shift.UserId != request.RequestingUserId)
         {
-            throw new Exception("Du kan inte byta bort någon annans pass!");
+            throw new ForbiddenException("Du kan inte byta bort någon annans pass!");
         }
 
         // C. Skapa förfrågan

@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.SwapRequests.Commands.CancelSwapRequest;
@@ -24,14 +25,14 @@ public class CancelSwapRequestCommandHandler : IRequestHandler<CancelSwapRequest
         // B. Finns den?
         if (swapRequest == null)
         {
-            throw new Exception("Hittade inte bytesförfrågan."); // Eller NotFoundException
+            throw new NotFoundException("Hittade inte bytesförfrågan.");
         }
 
         // C. SÄKERHETSKOLL: Äger du den här förfrågan? 👮‍♂️
         // Om den som är inloggad INTE är samma person som skapade förfrågan...
         if (swapRequest.RequestingUserId != request.CurrentUserId)
         {
-            throw new Exception("Du får inte ta bort någon annans bytesförfrågan!");
+            throw new ForbiddenException("Du får inte ta bort någon annans bytesförfrågan!");
         }
 
         // D. Återställ passet (det är inte längre till salu)

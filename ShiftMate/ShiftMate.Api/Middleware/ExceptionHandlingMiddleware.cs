@@ -93,12 +93,6 @@ public class ExceptionHandlingMiddleware
             StatusCodes.Status401Unauthorized,
             new { Error = true, Message = uae.Message }),
 
-        // Generella business-fel som handlers kastar med "throw new Exception" → 400
-        // (för bakåtkompatibilitet tills handlers migreras till specifika exception-typer)
-        _ when ex.GetType() == typeof(Exception) => (
-            StatusCodes.Status400BadRequest,
-            new { Error = true, Message = ex.Message }),
-
         // Allt annat oväntat → 500. Dölj detaljer i prod, visa i dev.
         _ => (
             StatusCodes.Status500InternalServerError,

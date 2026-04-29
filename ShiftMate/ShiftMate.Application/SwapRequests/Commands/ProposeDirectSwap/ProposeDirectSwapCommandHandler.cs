@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
@@ -47,14 +48,14 @@ public class ProposeDirectSwapCommandHandler : IRequestHandler<ProposeDirectSwap
         // 2. VALIDERING
         // ------------------------------------------------------------------------------
         if (myShift == null || targetShift == null || requestingUser == null)
-            throw new Exception("Kunde inte hitta passen eller målanvändaren. Passet kan sakna ägare.");
+            throw new NotFoundException("Kunde inte hitta passen eller målanvändaren. Passet kan sakna ägare.");
 
         if (myShift.UserId != request.RequestingUserId)
-            throw new Exception("Du kan bara föreslå byte för pass du själv äger.");
+            throw new ForbiddenException("Du kan bara föreslå byte för pass du själv äger.");
 
         // Validera att båda passen tillhör samma organisation
         if (myShift.OrganizationId != request.OrganizationId || targetShift.OrganizationId != request.OrganizationId)
-            throw new Exception("Passen tillhör inte din organisation.");
+            throw new ForbiddenException("Passen tillhör inte din organisation.");
 
         // ------------------------------------------------------------------------------
         // 3. SPARA BYTESFÖRFRÅGAN (Sker först så att handlingen är säkrad i databasen)
