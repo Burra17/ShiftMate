@@ -7,6 +7,8 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 // Importera ToastProvider för globala toast-notifikationer och bekräftelsedialoger.
 import { ToastProvider } from './contexts/ToastContext.jsx';
+// Importera ErrorBoundary som fångar renderingsfel och visar en fallback-vy.
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 // Importera globala stilmallar, inklusive Tailwind CSS.
 import './index.css';
 
@@ -19,8 +21,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     <BrowserRouter>
       {/* ToastProvider ger globala toast-notifikationer och bekräftelsedialoger till hela appen. */}
       <ToastProvider>
-        {/* App-komponenten är startpunkten för hela applikationen. */}
-        <App />
+        {/* ErrorBoundary fångar renderingsfel i App-trädet och förhindrar vit skärm. */}
+        <ErrorBoundary>
+          {/* App-komponenten är startpunkten för hela applikationen. */}
+          <App />
+        </ErrorBoundary>
       </ToastProvider>
     </BrowserRouter>
   </React.StrictMode>,

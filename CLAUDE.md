@@ -135,7 +135,7 @@ if (userId == null) return Unauthorized();
 
 ### Frontend Rules
 
-1. Use **functional components** only. No class components.
+1. Use **functional components** only. No class components. **One exception:** `components/ErrorBoundary.jsx` must be a class component — React has no hook equivalent for `componentDidCatch`/`getDerivedStateFromError`. It wraps `<App />` in `main.jsx`.
 2. All API calls go through `src/api.js` (centralized Axios instance with helper functions). Never call Axios directly in components.
 3. Handle 401 (Unauthorized) automatically via the Axios interceptor (auto-logout).
 4. Follow the existing neon dark theme (`bg-slate-950`, `text-blue-400`, `border-blue-500/30`).
@@ -279,6 +279,7 @@ components/
   NotificationDropdown.jsx      # Bell icon with swap request notifications
   EmptyState.jsx                # Reusable empty state placeholder
   LoadingSpinner.jsx            # Reusable loading spinner
+  ErrorBoundary.jsx             # Catches render errors, shows fallback (only class component — see Frontend Rules)
   manager/
     ShiftForm.jsx               # Create new shift (date, time, quick-select, assign user)
     ShiftListTab.jsx            # All shifts with edit, delete, pagination
