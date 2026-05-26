@@ -256,8 +256,10 @@ ShiftMate.Tests/                                 # Unit tests (xUnit + FluentAss
 ```
 main.jsx                        # React entrypoint
 App.jsx                         # Main routing, auth check, sidebar navigation
-api.js                          # Axios config + JWT interceptor + API helper functions
+api.js                          # Axios config + JWT interceptor + API helper functions (lowercase endpoint paths)
 index.css                       # Global Tailwind styles + animations
+utils/
+  dateUtils.js                  # Swedish-locale date/time formatting helpers (formatDate, formatTime)
 Dashboard.jsx                   # Landing page with overview & quick stats
 Login.jsx                       # Login page
 Register.jsx                    # Registration page
@@ -364,12 +366,12 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 ### Development
 - Backend: `https://localhost:7215`
 - Frontend: `http://localhost:5173`
-- Frontend env: `.env.development` → `VITE_API_BASE_URL=https://localhost:7215/api`
+- Frontend env: `.env.development` → `VITE_API_URL=https://localhost:7215/api`
 
 ### Production
 - Backend: `https://shiftmate-vow0.onrender.com`
 - Frontend: Vercel
-- Frontend env: `.env.production` → `VITE_API_BASE_URL=https://shiftmate-vow0.onrender.com/api`
+- Frontend env: `.env.production` → `VITE_API_URL=https://shiftmate-vow0.onrender.com/api`
 
 ---
 

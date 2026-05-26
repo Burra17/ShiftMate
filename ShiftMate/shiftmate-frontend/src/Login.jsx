@@ -36,8 +36,8 @@ const Login = ({ onLoginSuccess }) => {
         };
 
         try {
-            // Skickar en POST-förfrågan till /Users/login-slutpunkten med användardata.
-            const response = await api.post('/Users/login', payload);
+            // Skickar en POST-förfrågan till /users/login-slutpunkten med användardata.
+            const response = await api.post('/users/login', payload);
             const token = response.data.token; // Extraherar JWT-token från svaret.
             
             // Sparar token i webbläsarens localStorage för att bibehålla inloggningsstatus.
@@ -70,7 +70,7 @@ const Login = ({ onLoginSuccess }) => {
     const handleResendVerification = async () => {
         setResending(true);
         try {
-            await api.post('/Users/resend-verification', { email: email.trim().toLowerCase() });
+            await api.post('/users/resend-verification', { email: email.trim().toLowerCase() });
             setError('');
             setEmailNotVerified(false);
             setError('Ett nytt verifieringsmail har skickats. Kontrollera din inkorg.');
