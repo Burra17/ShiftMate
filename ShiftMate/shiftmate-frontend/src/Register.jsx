@@ -42,7 +42,7 @@ const Register = () => {
         };
 
         try {
-            await api.post('/Users/register', payload);
+            await api.post('/users/register', payload);
             toast.success("Konto skapat! Kontrollera din e-post för att verifiera ditt konto.");
             navigate('/login');
         } catch (err) {

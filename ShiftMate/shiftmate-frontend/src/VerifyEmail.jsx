@@ -24,7 +24,7 @@ const VerifyEmail = () => {
 
         const verify = async () => {
             try {
-                const response = await api.post('/Users/verify-email', { token, email });
+                const response = await api.post('/users/verify-email', { token, email });
                 setStatus('success');
                 setMessage(response.data.message || 'E-postadressen har verifierats!');
             } catch (err) {

@@ -102,7 +102,7 @@ export const fetchMyShifts = async () => {
  * Hämta pass som är lediga att ta (marknadsplatsen).
  */
 export const fetchClaimableShifts = async () => {
-    const response = await axiosInstance.get('/Shifts/claimable');
+    const response = await axiosInstance.get('/shifts/claimable');
     return response.data;
 };
 
@@ -110,7 +110,7 @@ export const fetchClaimableShifts = async () => {
  * Ta ett ledigt pass.
  */
 export const takeShift = async (shiftId) => {
-    const response = await axiosInstance.put(`/Shifts/${shiftId}/take`, {});
+    const response = await axiosInstance.put(`/shifts/${shiftId}/take`, {});
     return response.data;
 };
 
@@ -130,7 +130,7 @@ export const cancelShiftSwap = async (shiftId) => {
  * Lägg ut ett pass på marknadsplatsen för byte.
  */
 export const initiateSwap = async (shiftId) => {
-    const response = await axiosInstance.post('/SwapRequests/initiate', { shiftId });
+    const response = await axiosInstance.post('/swaprequests/initiate', { shiftId });
     return response.data;
 };
 
@@ -221,7 +221,7 @@ export const getOrganizationName = () => {
  * Hämta inbjudningskod för den inloggade användarens organisation (Manager).
  */
 export const getMyInviteCode = async () => {
-    const res = await axiosInstance.get('/Organizations/my-invite-code');
+    const res = await axiosInstance.get('/organizations/my-invite-code');
     return res.data;
 };
 
@@ -229,7 +229,7 @@ export const getMyInviteCode = async () => {
  * Generera ny inbjudningskod för en organisation (Manager/SuperAdmin).
  */
 export const regenerateInviteCode = async (orgId) => {
-    const res = await axiosInstance.post(`/Organizations/${orgId}/regenerate-invite-code`);
+    const res = await axiosInstance.post(`/organizations/${orgId}/regenerate-invite-code`);
     return res.data;
 };
 
@@ -237,7 +237,7 @@ export const regenerateInviteCode = async (orgId) => {
  * Hämta alla organisationer med detaljer (SuperAdmin).
  */
 export const fetchOrganizationsDetail = async () => {
-    const res = await axiosInstance.get('/Organizations/admin');
+    const res = await axiosInstance.get('/organizations/admin');
     return res.data;
 };
 
@@ -245,7 +245,7 @@ export const fetchOrganizationsDetail = async () => {
  * Skapa en ny organisation (SuperAdmin).
  */
 export const createOrganization = async (name) => {
-    const res = await axiosInstance.post('/Organizations', { name });
+    const res = await axiosInstance.post('/organizations', { name });
     return res.data;
 };
 
@@ -253,7 +253,7 @@ export const createOrganization = async (name) => {
  * Uppdatera en organisation (SuperAdmin).
  */
 export const updateOrganization = async (id, name) => {
-    const res = await axiosInstance.put(`/Organizations/${id}`, { name });
+    const res = await axiosInstance.put(`/organizations/${id}`, { name });
     return res.data;
 };
 
@@ -261,7 +261,7 @@ export const updateOrganization = async (id, name) => {
  * Radera en organisation (SuperAdmin).
  */
 export const deleteOrganization = async (id) => {
-    const res = await axiosInstance.delete(`/Organizations/${id}`);
+    const res = await axiosInstance.delete(`/organizations/${id}`);
     return res.data;
 };
 
@@ -269,7 +269,7 @@ export const deleteOrganization = async (id) => {
  * Uppdatera den inloggade användarens profil (namn och e-post).
  */
 export const updateProfile = async (data) => {
-    const res = await axiosInstance.put('/Users/profile', data);
+    const res = await axiosInstance.put('/users/profile', data);
     return res.data;
 };
 
@@ -277,7 +277,7 @@ export const updateProfile = async (data) => {
  * Byt lösenord för den inloggade användaren.
  */
 export const changePassword = async (data) => {
-    const res = await axiosInstance.put('/Users/change-password', data);
+    const res = await axiosInstance.put('/users/change-password', data);
     return res.data;
 };
 
@@ -285,7 +285,7 @@ export const changePassword = async (data) => {
  * Skapa ett pass via manager-endpoint.
  */
 export const createManagerShift = async (payload) => {
-    const res = await axiosInstance.post('/Shifts/admin', payload);
+    const res = await axiosInstance.post('/shifts/admin', payload);
     return res.data;
 };
 
@@ -293,7 +293,7 @@ export const createManagerShift = async (payload) => {
  * Uppdatera ett pass (manager only).
  */
 export const updateShift = async (shiftId, payload) => {
-    const res = await axiosInstance.put(`/Shifts/${shiftId}`, payload);
+    const res = await axiosInstance.put(`/shifts/${shiftId}`, payload);
     return res.data;
 };
 
@@ -301,7 +301,7 @@ export const updateShift = async (shiftId, payload) => {
  * Radera ett pass (manager only).
  */
 export const deleteShift = async (shiftId) => {
-    const res = await axiosInstance.delete(`/Shifts/${shiftId}`);
+    const res = await axiosInstance.delete(`/shifts/${shiftId}`);
     return res.data;
 };
 
@@ -310,7 +310,7 @@ export const deleteShift = async (shiftId) => {
  * Returnerar array av användare (utan paginering).
  */
 export const fetchAllUsers = async () => {
-    const res = await axiosInstance.get('/Users');
+    const res = await axiosInstance.get('/users');
     return res.data.items;
 };
 
@@ -319,7 +319,7 @@ export const fetchAllUsers = async () => {
  * Returnerar { items, totalCount, page, pageSize, totalPages }.
  */
 export const fetchAllUsersPaginated = async ({ page = 1, pageSize = 20 } = {}) => {
-    const res = await axiosInstance.get('/Users', {
+    const res = await axiosInstance.get('/users', {
         params: { page, pageSize }
     });
     return res.data;
@@ -329,7 +329,7 @@ export const fetchAllUsersPaginated = async ({ page = 1, pageSize = 20 } = {}) =
  * Radera en användare.
  */
 export const deleteUser = async (userId) => {
-    const res = await axiosInstance.delete(`/Users/${userId}`);
+    const res = await axiosInstance.delete(`/users/${userId}`);
     return res.data;
 };
 
@@ -337,7 +337,7 @@ export const deleteUser = async (userId) => {
  * Uppdatera en användares roll.
  */
 export const updateUserRole = async (userId, role) => {
-    const res = await axiosInstance.put(`/Users/${userId}/role`, { newRole: role });
+    const res = await axiosInstance.put(`/users/${userId}/role`, { newRole: role });
     return res.data;
 };
 
@@ -345,7 +345,7 @@ export const updateUserRole = async (userId, role) => {
  * Begär lösenordsåterställning via e-post.
  */
 export const forgotPassword = async (email) => {
-    const res = await axiosInstance.post('/Users/forgot-password', { email });
+    const res = await axiosInstance.post('/users/forgot-password', { email });
     return res.data;
 };
 
@@ -353,7 +353,7 @@ export const forgotPassword = async (email) => {
  * Återställ lösenord med token från e-post.
  */
 export const resetPassword = async (token, email, newPassword) => {
-    const res = await axiosInstance.post('/Users/reset-password', { token, email, newPassword });
+    const res = await axiosInstance.post('/users/reset-password', { token, email, newPassword });
     return res.data;
 };
 
