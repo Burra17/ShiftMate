@@ -91,8 +91,16 @@ builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredServic
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
-// Registrera e-posttjänsten (Resend HTTP API med HttpClient)
-builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
+// Registrera e-posttjänsten. Lokalt utan Resend-nyckel loggas mejlen i terminalen istället.
+// I alla andra fall används Resend, som kraschar direkt om nyckeln saknas (fail fast i produktion).
+if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(builder.Configuration["Resend:ApiKey"]))
+{
+    builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+}
+else
+{
+    builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
+}
 
 // Sätt FrontendUrl för email-templates (localhost i dev, Vercel i prod)
 ShiftMate.Application.Services.EmailTemplateService.FrontendUrl =
