@@ -145,7 +145,7 @@ I Development seedas två organisationer och följande konton:
 | Employee | `mahmoud@shiftmate.com` | `Mahmoud123` | ShiftMate Demo |
 | Manager | `test@testforetaget.se` | `TestPass123` | Testföretaget AB |
 
-Vill du testa registrering används inbjudningskoderna `DEMO1234` (ShiftMate Demo) och `TEST5678` (Testföretaget AB).
+Vill du testa registrering behövs en inbjudningskod. I en ny databas är de `DEMO1234` (ShiftMate Demo) och `TEST5678` (Testföretaget AB). Koden kan förnyas av en Manager, och seeden skriver inte över den – fungerar koden inte, logga in som Manager och se den aktuella koden i **Manager-panelen → Inbjudningskod**.
 
 ### 8. Kör testerna
 
