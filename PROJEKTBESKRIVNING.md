@@ -357,10 +357,12 @@ main (produktion)
 
 ### Testdata (Seed)
 
-Vid uppstart seedar `DbInitializer.cs` testdata automatiskt:
+Vid uppstart i **Development-miljö** seedar `DbInitializer.cs` testdata (aldrig i produktion):
 - 2 organisationer ("ShiftMate Demo" + "Testföretaget AB") med unika inbjudningskoder
-- 4 testanvändare (André, Erik, Sara, Mahmoud) + 1 SuperAdmin med BCrypt-hashade lösenord
-- 13+ arbetspass spridda över 5 dagar med varierande bytesstatusar
+- 4 testanvändare (Anna, Erik, Sara, Mahmoud), 1 Manager i Testföretaget AB + 1 SuperAdmin med BCrypt-hashade lösenord
+- 15 arbetspass spridda över 5 dagar med varierande bytesstatusar
+
+Seeden raderar aldrig befintlig data – den skapar bara det som saknas. En ny omgång pass läggs in när demo-organisationen saknar kommande pass, så demodatan hålls aktuell.
 
 ---
 
