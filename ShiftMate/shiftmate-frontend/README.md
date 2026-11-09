@@ -12,24 +12,20 @@ React-klienten för ShiftMate - en applikation för skiftplanering och hantering
 
 ## Komma igång
 
+Se [README i roten](../../README.md#komma-igång-utveckling) för hur hela projektet (backend + frontend) startas.
+
+Kortversion för frontend, när backend redan körs:
+
 ```bash
-# Installera beroenden
-npm install
-
-# Starta utvecklingsserver (http://localhost:5173)
-npm run dev
-
-# Bygg för produktion
-npm run build
-
-# Förhandsgranska produktionsbygge
-npm run preview
+npm ci        # installera exakt de versioner som står i package-lock.json
+npm run dev   # http://localhost:5173 (porten är låst – se root-README)
+npm run build # bygg för produktion
 ```
 
 ## Miljövariabler
 
-- `.env.development` - API-URL för lokal utveckling (`https://localhost:7215/api`)
-- `.env.production` - API-URL för produktion (`https://shiftmate-vow0.onrender.com/api`)
+- `.env.development` - `VITE_API_URL` för lokal utveckling (`https://localhost:7215/api`)
+- `.env.production` - `VITE_API_URL` för produktion (`https://shiftmate-vow0.onrender.com/api`)
 
 ## Sidor
 
