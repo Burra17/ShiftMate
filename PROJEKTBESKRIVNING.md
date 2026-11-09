@@ -272,7 +272,7 @@ Organization (Id, Name, InviteCode, InviteCodeGeneratedAt, CreatedAt)
   │     └── SwapRequest (Id, ShiftId, RequestingUserId, TargetUserId?, TargetShiftId?, Status, CreatedAt)
 ```
 
-Migrationer hanteras med **EF Core Migrations** (6 migrationer applicerade) och körs automatiskt vid uppstart via `DbInitializer`.
+Migrationer hanteras med **EF Core Migrations** (11 migrationer). I Development körs de automatiskt vid uppstart (`Database.Migrate()` i `Program.cs`) innan `DbInitializer` seedar testdata. I produktion körs de manuellt.
 
 ---
 
@@ -359,7 +359,7 @@ main (produktion)
 
 Vid uppstart i **Development-miljö** seedar `DbInitializer.cs` testdata (aldrig i produktion):
 - 2 organisationer ("ShiftMate Demo" + "Testföretaget AB") med unika inbjudningskoder
-- 4 testanvändare (Anna, Erik, Sara, Mahmoud), 1 Manager i Testföretaget AB + 1 SuperAdmin med BCrypt-hashade lösenord
+- 4 testanvändare (Anna, Erik, Sara, Mahmoud) och 1 Manager (Maria) i ShiftMate Demo, 1 Manager i Testföretaget AB + 1 SuperAdmin med BCrypt-hashade lösenord
 - 15 arbetspass spridda över 5 dagar med varierande bytesstatusar
 
 Seeden raderar aldrig befintlig data – den skapar bara det som saknas. En ny omgång pass läggs in när demo-organisationen saknar kommande pass, så demodatan hålls aktuell.

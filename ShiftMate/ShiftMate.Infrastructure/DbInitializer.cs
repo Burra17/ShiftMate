@@ -7,10 +7,9 @@ namespace ShiftMate.Infrastructure
     // Raderar aldrig befintlig data – skapar bara det som saknas.
     public static class DbInitializer
     {
+        // Förutsätter att databasen redan är migrerad (görs i Program.cs).
         public static void Initialize(AppDbContext context)
         {
-            context.Database.EnsureCreated();
-
             // ==========================================
             // 1. SKAPA ORGANISATIONER
             // ==========================================
@@ -149,6 +148,23 @@ namespace ShiftMate.Infrastructure
             else if (mahmoudUser.OrganizationId == Guid.Empty)
             {
                 mahmoudUser.OrganizationId = org1.Id;
+            }
+
+            var managerUser = context.Users.FirstOrDefault(u => u.Email == "manager@shiftmate.com");
+            if (managerUser == null)
+            {
+                managerUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "manager@shiftmate.com",
+                    FirstName = "Maria",
+                    LastName = "Manager",
+                    Role = Role.Manager,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Manager123"),
+                    OrganizationId = org1.Id,
+                    IsEmailVerified = true
+                };
+                context.Users.Add(managerUser);
             }
 
             // --- Org 2: Testanvändare ---

@@ -38,7 +38,7 @@ These principles guide every decision in this project:
 - **Pattern:** CQRS with MediatR 12.4.1
 - **Validation:** FluentValidation 12.1.1
 - **Password Hashing:** BCrypt.Net-Next 4.0.3
-- **Email:** Resend HTTP API via IEmailService
+- **Email:** Resend HTTP API via IEmailService (`ConsoleEmailService` logs emails instead in Development when `Resend:ApiKey` is missing)
 - **Architecture:** Clean Architecture (Domain → Application → Infrastructure → Api)
 
 ### Frontend (React 19 + Vite)
@@ -238,7 +238,7 @@ ShiftMate.Application/                           # Business logic layer (CQRS)
 ShiftMate.Infrastructure/                        # Data access & external services
   AppDbContext.cs                                # EF Core DbContext with relationships
   DbInitializer.cs                               # Dev-only seed data (2 orgs, test users & shifts) — never deletes data
-  Services/                                      # ResendEmailService
+  Services/                                      # ResendEmailService, ConsoleEmailService (dev without Resend key)
   Migrations/                                    # EF Core migrations
 
 ShiftMate.Api/                                   # HTTP layer
@@ -365,8 +365,8 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 ## ENVIRONMENT
 
 ### Development
-- Backend: `https://localhost:7215`
-- Frontend: `http://localhost:5173`
+- Backend: `https://localhost:7215` (`dotnet run` uses the https profile; Development runs `Database.Migrate()` + seed on startup)
+- Frontend: `http://localhost:5173` (`strictPort` — CORS only allows this port; Node version in `.nvmrc`)
 - Frontend env: `.env.development` → `VITE_API_URL=https://localhost:7215/api`
 
 ### Production
