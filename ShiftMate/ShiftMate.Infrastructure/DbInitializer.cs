@@ -7,10 +7,9 @@ namespace ShiftMate.Infrastructure
     // Raderar aldrig befintlig data – skapar bara det som saknas.
     public static class DbInitializer
     {
+        // Förutsätter att databasen redan är migrerad (görs i Program.cs).
         public static void Initialize(AppDbContext context)
         {
-            context.Database.EnsureCreated();
-
             // ==========================================
             // 1. SKAPA ORGANISATIONER
             // ==========================================

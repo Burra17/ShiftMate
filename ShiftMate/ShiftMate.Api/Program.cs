@@ -115,7 +115,7 @@ builder.Services.AddCors(options =>
 // ---------------------------------------------------------
 var app = builder.Build();
 
-// Testdata seedas bara lokalt – aldrig i produktion
+// Lokalt: kör migreringar och seeda testdata – aldrig i produktion
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -123,6 +123,7 @@ if (app.Environment.IsDevelopment())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
+        context.Database.Migrate();
         DbInitializer.Initialize(context);
     }
     catch (Exception ex)
