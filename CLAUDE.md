@@ -237,7 +237,7 @@ ShiftMate.Application/                           # Business logic layer (CQRS)
 
 ShiftMate.Infrastructure/                        # Data access & external services
   AppDbContext.cs                                # EF Core DbContext with relationships
-  DbInitializer.cs                               # Seed data (2 orgs, test users & shifts)
+  DbInitializer.cs                               # Dev-only seed data (2 orgs, test users & shifts) — never deletes data
   Services/                                      # ResendEmailService
   Migrations/                                    # EF Core migrations
 
