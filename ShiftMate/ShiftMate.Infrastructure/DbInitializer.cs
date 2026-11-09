@@ -150,6 +150,23 @@ namespace ShiftMate.Infrastructure
                 mahmoudUser.OrganizationId = org1.Id;
             }
 
+            var managerUser = context.Users.FirstOrDefault(u => u.Email == "manager@shiftmate.com");
+            if (managerUser == null)
+            {
+                managerUser = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "manager@shiftmate.com",
+                    FirstName = "Maria",
+                    LastName = "Manager",
+                    Role = Role.Manager,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("Manager123"),
+                    OrganizationId = org1.Id,
+                    IsEmailVerified = true
+                };
+                context.Users.Add(managerUser);
+            }
+
             // --- Org 2: Testanvändare ---
             var testUser = context.Users.FirstOrDefault(u => u.Email == "test@testforetaget.se");
             if (testUser == null)
