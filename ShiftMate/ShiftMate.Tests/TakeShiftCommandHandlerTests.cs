@@ -43,12 +43,20 @@ public class TakeShiftCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = ownerId, FirstName = "Owner", LastName = "Ownersson",
-            Email = "owner@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = ownerId,
+            FirstName = "Owner",
+            LastName = "Ownersson",
+            Email = "owner@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = ownerId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = shiftId,
+            UserId = ownerId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -73,7 +81,10 @@ public class TakeShiftCommandHandlerTests
 
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = shiftId,
+            UserId = null,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
@@ -100,18 +111,31 @@ public class TakeShiftCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
-            Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
+            Email = "test@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = Guid.NewGuid(), UserId = userId, IsUpForSwap = false, OrganizationId = OrgId,
-            StartTime = tomorrow.AddHours(8), EndTime = tomorrow.AddHours(12)
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
+            StartTime = tomorrow.AddHours(8),
+            EndTime = tomorrow.AddHours(12)
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
-            StartTime = tomorrow.AddHours(14), EndTime = tomorrow.AddHours(18)
+            Id = shiftId,
+            UserId = null,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
+            StartTime = tomorrow.AddHours(14),
+            EndTime = tomorrow.AddHours(18)
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -135,12 +159,20 @@ public class TakeShiftCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
-            Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
+            Email = "test@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = shiftId,
+            UserId = null,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });

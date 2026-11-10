@@ -1,11 +1,11 @@
-﻿using MediatR;
+using System.Globalization;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
-using System.Globalization;
 
 namespace ShiftMate.Application.SwapRequests.Commands.ProposeDirectSwap;
 

@@ -1,10 +1,10 @@
-﻿using FluentValidation;
+using System.Security.Cryptography;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Services;
-using System.Security.Cryptography;
 
 namespace ShiftMate.Application.Users.Commands.ForgotPassword;
 

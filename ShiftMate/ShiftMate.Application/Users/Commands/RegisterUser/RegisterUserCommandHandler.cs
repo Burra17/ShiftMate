@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +9,6 @@ using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Services;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
-using System.Security.Cryptography;
 
 namespace ShiftMate.Application.Users.Commands.RegisterUser;
 

@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 
 namespace ShiftMate.Application.SwapRequests.Commands.CancelSwapRequest;
 

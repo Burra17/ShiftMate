@@ -17,30 +17,51 @@ public class GetReceivedSwapRequestsHandlerTests
         SeedOrg(context);
         var targetUser = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         var requester = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         var otherUser = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Lisa", LastName = "Larsson",
-            Email = "lisa@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Lisa",
+            LastName = "Larsson",
+            Email = "lisa@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         context.Users.AddRange(targetUser, requester, otherUser);
 
         var shift = new Shift
         {
-            Id = Guid.NewGuid(), UserId = requester.Id, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = requester.Id,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         };
         var targetShift = new Shift
         {
-            Id = Guid.NewGuid(), UserId = targetUser.Id, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = targetUser.Id,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(14),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(22)
         };
@@ -48,14 +69,22 @@ public class GetReceivedSwapRequestsHandlerTests
 
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, TargetShiftId = targetShift.Id,
-            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
+            Id = Guid.NewGuid(),
+            ShiftId = shift.Id,
+            RequestingUserId = requester.Id,
+            TargetUserId = targetUser.Id,
+            TargetShiftId = targetShift.Id,
+            Status = SwapRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
         });
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
-            TargetUserId = otherUser.Id, Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
+            Id = Guid.NewGuid(),
+            ShiftId = shift.Id,
+            RequestingUserId = requester.Id,
+            TargetUserId = otherUser.Id,
+            Status = SwapRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -77,19 +106,32 @@ public class GetReceivedSwapRequestsHandlerTests
         SeedOrg(context);
         var targetUser = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         var requester = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         context.Users.AddRange(targetUser, requester);
 
         var shift = new Shift
         {
-            Id = Guid.NewGuid(), UserId = requester.Id, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = requester.Id,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         };
@@ -97,8 +139,12 @@ public class GetReceivedSwapRequestsHandlerTests
 
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, Status = SwapRequestStatus.Accepted, CreatedAt = DateTime.UtcNow
+            Id = Guid.NewGuid(),
+            ShiftId = shift.Id,
+            RequestingUserId = requester.Id,
+            TargetUserId = targetUser.Id,
+            Status = SwapRequestStatus.Accepted,
+            CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -119,25 +165,41 @@ public class GetReceivedSwapRequestsHandlerTests
         SeedOrg(context);
         var targetUser = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         var requester = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         context.Users.AddRange(targetUser, requester);
 
         var shift = new Shift
         {
-            Id = Guid.NewGuid(), UserId = requester.Id, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = requester.Id,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         };
         var targetShift = new Shift
         {
-            Id = Guid.NewGuid(), UserId = targetUser.Id, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = targetUser.Id,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(2).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(2).Date.AddHours(16)
         };
@@ -145,9 +207,13 @@ public class GetReceivedSwapRequestsHandlerTests
 
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = Guid.NewGuid(), ShiftId = shift.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, TargetShiftId = targetShift.Id,
-            Status = SwapRequestStatus.Pending, CreatedAt = DateTime.UtcNow
+            Id = Guid.NewGuid(),
+            ShiftId = shift.Id,
+            RequestingUserId = requester.Id,
+            TargetUserId = targetUser.Id,
+            TargetShiftId = targetShift.Id,
+            Status = SwapRequestStatus.Pending,
+            CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -170,25 +236,41 @@ public class GetReceivedSwapRequestsHandlerTests
         SeedOrg(context);
         var targetUser = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         var requester = new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         };
         context.Users.AddRange(targetUser, requester);
 
         var shift1 = new Shift
         {
-            Id = Guid.NewGuid(), UserId = requester.Id, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = requester.Id,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         };
         var shift2 = new Shift
         {
-            Id = Guid.NewGuid(), UserId = requester.Id, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = requester.Id,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(2).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(2).Date.AddHours(16)
         };
@@ -196,14 +278,20 @@ public class GetReceivedSwapRequestsHandlerTests
 
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = Guid.NewGuid(), ShiftId = shift1.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, Status = SwapRequestStatus.Pending,
+            Id = Guid.NewGuid(),
+            ShiftId = shift1.Id,
+            RequestingUserId = requester.Id,
+            TargetUserId = targetUser.Id,
+            Status = SwapRequestStatus.Pending,
             CreatedAt = DateTime.UtcNow.AddHours(-2)
         });
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = Guid.NewGuid(), ShiftId = shift2.Id, RequestingUserId = requester.Id,
-            TargetUserId = targetUser.Id, Status = SwapRequestStatus.Pending,
+            Id = Guid.NewGuid(),
+            ShiftId = shift2.Id,
+            RequestingUserId = requester.Id,
+            TargetUserId = targetUser.Id,
+            Status = SwapRequestStatus.Pending,
             CreatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);

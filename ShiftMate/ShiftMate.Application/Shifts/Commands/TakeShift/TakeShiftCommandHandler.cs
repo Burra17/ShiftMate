@@ -1,8 +1,8 @@
 using MediatR;
-using ShiftMate.Application.Common.Exceptions;
-using ShiftMate.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Application.Common.Exceptions;
+using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Shifts.Commands.TakeShift;
 

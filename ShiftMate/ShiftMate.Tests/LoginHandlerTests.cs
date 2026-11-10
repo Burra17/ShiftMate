@@ -37,10 +37,13 @@ public class LoginHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("correctpassword"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -61,10 +64,14 @@ public class LoginHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = true
+            Role = Role.Employee,
+            OrganizationId = OrgId,
+            IsEmailVerified = true
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -86,10 +93,14 @@ public class LoginHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = true
+            Role = Role.Employee,
+            OrganizationId = OrgId,
+            IsEmailVerified = true
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -111,10 +122,14 @@ public class LoginHandlerTests
         var userId = Guid.NewGuid();
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = true
+            Role = Role.Employee,
+            OrganizationId = OrgId,
+            IsEmailVerified = true
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -137,10 +152,13 @@ public class LoginHandlerTests
         var context = TestDbContextFactory.Create();
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Super", LastName = "Admin",
+            Id = Guid.NewGuid(),
+            FirstName = "Super",
+            LastName = "Admin",
             Email = "superadmin@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperPass123"),
-            Role = Role.SuperAdmin, OrganizationId = null
+            Role = Role.SuperAdmin,
+            OrganizationId = null
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -164,10 +182,14 @@ public class LoginHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId, IsEmailVerified = false
+            Role = Role.Employee,
+            OrganizationId = OrgId,
+            IsEmailVerified = false
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

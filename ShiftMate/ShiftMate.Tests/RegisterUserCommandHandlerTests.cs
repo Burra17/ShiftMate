@@ -48,8 +48,13 @@ public class RegisterUserCommandHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Existing", LastName = "User",
-            Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Existing",
+            LastName = "User",
+            Email = "test@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

@@ -47,28 +47,49 @@ public class ProposeDirectSwapCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = ownerId, FirstName = "Owner", LastName = "O",
-            Email = "owner@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = ownerId,
+            FirstName = "Owner",
+            LastName = "O",
+            Email = "owner@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = targetOwnerId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = targetOwnerId,
+            FirstName = "Target",
+            LastName = "T",
+            Email = "target@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = requesterId,
+            FirstName = "Requester",
+            LastName = "R",
+            Email = "req@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = myShiftId, UserId = ownerId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = myShiftId,
+            UserId = ownerId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.Shifts.Add(new Shift
         {
-            Id = targetShiftId, UserId = targetOwnerId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = targetShiftId,
+            UserId = targetOwnerId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(2).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(2).Date.AddHours(16)
         });
@@ -101,18 +122,29 @@ public class ProposeDirectSwapCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = requesterId,
+            FirstName = "Requester",
+            LastName = "R",
+            Email = "req@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = myShiftId, UserId = requesterId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = myShiftId,
+            UserId = requesterId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.Shifts.Add(new Shift
         {
-            Id = targetShiftId, UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = targetShiftId,
+            UserId = null,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(2).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(2).Date.AddHours(16)
         });
@@ -146,23 +178,39 @@ public class ProposeDirectSwapCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = requesterId,
+            FirstName = "Requester",
+            LastName = "R",
+            Email = "req@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = targetOwnerId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = targetOwnerId,
+            FirstName = "Target",
+            LastName = "T",
+            Email = "target@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = myShiftId, UserId = requesterId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = myShiftId,
+            UserId = requesterId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.Shifts.Add(new Shift
         {
-            Id = targetShiftId, UserId = targetOwnerId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = targetShiftId,
+            UserId = targetOwnerId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(2).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(2).Date.AddHours(16)
         });

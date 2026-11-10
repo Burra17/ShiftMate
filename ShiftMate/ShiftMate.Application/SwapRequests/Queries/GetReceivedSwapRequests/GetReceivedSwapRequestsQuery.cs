@@ -1,6 +1,6 @@
+using System.Text.Json.Serialization;
 using MediatR;
 using ShiftMate.Application.DTOs;
-using System.Text.Json.Serialization;
 
 namespace ShiftMate.Application.SwapRequests.Queries.GetReceivedSwapRequests;
 

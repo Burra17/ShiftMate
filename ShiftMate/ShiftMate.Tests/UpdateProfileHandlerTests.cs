@@ -43,8 +43,13 @@ public class UpdateProfileHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Old", LastName = "Name",
-            Email = "old@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = userId,
+            FirstName = "Old",
+            LastName = "Name",
+            Email = "old@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

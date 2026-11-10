@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Authorization;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ShiftMate.Api.Extensions;
 using ShiftMate.Application.SwapRequests.Commands.AcceptSwap;

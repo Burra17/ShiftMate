@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;

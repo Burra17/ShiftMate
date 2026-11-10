@@ -1,4 +1,4 @@
-﻿using ShiftMate.Domain.Entities;
+using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
 
 namespace ShiftMate.Infrastructure

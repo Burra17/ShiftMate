@@ -42,10 +42,13 @@ public class ChangePasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("correctpassword"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -74,10 +77,13 @@ public class ChangePasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(oldPassword),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

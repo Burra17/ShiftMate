@@ -1,6 +1,6 @@
+using System.Text.Json;
 using FluentValidation;
 using ShiftMate.Application.Common.Exceptions;
-using System.Text.Json;
 
 namespace ShiftMate.Api.Middleware;
 

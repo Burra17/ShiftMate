@@ -41,10 +41,13 @@ public class ResetPasswordHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId,
+            Role = Role.Employee,
+            OrganizationId = OrgId,
             ResetTokenHash = null,
             ResetTokenExpiresAt = null
         });
@@ -74,10 +77,13 @@ public class ResetPasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId,
+            Role = Role.Employee,
+            OrganizationId = OrgId,
             ResetTokenHash = BCrypt.Net.BCrypt.HashPassword(token),
             ResetTokenExpiresAt = DateTime.UtcNow.AddHours(-1)
         });
@@ -106,10 +112,13 @@ public class ResetPasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Test", LastName = "Testsson",
+            Id = Guid.NewGuid(),
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId,
+            Role = Role.Employee,
+            OrganizationId = OrgId,
             ResetTokenHash = BCrypt.Net.BCrypt.HashPassword("correcttoken"),
             ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1)
         });
@@ -140,10 +149,13 @@ public class ResetPasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("oldpassword"),
-            Role = Role.Employee, OrganizationId = OrgId,
+            Role = Role.Employee,
+            OrganizationId = OrgId,
             ResetTokenHash = BCrypt.Net.BCrypt.HashPassword(token),
             ResetTokenExpiresAt = DateTime.UtcNow.AddHours(1)
         });

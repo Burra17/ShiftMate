@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;

@@ -1,5 +1,5 @@
-﻿using MediatR;
 using System.Text.Json.Serialization;
+using MediatR;
 
 namespace ShiftMate.Application.Users.Commands.UpdateProfile;
 

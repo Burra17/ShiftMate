@@ -1,4 +1,7 @@
-﻿using FluentValidation;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -6,9 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace ShiftMate.Application.Users.Commands.Login;
 

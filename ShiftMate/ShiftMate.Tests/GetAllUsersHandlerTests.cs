@@ -18,13 +18,23 @@ public class GetAllUsersHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "secrethash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "secrethash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "secrethash", Role = Role.Manager, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "secrethash",
+            Role = Role.Manager,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -46,8 +56,13 @@ public class GetAllUsersHandlerTests
         SeedOrg(context);
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "supersecret123", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "supersecret123",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -87,13 +102,23 @@ public class GetAllUsersHandlerTests
 
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = otherOrgId
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = otherOrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -117,8 +142,13 @@ public class GetAllUsersHandlerTests
         {
             context.Users.Add(new User
             {
-                Id = Guid.NewGuid(), FirstName = $"User{i}", LastName = "Test",
-                Email = $"user{i}@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = Guid.NewGuid(),
+                FirstName = $"User{i}",
+                LastName = "Test",
+                Email = $"user{i}@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
         }
         await context.SaveChangesAsync(CancellationToken.None);
@@ -149,8 +179,13 @@ public class GetAllUsersHandlerTests
         {
             context.Users.Add(new User
             {
-                Id = Guid.NewGuid(), FirstName = $"User{i}", LastName = "Test",
-                Email = $"user{i}@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = Guid.NewGuid(),
+                FirstName = $"User{i}",
+                LastName = "Test",
+                Email = $"user{i}@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
         }
         await context.SaveChangesAsync(CancellationToken.None);
@@ -172,13 +207,26 @@ public class GetAllUsersHandlerTests
 
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId, IsActive = true
+            Id = Guid.NewGuid(),
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId,
+            IsActive = true
         });
         context.Users.Add(new User
         {
-            Id = Guid.NewGuid(), FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId, IsActive = false, DeactivatedAt = DateTime.UtcNow
+            Id = Guid.NewGuid(),
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId,
+            IsActive = false,
+            DeactivatedAt = DateTime.UtcNow
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

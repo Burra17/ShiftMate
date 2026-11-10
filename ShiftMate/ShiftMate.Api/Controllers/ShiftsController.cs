@@ -1,16 +1,16 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using ShiftMate.Application.DTOs;
 using ShiftMate.Api.Extensions;
-using ShiftMate.Application.Shifts.Commands.CreateShift;
-using ShiftMate.Application.Shifts.Commands.UpdateShift;
-using ShiftMate.Application.Shifts.Commands.TakeShift;
+using ShiftMate.Application.DTOs;
 using ShiftMate.Application.Shifts.Commands.CancelShiftSwap;
+using ShiftMate.Application.Shifts.Commands.CreateShift;
 using ShiftMate.Application.Shifts.Commands.DeleteShift;
-using ShiftMate.Application.Shifts.Queries.GetMyShifts;
+using ShiftMate.Application.Shifts.Commands.TakeShift;
+using ShiftMate.Application.Shifts.Commands.UpdateShift;
 using ShiftMate.Application.Shifts.Queries.GetAllShifts;
 using ShiftMate.Application.Shifts.Queries.GetClaimableShifts;
+using ShiftMate.Application.Shifts.Queries.GetMyShifts;
 
 namespace ShiftMate.Api.Controllers
 {

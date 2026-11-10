@@ -1,7 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using System;
+using Microsoft.EntityFrameworkCore;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Infrastructure; // Eller där din AppDbContext ligger
-using System;
 
 namespace ShiftMate.Tests.Support
 {
