@@ -1,11 +1,13 @@
 name: Backend CI
 on:
-  permissions:
-    contents: read
   pull_request:
     branches: [main]
   push:
     branches: [main]
+
+permissions:
+  contents: read
+
 jobs:
   build-and-test:
     name: Backend (build and test)
