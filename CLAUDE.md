@@ -189,6 +189,7 @@ if (userId == null) return Unauthorized();
 | What | Convention | Example |
 |------|-----------|---------|
 | Test file | `[HandlerName]Tests.cs` | `CreateShiftHandlerTests.cs` |
+| Integration test file | `Integration/[Controller]EndpointsTests.cs` | `ShiftsEndpointsTests.cs` (HTTP via `ShiftMateApiFactory`) |
 | Test method | `[Method]_Should_[Behavior]_When_[Condition]` | `Handle_Should_Throw_When_User_Not_Found` |
 | Structure | Arrange → Act → Assert (AAA) | Always follow this order |
 | Tools | xUnit `[Fact]`, FluentAssertions, Moq | `result.Should().NotBeEmpty()` |
@@ -247,8 +248,10 @@ ShiftMate.Api/                                   # HTTP layer
   Middleware/                                    # ExceptionHandlingMiddleware (global error mapping)
   Extensions/                                    # ClaimsPrincipalExtensions (User.GetUserId(), etc.)
 
-ShiftMate.Tests/                                 # Unit tests (xUnit + FluentAssertions + Moq)
-  Support/TestDbContextFactory.cs
+ShiftMate.Tests/                                 # Unit + integration tests (xUnit + FluentAssertions + Moq)
+  Support/TestDbContextFactory.cs                # InMemory DbContext for handler tests
+  Integration/ShiftMateApiFactory.cs             # WebApplicationFactory: InMemory DB, fake email, test JWTs
+  Integration/[Controller]EndpointsTests.cs      # HTTP tests: auth, roles, error mapping, multi-tenancy
 ```
 
 ### Frontend (`shiftmate-frontend/src/`)

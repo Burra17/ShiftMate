@@ -153,6 +153,8 @@ Vill du testa registrering behövs en inbjudningskod. I en ny databas är de `DE
 dotnet test
 ```
 
+Kör både enhetstester (handlers med InMemory-databas) och integrationstester i `Integration/`, som startar hela API:et i minnet via `WebApplicationFactory` och testar riktiga HTTP-anrop (autentisering, roller, felmappning, organisationsfiltrering). Ingen databas eller nyckel behövs.
+
 ### Skapa en ny migrering
 
 Behövs bara när du ändrar datamodellen. Kräver verktyget `dotnet-ef`:
@@ -201,7 +203,7 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
     │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
     │   └── Extensions/                    # ClaimsPrincipalExtensions
     │
-    ├── ShiftMate.Tests/                   # Enhetstester (201 tester)
+    ├── ShiftMate.Tests/                   # Enhets- och integrationstester (207 tester)
     │
     └── shiftmate-frontend/                # React-applikation
         ├── src/

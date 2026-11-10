@@ -170,3 +170,6 @@ app.MapControllers();
 app.MapGet("/health", () => Results.Ok("ShiftMate is alive! 🤖"));
 
 app.Run();
+
+// Gör Program-klassen synlig för integrationstester (WebApplicationFactory<Program>)
+public partial class Program { }
