@@ -1,7 +1,18 @@
 ﻿// importera nödvändiga funktioner och komponenter från react och react-router-dom
 import React, { useState, useEffect, useRef } from 'react';
-import { Routes, Route, Navigate, useNavigate, useLocation, Link } from 'react-router-dom';
-import { setLogoutCallback, getUserRole, fetchReceivedSwapRequests } from './api';
+import {
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+  Link,
+} from 'react-router-dom';
+import {
+  setLogoutCallback,
+  getUserRole,
+  fetchReceivedSwapRequests,
+} from './api';
 import NotificationDropdown from './components/NotificationDropdown';
 
 // importera sid-komponenter
@@ -20,231 +31,418 @@ import Dashboard from './Dashboard';
 
 // Huvudkomponent för applikationen när en användare är inloggad.
 const MainApp = ({ onLogout }) => {
-    const location = useLocation();
-    const mainRef = useRef(null);
+  const location = useLocation();
+  const mainRef = useRef(null);
 
-    // Kolla om användaren är Manager eller SuperAdmin
-    const role = getUserRole();
-    const isManager = role === 'Manager';
-    const isSuperAdmin = role === 'SuperAdmin';
+  // Kolla om användaren är Manager eller SuperAdmin
+  const role = getUserRole();
+  const isManager = role === 'Manager';
+  const isSuperAdmin = role === 'SuperAdmin';
 
-    // State för notifikationssystemet
-    const [notifRequests, setNotifRequests] = useState([]);
-    const [hasUnseen, setHasUnseen] = useState(false);
+  // State för notifikationssystemet
+  const [notifRequests, setNotifRequests] = useState([]);
+  const [hasUnseen, setHasUnseen] = useState(false);
 
-    // Härledd aktiv flik direkt från URL (ingen state behövs)
-    const activeTab = location.pathname.substring(1) || 'dashboard';
+  // Härledd aktiv flik direkt från URL (ingen state behövs)
+  const activeTab = location.pathname.substring(1) || 'dashboard';
 
-    // Definition av menyalternativ (utan komponent-instanser)
-    const baseNavItems = [
-        { id: 'dashboard', label: 'Dashboard', path: '/dashboard', icon: Icons.Dashboard },
-        { id: 'mine', label: 'Mina Pass', path: '/mine', icon: Icons.Home },
-        { id: 'market', label: 'Lediga Pass', path: '/market', icon: Icons.Swap },
-        { id: 'schedule', label: 'Schema', path: '/schedule', icon: Icons.Calendar },
-        { id: 'profile', label: 'Profil', path: '/profile', icon: Icons.User },
-    ];
+  // Definition av menyalternativ (utan komponent-instanser)
+  const baseNavItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      path: '/dashboard',
+      icon: Icons.Dashboard,
+    },
+    { id: 'mine', label: 'Mina Pass', path: '/mine', icon: Icons.Home },
+    { id: 'market', label: 'Lediga Pass', path: '/market', icon: Icons.Swap },
+    {
+      id: 'schedule',
+      label: 'Schema',
+      path: '/schedule',
+      icon: Icons.Calendar,
+    },
+    { id: 'profile', label: 'Profil', path: '/profile', icon: Icons.User },
+  ];
 
-    const navItems = isSuperAdmin
-        ? [
-            { id: 'admin', label: 'Admin', path: '/admin', icon: Icons.Settings },
+  const navItems = isSuperAdmin
+    ? [{ id: 'admin', label: 'Admin', path: '/admin', icon: Icons.Settings }]
+    : isManager
+      ? [
+          ...baseNavItems,
+          {
+            id: 'manager',
+            label: 'Hantera',
+            path: '/manager',
+            icon: Icons.Shield,
+          },
         ]
-        : isManager
-            ? [...baseNavItems, { id: 'manager', label: 'Hantera', path: '/manager', icon: Icons.Shield }]
-            : baseNavItems;
+      : baseNavItems;
 
-    // Scrolla till toppen och uppdatera titel vid sidbyte
-    useEffect(() => {
-        if (mainRef.current) mainRef.current.scrollTop = 0;
-        const pageTitle = navItems.find(item => item.id === activeTab)?.label || 'ShiftMate';
-        document.title = `${pageTitle} - ShiftMate`;
-    }, [activeTab]);
+  // Scrolla till toppen och uppdatera titel vid sidbyte
+  useEffect(() => {
+    if (mainRef.current) mainRef.current.scrollTop = 0;
+    const pageTitle =
+      navItems.find((item) => item.id === activeTab)?.label || 'ShiftMate';
+    document.title = `${pageTitle} - ShiftMate`;
+  }, [activeTab]);
 
-    // Hämta inkommande förfrågningar direkt och polla var 30:e sekund (ej för SuperAdmin)
-    useEffect(() => {
-        if (isSuperAdmin) return; // SuperAdmin har inga pass/förfrågningar
+  // Hämta inkommande förfrågningar direkt och polla var 30:e sekund (ej för SuperAdmin)
+  useEffect(() => {
+    if (isSuperAdmin) return; // SuperAdmin har inga pass/förfrågningar
 
-        let lastCount = 0; // Spårar senaste antal för att detektera nya förfrågningar
+    let lastCount = 0; // Spårar senaste antal för att detektera nya förfrågningar
 
-        const loadNotifications = async () => {
-            try {
-                const data = await fetchReceivedSwapRequests();
-                setNotifRequests(data);
-                if (data.length > lastCount) {
-                    setHasUnseen(true); // Nya förfrågningar — visa badge
-                }
-                lastCount = data.length;
-            } catch {
-                // Polling misslyckas tyst — ska aldrig krascha appen
-            }
-        };
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchReceivedSwapRequests();
+        setNotifRequests(data);
+        if (data.length > lastCount) {
+          setHasUnseen(true); // Nya förfrågningar — visa badge
+        }
+        lastCount = data.length;
+      } catch {
+        // Polling misslyckas tyst — ska aldrig krascha appen
+      }
+    };
 
-        loadNotifications(); // Kör direkt vid mount
-        const intervalId = setInterval(loadNotifications, 30_000);
+    loadNotifications(); // Kör direkt vid mount
+    const intervalId = setInterval(loadNotifications, 30_000);
 
-        // Lyssna på händelse från ShiftList när en förfrågan accepteras/nekas
-        window.addEventListener('swaps-updated', loadNotifications);
+    // Lyssna på händelse från ShiftList när en förfrågan accepteras/nekas
+    window.addEventListener('swaps-updated', loadNotifications);
 
-        return () => {
-            clearInterval(intervalId);
-            window.removeEventListener('swaps-updated', loadNotifications);
-        };
-    }, [isSuperAdmin]);
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('swaps-updated', loadNotifications);
+    };
+  }, [isSuperAdmin]);
 
-    // Rensa badge när dropdownen öppnas
-    const handleNotifOpen = () => setHasUnseen(false);
+  // Rensa badge när dropdownen öppnas
+  const handleNotifOpen = () => setHasUnseen(false);
 
-    return (
-        <div className="min-h-screen bg-slate-950 text-gray-100 flex overflow-hidden noise-bg">
-            {/* Mobil notifikationsklocka — fast position uppe till höger, dold på desktop (ej för SuperAdmin) */}
+  return (
+    <div className="min-h-screen bg-slate-950 text-gray-100 flex overflow-hidden noise-bg">
+      {/* Mobil notifikationsklocka — fast position uppe till höger, dold på desktop (ej för SuperAdmin) */}
+      {!isSuperAdmin && (
+        <div className="md:hidden fixed top-4 right-4 z-40">
+          <NotificationDropdown
+            requests={notifRequests}
+            hasUnseen={hasUnseen}
+            onOpen={handleNotifOpen}
+          />
+        </div>
+      )}
+
+      {/* Sidomeny */}
+      <aside className="hidden md:flex flex-col w-72 bg-slate-900/40 backdrop-blur-2xl border-r border-slate-800/60 p-6 z-10 relative">
+        {/* Subtil glow längs höger kant */}
+        <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-blue-500/15 to-transparent"></div>
+
+        <div className="flex items-center gap-3 mb-10 px-2">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden ring-1 ring-blue-500/20">
+            <img src="/favicon.svg" alt="ShiftMate" className="w-full h-full" />
+          </div>
+          <h1 className="text-xl font-extrabold tracking-tight text-white flex-1">
+            ShiftMate
+          </h1>
+          {/* Notifikationsklocka — synlig i sidomenyn på desktop (ej för SuperAdmin) */}
+          {!isSuperAdmin && (
+            <NotificationDropdown
+              requests={notifRequests}
+              hasUnseen={hasUnseen}
+              onOpen={handleNotifOpen}
+              align="left"
+            />
+          )}
+        </div>
+
+        {/* Navigationslänkar */}
+        <nav className="flex-1 space-y-1">
+          {navItems.map((item) => (
+            <Link
+              to={item.path}
+              key={item.id}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-semibold relative ${
+                activeTab === item.id
+                  ? 'bg-blue-500/10 text-blue-400 glow-border'
+                  : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+              }`}
+            >
+              <item.icon />
+              <span>{item.label}</span>
+              {activeTab === item.id && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_currentColor]"></div>
+              )}
+            </Link>
+          ))}
+        </nav>
+
+        <div className="border-t border-slate-800/60 pt-4 mt-4">
+          <button
+            onClick={onLogout}
+            className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-400 transition-colors w-full text-sm font-semibold rounded-xl hover:bg-red-500/5"
+          >
+            <Icons.LogOut />
+            <span>Logga ut</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Huvudinnehåll */}
+      <main ref={mainRef} className="flex-1 overflow-y-auto relative h-screen">
+        <div
+          key={activeTab}
+          className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12 animate-fade-in"
+        >
+          {activeTab !== 'dashboard' && (
+            <header className="mb-8">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
+                {navItems.find((n) => n.id === activeTab)?.label || 'Välkommen'}
+              </h2>
+              <p className="text-slate-500 mt-2 text-sm font-medium">
+                Hantera din arbetstid smidigt.
+              </p>
+            </header>
+          )}
+
+          <Routes>
             {!isSuperAdmin && (
-                <div className="md:hidden fixed top-4 right-4 z-40">
-                    <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} />
-                </div>
+              <Route path="/dashboard" element={<Dashboard />} />
             )}
+            {!isSuperAdmin && <Route path="/mine" element={<ShiftList />} />}
+            {!isSuperAdmin && (
+              <Route path="/market" element={<MarketPlace />} />
+            )}
+            {!isSuperAdmin && <Route path="/schedule" element={<Schedule />} />}
+            {!isSuperAdmin && (
+              <Route
+                path="/profile"
+                element={<Profile onLogout={onLogout} />}
+              />
+            )}
+            {isManager && <Route path="/manager" element={<ManagerPanel />} />}
+            {isSuperAdmin && <Route path="/admin" element={<AdminPanel />} />}
+            <Route
+              path="*"
+              element={
+                <Navigate to={isSuperAdmin ? '/admin' : '/dashboard'} replace />
+              }
+            />
+          </Routes>
+        </div>
+      </main>
 
-            {/* Sidomeny */}
-            <aside className="hidden md:flex flex-col w-72 bg-slate-900/40 backdrop-blur-2xl border-r border-slate-800/60 p-6 z-10 relative">
-                {/* Subtil glow längs höger kant */}
-                <div className="absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-blue-500/15 to-transparent"></div>
-
-                <div className="flex items-center gap-3 mb-10 px-2">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 overflow-hidden ring-1 ring-blue-500/20">
-                        <img src="/favicon.svg" alt="ShiftMate" className="w-full h-full" />
-                    </div>
-                    <h1 className="text-xl font-extrabold tracking-tight text-white flex-1">ShiftMate</h1>
-                    {/* Notifikationsklocka — synlig i sidomenyn på desktop (ej för SuperAdmin) */}
-                    {!isSuperAdmin && <NotificationDropdown requests={notifRequests} hasUnseen={hasUnseen} onOpen={handleNotifOpen} align="left" />}
-                </div>
-
-                {/* Navigationslänkar */}
-                <nav className="flex-1 space-y-1">
-                    {navItems.map((item) => (
-                        <Link to={item.path} key={item.id}
-                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-sm font-semibold relative ${activeTab === item.id
-                                ? 'bg-blue-500/10 text-blue-400 glow-border'
-                                : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                                }`}
-                        >
-                            <item.icon />
-                            <span>{item.label}</span>
-                            {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_8px_currentColor]"></div>}
-                        </Link>
-                    ))}
-                </nav>
-
-                <div className="border-t border-slate-800/60 pt-4 mt-4">
-                    <button onClick={onLogout} className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-red-400 transition-colors w-full text-sm font-semibold rounded-xl hover:bg-red-500/5">
-                        <Icons.LogOut />
-                        <span>Logga ut</span>
-                    </button>
-                </div>
-            </aside>
-
-            {/* Huvudinnehåll */}
-            <main ref={mainRef} className="flex-1 overflow-y-auto relative h-screen">
-                <div key={activeTab} className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12 animate-fade-in">
-                    {activeTab !== 'dashboard' && (
-                        <header className="mb-8">
-                            <h2 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                                {navItems.find(n => n.id === activeTab)?.label || "Välkommen"}
-                            </h2>
-                            <p className="text-slate-500 mt-2 text-sm font-medium">Hantera din arbetstid smidigt.</p>
-                        </header>
-                    )}
-
-                    <Routes>
-                        {!isSuperAdmin && <Route path="/dashboard" element={<Dashboard />} />}
-                        {!isSuperAdmin && <Route path="/mine" element={<ShiftList />} />}
-                        {!isSuperAdmin && <Route path="/market" element={<MarketPlace />} />}
-                        {!isSuperAdmin && <Route path="/schedule" element={<Schedule />} />}
-                        {!isSuperAdmin && <Route path="/profile" element={<Profile onLogout={onLogout} />} />}
-                        {isManager && <Route path="/manager" element={<ManagerPanel />} />}
-                        {isSuperAdmin && <Route path="/admin" element={<AdminPanel />} />}
-                        <Route path="*" element={<Navigate to={isSuperAdmin ? "/admin" : "/dashboard"} replace />} />
-                    </Routes>
-                </div>
-            </main>
-
-            {/* Mobil bottenmeny — visas bara på små skärmar */}
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-800/60 z-50">
-                {/* Toppkant-glow */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
-                <div className="flex justify-around items-center h-16 px-1">
-                    {navItems.map((item) => (
-                        <Link
-                            to={item.path}
-                            key={item.id}
-                            className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200
-                                ${activeTab === item.id
+      {/* Mobil bottenmeny — visas bara på små skärmar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-2xl border-t border-slate-800/60 z-50">
+        {/* Toppkant-glow */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/20 to-transparent"></div>
+        <div className="flex justify-around items-center h-16 px-1">
+          {navItems.map((item) => (
+            <Link
+              to={item.path}
+              key={item.id}
+              className={`flex flex-col items-center justify-center flex-1 py-1 transition-all duration-200
+                                ${
+                                  activeTab === item.id
                                     ? 'text-blue-400'
                                     : 'text-slate-500'
                                 }`}
-                        >
-                            <item.icon />
-                            <span className="text-[10px] font-semibold mt-1 tracking-tight">{item.label}</span>
-                            {activeTab === item.id && (
-                                <div className="w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_6px_#3b82f6] mt-0.5"></div>
-                            )}
-                        </Link>
-                    ))}
-                </div>
-            </nav>
+            >
+              <item.icon />
+              <span className="text-[10px] font-semibold mt-1 tracking-tight">
+                {item.label}
+              </span>
+              {activeTab === item.id && (
+                <div className="w-1 h-1 rounded-full bg-blue-400 shadow-[0_0_6px_#3b82f6] mt-0.5"></div>
+              )}
+            </Link>
+          ))}
         </div>
-    );
+      </nav>
+    </div>
+  );
 };
-
 
 // SVG-ikoner
 const Icons = {
-    Dashboard: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="4" rx="1" /><rect x="14" y="10" width="7" height="11" rx="1" /><rect x="3" y="13" width="7" height="8" rx="1" /></svg>,
-    Home: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg>,
-    Swap: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3 4 7l4 4" /><path d="M4 7h16" /><path d="m16 21 4-4-4-4" /><path d="M20 17H4" /></svg>,
-    Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2" /><line x1="16" x2="16" y1="2" y2="6" /><line x1="8" x2="8" y1="2" y2="6" /><line x1="3" x2="21" y1="10" y2="10" /></svg>,
-    User: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>,
-    LogOut: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>,
-    // NY IKON: En sköld för Manager (måste finnas för att inte krascha)
-    Shield: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
-    // Kugghjulsikon för SuperAdmin
-    Settings: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+  Dashboard: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="4" rx="1" />
+      <rect x="14" y="10" width="7" height="11" rx="1" />
+      <rect x="3" y="13" width="7" height="8" rx="1" />
+    </svg>
+  ),
+  Home: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
+    </svg>
+  ),
+  Swap: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 3 4 7l4 4" />
+      <path d="M4 7h16" />
+      <path d="m16 21 4-4-4-4" />
+      <path d="M20 17H4" />
+    </svg>
+  ),
+  Calendar: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+      <line x1="16" x2="16" y1="2" y2="6" />
+      <line x1="8" x2="8" y1="2" y2="6" />
+      <line x1="3" x2="21" y1="10" y2="10" />
+    </svg>
+  ),
+  User: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  ),
+  LogOut: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  ),
+  // NY IKON: En sköld för Manager (måste finnas för att inte krascha)
+  Shield: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  ),
+  // Kugghjulsikon för SuperAdmin
+  Settings: () => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+    </svg>
+  ),
 };
 
-
 function App() {
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
-    const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+  const navigate = useNavigate();
 
-    const handleLoginSuccess = () => {
-        setIsLoggedIn(true);
-        const role = getUserRole();
-        navigate(role === 'SuperAdmin' ? '/admin' : '/dashboard');
-    };
+  const handleLoginSuccess = () => {
+    setIsLoggedIn(true);
+    const role = getUserRole();
+    navigate(role === 'SuperAdmin' ? '/admin' : '/dashboard');
+  };
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-        navigate('/login');
-    };
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    navigate('/login');
+  };
 
-    useEffect(() => {
-        setLogoutCallback(handleLogout);
-    }, [handleLogout]);
+  useEffect(() => {
+    setLogoutCallback(handleLogout);
+  }, [handleLogout]);
 
-    return (
-        <Routes>
-            {isLoggedIn ? (
-                <Route path="/*" element={<MainApp onLogout={handleLogout} />} />
-            ) : (
-                <>
-                    <Route path="/login" element={<Login onLoginSuccess={handleLoginSuccess} />} />
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/forgot-password" element={<ForgotPassword />} />
-                    <Route path="/reset-password" element={<ResetPassword />} />
-                    <Route path="/verify-email" element={<VerifyEmail />} />
-                    <Route path="*" element={<Navigate to="/login" />} />
-                </>
-            )}
-        </Routes>
-    );
+  return (
+    <Routes>
+      {isLoggedIn ? (
+        <Route path="/*" element={<MainApp onLogout={handleLogout} />} />
+      ) : (
+        <>
+          <Route
+            path="/login"
+            element={<Login onLoginSuccess={handleLoginSuccess} />}
+          />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="*" element={<Navigate to="/login" />} />
+        </>
+      )}
+    </Routes>
+  );
 }
 
 export default App;

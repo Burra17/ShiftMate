@@ -29,17 +29,17 @@ npm run build # bygg för produktion
 
 ## Sidor
 
-| Sida | Fil | Beskrivning |
-|------|-----|-------------|
-| Dashboard | `Dashboard.jsx` | Startsida med översikt, snabbkort och kommande pass |
-| Inloggning | `Login.jsx` | Inloggning med e-post och lösenord |
-| Registrering | `Register.jsx` | Skapa nytt konto med inbjudningskod |
-| Mina Pass | `ShiftList.jsx` | Användarens skift och inkommande bytesförfrågningar |
-| Lediga Pass | `MarketPlace.jsx` | Otilldelade och erbjudna skift att ta |
-| Schema | `Schedule.jsx` | Komplett schemaöversikt grupperad per datum |
-| Profil | `Profile.jsx` | Profilkort med organisationsinfo, statistik och inställningar |
+| Sida          | Fil                           | Beskrivning                                                                                |
+| ------------- | ----------------------------- | ------------------------------------------------------------------------------------------ |
+| Dashboard     | `Dashboard.jsx`               | Startsida med översikt, snabbkort och kommande pass                                        |
+| Inloggning    | `Login.jsx`                   | Inloggning med e-post och lösenord                                                         |
+| Registrering  | `Register.jsx`                | Skapa nytt konto med inbjudningskod                                                        |
+| Mina Pass     | `ShiftList.jsx`               | Användarens skift och inkommande bytesförfrågningar                                        |
+| Lediga Pass   | `MarketPlace.jsx`             | Otilldelade och erbjudna skift att ta                                                      |
+| Schema        | `Schedule.jsx`                | Komplett schemaöversikt grupperad per datum                                                |
+| Profil        | `Profile.jsx`                 | Profilkort med organisationsinfo, statistik och inställningar                              |
 | Manager Panel | `components/ManagerPanel.jsx` | Skapa/redigera/ta bort skift, hantera användare, visa/förnya inbjudningskod (manager-only) |
-| Admin Panel | `AdminPanel.jsx` | Hantera alla organisationer (SuperAdmin-only) |
+| Admin Panel   | `AdminPanel.jsx`              | Hantera alla organisationer (SuperAdmin-only)                                              |
 
 ## Toast & Confirm-system
 
@@ -140,6 +140,7 @@ shiftmate-frontend/
 ## Tema
 
 Applikationen använder ett Neon Dark-tema med färgerna:
+
 - Bakgrund: `bg-slate-950`
 - Primär text: `text-blue-400`
 - Kanter: `border-blue-500/30`

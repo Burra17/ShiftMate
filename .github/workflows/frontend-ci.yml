@@ -1,23 +1,26 @@
-name: CI
-
+name: Frontend CI
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
+
+permissions:
+  contents: read
+
 jobs:
   frontend:
-    name: Frontend (build)
+    name: Frontend (lint, format, test, build)
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ShiftMate/shiftmate-frontend
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node (version from .nvmrc)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version-file: ShiftMate/shiftmate-frontend/.nvmrc
           cache: npm
@@ -25,6 +28,15 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Test
+        run: npm run test
 
       - name: Build
         run: npm run build

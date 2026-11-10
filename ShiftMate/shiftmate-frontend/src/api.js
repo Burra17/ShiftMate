@@ -3,40 +3,40 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-let logoutCallback = () => { }; // Standardfunktion som inte gör något
+let logoutCallback = () => {}; // Standardfunktion som inte gör något
 
 export const setLogoutCallback = (callback) => {
-    logoutCallback = callback;
+  logoutCallback = callback;
 };
 
 const axiosInstance = axios.create({
-    baseURL: API_URL,
+  baseURL: API_URL,
 });
 
 // Interceptor för att bifoga JWT-token vid varje anrop
 axiosInstance.interceptors.request.use(
-    (config) => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
 );
 
 // Interceptor för att hantera utgångna tokens (401 Unauthorized)
 axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        if (error.response?.status === 401) {
-            console.log("Token har gått ut eller är ogiltigt, loggar ut...");
-            logoutCallback();
-        }
-        return Promise.reject(error);
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.log('Token har gått ut eller är ogiltigt, loggar ut...');
+      logoutCallback();
     }
+    return Promise.reject(error);
+  },
 );
 
 // ---------------------------------------------------------
@@ -48,20 +48,26 @@ axiosInstance.interceptors.response.use(
  * Returnerar null om inget token finns eller om avkodningen misslyckas.
  */
 export const decodeToken = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
+  const token = localStorage.getItem('token');
+  if (!token) return null;
 
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    } catch (e) {
-        console.error("Kunde inte avkoda token:", e);
-        return null;
-    }
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      window
+        .atob(base64)
+        .split('')
+        .map(function (c) {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join(''),
+    );
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    console.error('Kunde inte avkoda token:', e);
+    return null;
+  }
 };
 
 // ---------------------------------------------------------
@@ -73,53 +79,57 @@ export const decodeToken = () => {
  * Returnerar array av pass (utan paginering).
  */
 export const fetchShifts = async (onlyWithUsers = false) => {
-    const response = await axiosInstance.get('/shifts', {
-        params: { onlyWithUsers }
-    });
-    return response.data.items;
+  const response = await axiosInstance.get('/shifts', {
+    params: { onlyWithUsers },
+  });
+  return response.data.items;
 };
 
 /**
  * Hämta pass med paginering.
  * Returnerar { items, totalCount, page, pageSize, totalPages }.
  */
-export const fetchShiftsPaginated = async ({ onlyWithUsers = false, page = 1, pageSize = 20 } = {}) => {
-    const response = await axiosInstance.get('/shifts', {
-        params: { onlyWithUsers, page, pageSize }
-    });
-    return response.data;
+export const fetchShiftsPaginated = async ({
+  onlyWithUsers = false,
+  page = 1,
+  pageSize = 20,
+} = {}) => {
+  const response = await axiosInstance.get('/shifts', {
+    params: { onlyWithUsers, page, pageSize },
+  });
+  return response.data;
 };
 
 /**
  * Hämta den inloggade användarens egna pass.
  */
 export const fetchMyShifts = async () => {
-    const response = await axiosInstance.get('/shifts/mine');
-    return response.data;
+  const response = await axiosInstance.get('/shifts/mine');
+  return response.data;
 };
 
 /**
  * Hämta pass som är lediga att ta (marknadsplatsen).
  */
 export const fetchClaimableShifts = async () => {
-    const response = await axiosInstance.get('/shifts/claimable');
-    return response.data;
+  const response = await axiosInstance.get('/shifts/claimable');
+  return response.data;
 };
 
 /**
  * Ta ett ledigt pass.
  */
 export const takeShift = async (shiftId) => {
-    const response = await axiosInstance.put(`/shifts/${shiftId}/take`, {});
-    return response.data;
+  const response = await axiosInstance.put(`/shifts/${shiftId}/take`, {});
+  return response.data;
 };
 
 /**
  * Ångra att ett pass ligger ute för byte.
  */
 export const cancelShiftSwap = async (shiftId) => {
-    const response = await axiosInstance.put(`/shifts/${shiftId}/cancel-swap`);
-    return response.data;
+  const response = await axiosInstance.put(`/shifts/${shiftId}/cancel-swap`);
+  return response.data;
 };
 
 // ---------------------------------------------------------
@@ -130,51 +140,57 @@ export const cancelShiftSwap = async (shiftId) => {
  * Lägg ut ett pass på marknadsplatsen för byte.
  */
 export const initiateSwap = async (shiftId) => {
-    const response = await axiosInstance.post('/swaprequests/initiate', { shiftId });
-    return response.data;
+  const response = await axiosInstance.post('/swaprequests/initiate', {
+    shiftId,
+  });
+  return response.data;
 };
 
 /**
  * Föreslå ett direktbyte mellan två pass.
  */
 export const proposeDirectSwap = async (myShiftId, targetShiftId) => {
-    const response = await axiosInstance.post('/swaprequests/propose-direct', {
-        myShiftId,
-        targetShiftId
-    });
-    return response.data;
+  const response = await axiosInstance.post('/swaprequests/propose-direct', {
+    myShiftId,
+    targetShiftId,
+  });
+  return response.data;
 };
 
 /**
  * Hämta inkommande bytesförfrågningar.
  */
 export const fetchReceivedSwapRequests = async () => {
-    const response = await axiosInstance.get('/swaprequests/received');
-    return response.data;
+  const response = await axiosInstance.get('/swaprequests/received');
+  return response.data;
 };
 
 /**
  * Hämta skickade bytesförfrågningar (väntande).
  */
 export const fetchSentSwapRequests = async () => {
-    const response = await axiosInstance.get('/swaprequests/sent');
-    return response.data;
+  const response = await axiosInstance.get('/swaprequests/sent');
+  return response.data;
 };
 
 /**
  * Acceptera en bytesförfrågan.
  */
 export const acceptSwapRequest = async (swapRequestId) => {
-    const response = await axiosInstance.post('/swaprequests/accept', { swapRequestId });
-    return response.data;
+  const response = await axiosInstance.post('/swaprequests/accept', {
+    swapRequestId,
+  });
+  return response.data;
 };
 
 /**
  * Neka en bytesförfrågan.
  */
 export const declineSwapRequest = async (requestId) => {
-    const response = await axiosInstance.post(`/swaprequests/${requestId}/decline`);
-    return response.data;
+  const response = await axiosInstance.post(
+    `/swaprequests/${requestId}/decline`,
+  );
+  return response.data;
 };
 
 // ---------------------------------------------------------
@@ -185,124 +201,133 @@ export const declineSwapRequest = async (requestId) => {
  * Hämta användarens roll från JWT-tokenet.
  */
 export const getUserRole = () => {
-    const payload = decodeToken();
-    if (!payload) return null;
-    return payload["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] || payload.role;
+  const payload = decodeToken();
+  if (!payload) return null;
+  return (
+    payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
+    payload.role
+  );
 };
 
 /**
  * Hämta den inloggade användarens ID (Guid) från JWT-tokenet.
  */
 export const getCurrentUserId = () => {
-    const payload = decodeToken();
-    if (!payload) return null;
-    return payload["http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"] || payload.sub;
+  const payload = decodeToken();
+  if (!payload) return null;
+  return (
+    payload[
+      'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'
+    ] || payload.sub
+  );
 };
 
 /**
  * Hämta den inloggade användarens organisations-ID från JWT-tokenet.
  */
 export const getOrganizationId = () => {
-    const payload = decodeToken();
-    if (!payload) return null;
-    return payload["OrganizationId"] || null;
+  const payload = decodeToken();
+  if (!payload) return null;
+  return payload['OrganizationId'] || null;
 };
 
 /**
  * Hämta den inloggade användarens organisationsnamn från JWT-tokenet.
  */
 export const getOrganizationName = () => {
-    const payload = decodeToken();
-    if (!payload) return null;
-    return payload["OrganizationName"] || null;
+  const payload = decodeToken();
+  if (!payload) return null;
+  return payload['OrganizationName'] || null;
 };
 
 /**
  * Hämta inbjudningskod för den inloggade användarens organisation (Manager).
  */
 export const getMyInviteCode = async () => {
-    const res = await axiosInstance.get('/organizations/my-invite-code');
-    return res.data;
+  const res = await axiosInstance.get('/organizations/my-invite-code');
+  return res.data;
 };
 
 /**
  * Generera ny inbjudningskod för en organisation (Manager/SuperAdmin).
  */
 export const regenerateInviteCode = async (orgId) => {
-    const res = await axiosInstance.post(`/organizations/${orgId}/regenerate-invite-code`);
-    return res.data;
+  const res = await axiosInstance.post(
+    `/organizations/${orgId}/regenerate-invite-code`,
+  );
+  return res.data;
 };
 
 /**
  * Hämta alla organisationer med detaljer (SuperAdmin).
  */
 export const fetchOrganizationsDetail = async () => {
-    const res = await axiosInstance.get('/organizations/admin');
-    return res.data;
+  const res = await axiosInstance.get('/organizations/admin');
+  return res.data;
 };
 
 /**
  * Skapa en ny organisation (SuperAdmin).
  */
 export const createOrganization = async (name) => {
-    const res = await axiosInstance.post('/organizations', { name });
-    return res.data;
+  const res = await axiosInstance.post('/organizations', { name });
+  return res.data;
 };
 
 /**
  * Uppdatera en organisation (SuperAdmin).
  */
 export const updateOrganization = async (id, name) => {
-    const res = await axiosInstance.put(`/organizations/${id}`, { name });
-    return res.data;
+  const res = await axiosInstance.put(`/organizations/${id}`, { name });
+  return res.data;
 };
 
 /**
  * Radera en organisation (SuperAdmin).
  */
 export const deleteOrganization = async (id) => {
-    const res = await axiosInstance.delete(`/organizations/${id}`);
-    return res.data;
+  const res = await axiosInstance.delete(`/organizations/${id}`);
+  return res.data;
 };
 
 /**
  * Uppdatera den inloggade användarens profil (namn och e-post).
  */
 export const updateProfile = async (data) => {
-    const res = await axiosInstance.put('/users/profile', data);
-    return res.data;
+  const res = await axiosInstance.put('/users/profile', data);
+  return res.data;
 };
 
 /**
  * Byt lösenord för den inloggade användaren.
  */
 export const changePassword = async (data) => {
-    const res = await axiosInstance.put('/users/change-password', data);
-    return res.data;
+  const res = await axiosInstance.put('/users/change-password', data);
+  return res.data;
 };
 
 /**
  * Skapa ett pass via manager-endpoint.
  */
 export const createManagerShift = async (payload) => {
-    const res = await axiosInstance.post('/shifts/admin', payload);
-    return res.data;
+  const res = await axiosInstance.post('/shifts/admin', payload);
+  return res.data;
 };
 
 /**
  * Uppdatera ett pass (manager only).
  */
 export const updateShift = async (shiftId, payload) => {
-    const res = await axiosInstance.put(`/shifts/${shiftId}`, payload);
-    return res.data;
+  const res = await axiosInstance.put(`/shifts/${shiftId}`, payload);
+  return res.data;
 };
 
 /**
  * Radera ett pass (manager only).
  */
 export const deleteShift = async (shiftId) => {
-    const res = await axiosInstance.delete(`/shifts/${shiftId}`);
-    return res.data;
+  const res = await axiosInstance.delete(`/shifts/${shiftId}`);
+  return res.data;
 };
 
 /**
@@ -310,51 +335,60 @@ export const deleteShift = async (shiftId) => {
  * Returnerar array av användare (utan paginering).
  */
 export const fetchAllUsers = async () => {
-    const res = await axiosInstance.get('/users');
-    return res.data.items;
+  const res = await axiosInstance.get('/users');
+  return res.data.items;
 };
 
 /**
  * Hämta användare med paginering.
  * Returnerar { items, totalCount, page, pageSize, totalPages }.
  */
-export const fetchAllUsersPaginated = async ({ page = 1, pageSize = 20 } = {}) => {
-    const res = await axiosInstance.get('/users', {
-        params: { page, pageSize }
-    });
-    return res.data;
+export const fetchAllUsersPaginated = async ({
+  page = 1,
+  pageSize = 20,
+} = {}) => {
+  const res = await axiosInstance.get('/users', {
+    params: { page, pageSize },
+  });
+  return res.data;
 };
 
 /**
  * Radera en användare.
  */
 export const deleteUser = async (userId) => {
-    const res = await axiosInstance.delete(`/users/${userId}`);
-    return res.data;
+  const res = await axiosInstance.delete(`/users/${userId}`);
+  return res.data;
 };
 
 /**
  * Uppdatera en användares roll.
  */
 export const updateUserRole = async (userId, role) => {
-    const res = await axiosInstance.put(`/users/${userId}/role`, { newRole: role });
-    return res.data;
+  const res = await axiosInstance.put(`/users/${userId}/role`, {
+    newRole: role,
+  });
+  return res.data;
 };
 
 /**
  * Begär lösenordsåterställning via e-post.
  */
 export const forgotPassword = async (email) => {
-    const res = await axiosInstance.post('/users/forgot-password', { email });
-    return res.data;
+  const res = await axiosInstance.post('/users/forgot-password', { email });
+  return res.data;
 };
 
 /**
  * Återställ lösenord med token från e-post.
  */
 export const resetPassword = async (token, email, newPassword) => {
-    const res = await axiosInstance.post('/users/reset-password', { token, email, newPassword });
-    return res.data;
+  const res = await axiosInstance.post('/users/reset-password', {
+    token,
+    email,
+    newPassword,
+  });
+  return res.data;
 };
 
 export default axiosInstance;
