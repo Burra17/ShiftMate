@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useCallback, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from 'react';
 import { createPortal } from 'react-dom';
 import ToastContainer from '../components/ui/ToastContainer';
 import ConfirmModal from '../components/ui/ConfirmModal';
@@ -18,7 +24,7 @@ export const ToastProvider = ({ children }) => {
   const addToast = useCallback((type, message) => {
     const id = ++toastIdCounter;
 
-    setToasts(prev => {
+    setToasts((prev) => {
       // Max 5 toasts synliga samtidigt
       const updated = [...prev, { id, type, message, exiting: false }];
       return updated.length > 5 ? updated.slice(updated.length - 5) : updated;
@@ -32,11 +38,13 @@ export const ToastProvider = ({ children }) => {
 
   const dismissToast = useCallback((id) => {
     // Markera som exiting för att trigga ut-animation
-    setToasts(prev => prev.map(t => t.id === id ? { ...t, exiting: true } : t));
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, exiting: true } : t)),
+    );
 
     // Ta bort helt efter animationen (300ms)
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 300);
   }, []);
 
@@ -84,7 +92,7 @@ export const ToastProvider = ({ children }) => {
             />
           )}
         </>,
-        document.body
+        document.body,
       )}
     </ToastContext.Provider>
   );
