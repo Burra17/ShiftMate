@@ -24,10 +24,13 @@ const DatePicker = ({ value, onChange, label, required }) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Uppdatera vy när value ändras utifrån
-    useEffect(() => {
+    // Uppdatera vy när value ändras utifrån – jämförs under rendering istället för i en effekt
+    // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+    const [prevValue, setPrevValue] = useState(value);
+    if (value !== prevValue) {
+        setPrevValue(value);
         if (value) setViewDate(new Date(value + 'T00:00:00'));
-    }, [value]);
+    }
 
     const viewYear = viewDate.getFullYear();
     const viewMonth = viewDate.getMonth();

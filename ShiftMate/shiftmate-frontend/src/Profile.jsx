@@ -73,7 +73,7 @@ const Profile = ({ onLogout }) => {
                     totalHours: Math.round(totalHours * 10) / 10
                 });
             } catch (err) {
-                console.error("Kunde inte hämta statistik");
+                console.error("Kunde inte hämta statistik", err);
             } finally {
                 setLoading(false);
             }

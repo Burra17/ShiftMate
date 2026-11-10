@@ -7,16 +7,16 @@ const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '
 const TimePicker = ({ value, onChange, label, required }) => {
     const [open, setOpen] = useState(false);
     const [step, setStep] = useState('hour'); // 'hour' eller 'minute'
-    const [selectedHour, setSelectedHour] = useState('');
+    const [selectedHour, setSelectedHour] = useState(value ? value.split(':')[0] : '');
     const ref = useRef(null);
 
-    // Synka intern state med externt value
-    useEffect(() => {
-        if (value) {
-            const [h] = value.split(':');
-            setSelectedHour(h);
-        }
-    }, [value]);
+    // Synka intern state med externt value – jämförs under rendering istället för i en effekt
+    // (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+    const [prevValue, setPrevValue] = useState(value);
+    if (value !== prevValue) {
+        setPrevValue(value);
+        if (value) setSelectedHour(value.split(':')[0]);
+    }
 
     // Stäng vid klick utanför
     useEffect(() => {
@@ -40,11 +40,6 @@ const TimePicker = ({ value, onChange, label, required }) => {
         onChange(newTime);
         setOpen(false);
         setStep('hour');
-    };
-
-    // Manuell inmatning — tillåt användaren att skriva direkt
-    const handleInputChange = (e) => {
-        onChange(e.target.value);
     };
 
     const displayValue = value || '';

@@ -9,18 +9,16 @@ const VerifyEmail = () => {
     }, []);
 
     const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState('loading'); // loading, success, error
-    const [message, setMessage] = useState('');
+    const token = searchParams.get('token');
+    const email = searchParams.get('email');
+
+    // Ogiltig länk avgörs direkt vid första renderingen – ingen effekt behövs för det
+    const isInvalidLink = !token || !email;
+    const [status, setStatus] = useState(isInvalidLink ? 'error' : 'loading'); // loading, success, error
+    const [message, setMessage] = useState(isInvalidLink ? 'Ogiltig verifieringslänk.' : '');
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        const email = searchParams.get('email');
-
-        if (!token || !email) {
-            setStatus('error');
-            setMessage('Ogiltig verifieringslänk.');
-            return;
-        }
+        if (isInvalidLink) return;
 
         const verify = async () => {
             try {
@@ -35,7 +33,7 @@ const VerifyEmail = () => {
         };
 
         verify();
-    }, [searchParams]);
+    }, [isInvalidLink, token, email]);
 
     return (
         <AuthLayout title="ShiftMate" subtitle="E-postverifiering">

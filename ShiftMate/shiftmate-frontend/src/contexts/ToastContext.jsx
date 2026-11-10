@@ -90,7 +90,10 @@ export const ToastProvider = ({ children }) => {
   );
 };
 
+// Hookarna ligger medvetet i samma fil som providern (Reacts vanliga context-mönster).
+// Regeln nedan påverkar bara Vites hot reload i dev – filen laddas om helt istället för att hot-swappas.
 // Hook: Returnerar { success, error, info, warning } metoder
+// eslint-disable-next-line react-refresh/only-export-components
 export const useToast = () => {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useToast måste användas inom <ToastProvider>');
@@ -98,6 +101,7 @@ export const useToast = () => {
 };
 
 // Hook: Returnerar confirm(options) som returnerar Promise<boolean>
+// eslint-disable-next-line react-refresh/only-export-components
 export const useConfirm = () => {
   const ctx = useContext(ToastContext);
   if (!ctx) throw new Error('useConfirm måste användas inom <ToastProvider>');

@@ -147,7 +147,7 @@ const ShiftList = () => {
             );
 
             setAvailableShifts(filteredShifts);
-        } catch (err) {
+        } catch {
             setModalError("Kunde inte ladda tillgängliga pass.");
         } finally {
             setModalLoading(false);

@@ -47,7 +47,7 @@ const InviteCode = () => {
             setInviteCode(data.inviteCode);
             setGeneratedAt(new Date().toISOString());
             toast.success("Ny inbjudningskod har genererats!");
-        } catch (err) {
+        } catch {
             toast.error("Kunde inte generera ny kod.");
         } finally {
             setRegenerating(false);
