@@ -1,0 +1,12 @@
+name: Hello CI
+on: [pull request]
+jobs: 
+   hello:
+      runs-on: ubuntu-latest
+      steps:
+         - uses: actions/checkout@v7
+         - name: Säg hej
+           env: 
+             BRANCH: ${{ github.head_ref }}
+             run: echo "Hej från Github!" Jag kör på branchen $BRANCH"
+           - run: ls -la
