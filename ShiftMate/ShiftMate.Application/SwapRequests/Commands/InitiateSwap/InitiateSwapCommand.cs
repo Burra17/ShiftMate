@@ -1,5 +1,5 @@
-﻿using MediatR;
 using System.Text.Json.Serialization;
+using MediatR;
 
 namespace ShiftMate.Application.SwapRequests.Commands.InitiateSwap;
 
@@ -8,6 +8,6 @@ public record InitiateSwapCommand : IRequest<Guid>
 {
     public Guid ShiftId { get; set; }
 
-    [JsonIgnore] 
+    [JsonIgnore]
     public Guid RequestingUserId { get; set; }
 }

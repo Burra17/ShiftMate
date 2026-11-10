@@ -1,8 +1,8 @@
-using ShiftMate.Application.Interfaces;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Infrastructure.Services;
 

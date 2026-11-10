@@ -1,5 +1,5 @@
-﻿using MediatR;
 using System.Text.Json.Serialization;
+using MediatR;
 
 namespace ShiftMate.Application.SwapRequests.Commands.AcceptSwap;
 
@@ -11,4 +11,3 @@ public record AcceptSwapCommand : IRequest
     [JsonIgnore] // Vi hämtar detta från token, så Swagger ska inte visa det
     public Guid CurrentUserId { get; set; }
 }
-﻿﻿

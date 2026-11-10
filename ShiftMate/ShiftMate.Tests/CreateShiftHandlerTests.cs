@@ -1,14 +1,14 @@
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
-using Moq;
-using ShiftMate.Tests.Support;
-using Xunit;
-using ShiftMate.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using Moq;
+using ShiftMate.Application.Interfaces;
+using ShiftMate.Application.Shifts.Commands.CreateShift;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
-using ShiftMate.Application.Shifts.Commands.CreateShift;
+using ShiftMate.Tests.Support;
+using Xunit;
 
 namespace ShiftMate.Tests
 {
@@ -25,8 +25,13 @@ namespace ShiftMate.Tests
             var userId = Guid.NewGuid();
             context.Users.Add(new User
             {
-                Id = userId, FirstName = "Test", LastName = "Testsson",
-                Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = userId,
+                FirstName = "Test",
+                LastName = "Testsson",
+                Email = "test@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
             await context.SaveChangesAsync(CancellationToken.None);
 
@@ -125,13 +130,20 @@ namespace ShiftMate.Tests
             var userId = Guid.NewGuid();
             context.Users.Add(new User
             {
-                Id = userId, FirstName = "Test", LastName = "Testsson",
-                Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = userId,
+                FirstName = "Test",
+                LastName = "Testsson",
+                Email = "test@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
 
             context.Shifts.Add(new Shift
             {
-                Id = Guid.NewGuid(), UserId = userId, OrganizationId = OrgId,
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                OrganizationId = OrgId,
                 StartTime = DateTime.UtcNow.AddHours(8),
                 EndTime = DateTime.UtcNow.AddHours(16)
             });

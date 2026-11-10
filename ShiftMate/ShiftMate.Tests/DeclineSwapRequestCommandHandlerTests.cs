@@ -44,24 +44,40 @@ public class DeclineSwapRequestCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = requesterId,
+            FirstName = "Requester",
+            LastName = "R",
+            Email = "req@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = targetId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = targetId,
+            FirstName = "Target",
+            LastName = "T",
+            Email = "target@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = shiftId,
+            UserId = requesterId,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = SwapRequestStatus.Pending
+            Id = swapRequestId,
+            ShiftId = shiftId,
+            RequestingUserId = requesterId,
+            TargetUserId = targetId,
+            Status = SwapRequestStatus.Pending
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -91,24 +107,40 @@ public class DeclineSwapRequestCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = requesterId,
+            FirstName = "Requester",
+            LastName = "R",
+            Email = "req@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = targetId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = targetId,
+            FirstName = "Target",
+            LastName = "T",
+            Email = "target@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = shiftId,
+            UserId = requesterId,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = SwapRequestStatus.Accepted
+            Id = swapRequestId,
+            ShiftId = shiftId,
+            RequestingUserId = requesterId,
+            TargetUserId = targetId,
+            Status = SwapRequestStatus.Accepted
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -138,24 +170,40 @@ public class DeclineSwapRequestCommandHandlerTests
 
         context.Users.Add(new User
         {
-            Id = requesterId, FirstName = "Requester", LastName = "R",
-            Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = requesterId,
+            FirstName = "Requester",
+            LastName = "R",
+            Email = "req@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = targetId, FirstName = "Target", LastName = "T",
-            Email = "target@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = targetId,
+            FirstName = "Target",
+            LastName = "T",
+            Email = "target@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = shiftId, UserId = requesterId, IsUpForSwap = true, OrganizationId = OrgId,
+            Id = shiftId,
+            UserId = requesterId,
+            IsUpForSwap = true,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.SwapRequests.Add(new SwapRequest
         {
-            Id = swapRequestId, ShiftId = shiftId, RequestingUserId = requesterId,
-            TargetUserId = targetId, Status = SwapRequestStatus.Pending
+            Id = swapRequestId,
+            ShiftId = shiftId,
+            RequestingUserId = requesterId,
+            TargetUserId = targetId,
+            Status = SwapRequestStatus.Pending
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

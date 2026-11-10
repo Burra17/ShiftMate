@@ -39,10 +39,13 @@ public class ForgotPasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 
@@ -70,10 +73,13 @@ public class ForgotPasswordHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Test", LastName = "Testsson",
+            Id = userId,
+            FirstName = "Test",
+            LastName = "Testsson",
             Email = "test@test.com",
             PasswordHash = BCrypt.Net.BCrypt.HashPassword("password123"),
-            Role = Role.Employee, OrganizationId = OrgId
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         await context.SaveChangesAsync(CancellationToken.None);
 

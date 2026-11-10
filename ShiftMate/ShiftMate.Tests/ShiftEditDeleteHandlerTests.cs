@@ -100,21 +100,32 @@ namespace ShiftMate.Tests
             var userId = Guid.NewGuid();
             context.Users.Add(new User
             {
-                Id = userId, FirstName = "Test", LastName = "Testsson",
-                Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = userId,
+                FirstName = "Test",
+                LastName = "Testsson",
+                Email = "test@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
 
             context.Shifts.Add(new Shift
             {
-                Id = Guid.NewGuid(), UserId = userId, OrganizationId = OrgId,
-                StartTime = DateTime.UtcNow.AddHours(8), EndTime = DateTime.UtcNow.AddHours(16)
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                OrganizationId = OrgId,
+                StartTime = DateTime.UtcNow.AddHours(8),
+                EndTime = DateTime.UtcNow.AddHours(16)
             });
 
             var editShiftId = Guid.NewGuid();
             context.Shifts.Add(new Shift
             {
-                Id = editShiftId, UserId = userId, OrganizationId = OrgId,
-                StartTime = DateTime.UtcNow.AddHours(20), EndTime = DateTime.UtcNow.AddHours(22)
+                Id = editShiftId,
+                UserId = userId,
+                OrganizationId = OrgId,
+                StartTime = DateTime.UtcNow.AddHours(20),
+                EndTime = DateTime.UtcNow.AddHours(22)
             });
             await context.SaveChangesAsync(CancellationToken.None);
 
@@ -149,15 +160,23 @@ namespace ShiftMate.Tests
             var userId = Guid.NewGuid();
             context.Users.Add(new User
             {
-                Id = userId, FirstName = "Test", LastName = "Testsson",
-                Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = userId,
+                FirstName = "Test",
+                LastName = "Testsson",
+                Email = "test@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
 
             var shiftId = Guid.NewGuid();
             context.Shifts.Add(new Shift
             {
-                Id = shiftId, UserId = userId, OrganizationId = OrgId,
-                StartTime = DateTime.UtcNow.AddHours(8), EndTime = DateTime.UtcNow.AddHours(16)
+                Id = shiftId,
+                UserId = userId,
+                OrganizationId = OrgId,
+                StartTime = DateTime.UtcNow.AddHours(8),
+                EndTime = DateTime.UtcNow.AddHours(16)
             });
             await context.SaveChangesAsync(CancellationToken.None);
 
@@ -208,7 +227,8 @@ namespace ShiftMate.Tests
             var shiftId = Guid.NewGuid();
             context.Shifts.Add(new Shift
             {
-                Id = shiftId, OrganizationId = OrgId,
+                Id = shiftId,
+                OrganizationId = OrgId,
                 StartTime = DateTime.UtcNow.AddHours(8),
                 EndTime = DateTime.UtcNow.AddHours(16),
                 UserId = null
@@ -233,21 +253,32 @@ namespace ShiftMate.Tests
             var userId = Guid.NewGuid();
             context.Users.Add(new User
             {
-                Id = userId, FirstName = "Test", LastName = "Testsson",
-                Email = "test@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = userId,
+                FirstName = "Test",
+                LastName = "Testsson",
+                Email = "test@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
 
             var requestingUserId = Guid.NewGuid();
             context.Users.Add(new User
             {
-                Id = requestingUserId, FirstName = "Req", LastName = "Reqsson",
-                Email = "req@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+                Id = requestingUserId,
+                FirstName = "Req",
+                LastName = "Reqsson",
+                Email = "req@test.com",
+                PasswordHash = "hash",
+                Role = Role.Employee,
+                OrganizationId = OrgId
             });
 
             var shiftId = Guid.NewGuid();
             context.Shifts.Add(new Shift
             {
-                Id = shiftId, OrganizationId = OrgId,
+                Id = shiftId,
+                OrganizationId = OrgId,
                 StartTime = DateTime.UtcNow.AddHours(8),
                 EndTime = DateTime.UtcNow.AddHours(16),
                 UserId = userId,
@@ -256,7 +287,8 @@ namespace ShiftMate.Tests
 
             context.SwapRequests.Add(new SwapRequest
             {
-                Id = Guid.NewGuid(), ShiftId = shiftId,
+                Id = Guid.NewGuid(),
+                ShiftId = shiftId,
                 RequestingUserId = requestingUserId,
                 Status = SwapRequestStatus.Pending,
                 CreatedAt = DateTime.UtcNow

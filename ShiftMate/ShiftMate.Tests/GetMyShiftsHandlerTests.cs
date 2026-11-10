@@ -20,29 +20,48 @@ public class GetMyShiftsQueryHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = userId,
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Users.Add(new User
         {
-            Id = otherUserId, FirstName = "Erik", LastName = "Eriksson",
-            Email = "erik@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = otherUserId,
+            FirstName = "Erik",
+            LastName = "Eriksson",
+            Email = "erik@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = Guid.NewGuid(), UserId = userId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.Shifts.Add(new Shift
         {
-            Id = Guid.NewGuid(), UserId = otherUserId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = otherUserId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });
         context.Shifts.Add(new Shift
         {
-            Id = Guid.NewGuid(), UserId = null, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = null,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(2).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(2).Date.AddHours(16)
         });
@@ -66,18 +85,29 @@ public class GetMyShiftsQueryHandlerTests
 
         context.Users.Add(new User
         {
-            Id = userId, FirstName = "Anna", LastName = "Svensson",
-            Email = "anna@test.com", PasswordHash = "hash", Role = Role.Employee, OrganizationId = OrgId
+            Id = userId,
+            FirstName = "Anna",
+            LastName = "Svensson",
+            Email = "anna@test.com",
+            PasswordHash = "hash",
+            Role = Role.Employee,
+            OrganizationId = OrgId
         });
         context.Shifts.Add(new Shift
         {
-            Id = Guid.NewGuid(), UserId = userId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(3).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(3).Date.AddHours(16)
         });
         context.Shifts.Add(new Shift
         {
-            Id = Guid.NewGuid(), UserId = userId, IsUpForSwap = false, OrganizationId = OrgId,
+            Id = Guid.NewGuid(),
+            UserId = userId,
+            IsUpForSwap = false,
+            OrganizationId = OrgId,
             StartTime = DateTime.UtcNow.AddDays(1).Date.AddHours(8),
             EndTime = DateTime.UtcNow.AddDays(1).Date.AddHours(16)
         });

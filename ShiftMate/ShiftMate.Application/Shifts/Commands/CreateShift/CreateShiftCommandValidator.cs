@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace ShiftMate.Application.Shifts.Commands.CreateShift;
 
