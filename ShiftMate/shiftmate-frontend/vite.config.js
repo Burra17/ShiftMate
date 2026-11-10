@@ -10,4 +10,9 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
   },
+  test: {
+    environment: 'jsdom',
+    // globals behövs för att Testing Library ska städa bort renderade komponenter mellan testerna
+    globals: true,
+  },
 });
