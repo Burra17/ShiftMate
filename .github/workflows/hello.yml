@@ -1,5 +1,5 @@
 name: Hello CI
-on: [pull request]
+on: [pull_request]
 jobs: 
    hello:
       runs-on: ubuntu-latest
@@ -8,5 +8,5 @@ jobs:
          - name: Säg hej
            env: 
              BRANCH: ${{ github.head_ref }}
-             run: echo "Hej från Github!" Jag kör på branchen $BRANCH"
-           - run: ls -la
+             run: echo "Hej från Github! Jag kör på branchen $BRANCH"
+         - run: ls -la
