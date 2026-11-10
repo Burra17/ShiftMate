@@ -8,5 +8,5 @@ jobs:
          - name: Säg hej
            env: 
              BRANCH: ${{ github.head_ref }}
-             run: echo "Hej från Github! Jag kör på branchen $BRANCH"
+           run: echo "Hej från Github! Jag kör på branchen $BRANCH"
          - run: ls -la
