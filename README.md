@@ -155,6 +155,16 @@ dotnet test
 
 Kör både enhetstester (handlers med InMemory-databas) och integrationstester i `Integration/`, som startar hela API:et i minnet via `WebApplicationFactory` och testar riktiga HTTP-anrop (autentisering, roller, felmappning, organisationsfiltrering). Ingen databas eller nyckel behövs.
 
+Frontendtesterna (Vitest) körs i `shiftmate-frontend/`:
+
+```bash
+npm test
+```
+
+### 9. Bidra med kod
+
+Läs [CONTRIBUTING.md](CONTRIBUTING.md) innan du gör din första ändring – där står hur grenar, Pull Requests och CI fungerar, och hur du fixar en röd kontroll lokalt (`dotnet format`, `npm run format`, `npm run lint`).
+
 ### Skapa en ny migrering
 
 Behövs bara när du ändrar datamodellen. Kräver verktyget `dotnet-ef`:
@@ -167,8 +177,13 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 ## Projektets filstruktur
 
 ```
+├── .editorconfig                          # Gemensamma formateringsregler (dotnet format + Prettier)
+├── .github/
+│   ├── workflows/ci.yml                   # CI: backend, frontend och gate-jobbet "CI OK"
+│   └── pull_request_template.md           # Mall som fyller i varje ny PR
 ├── AUDIT.md                               # Kodgranskning med prioriterade förbättringar
 ├── CLAUDE.md                              # Arkitekturdokumentation (Source of Truth)
+├── CONTRIBUTING.md                        # Arbetsflöde, CI och hur man fixar röda kontroller
 ├── PROJEKTBESKRIVNING.md                  # Projektbeskrivning
 ├── README.md                              # Denna fil
 │
@@ -206,6 +221,8 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
     ├── ShiftMate.Tests/                   # Enhets- och integrationstester (209 tester)
     │
     └── shiftmate-frontend/                # React-applikation
+        ├── .nvmrc                         # Node-version (används även av CI)
+        ├── .prettierrc                    # Prettier-regler
         ├── src/
         │   ├── App.jsx
         │   ├── api.js
@@ -217,11 +234,14 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
         │   ├── AdminPanel.jsx
         │   └── components/
         │       ├── AuthLayout.jsx
+        │       ├── EmptyState.jsx
+        │       ├── EmptyState.test.jsx    # Frontendtester ligger bredvid komponenten
         │       └── ManagerPanel.jsx
         └── README.md
 ```
 
 ## Mer information
 
+- **Arbetsflöde och CI:** Se [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Arkitekturdokumentation:** Se [CLAUDE.md](CLAUDE.md) för detaljerade kodregler, mönster och konventioner.
 - **Frontend-specifik information:** Se [shiftmate-frontend/README.md](ShiftMate/shiftmate-frontend/README.md).

@@ -9,6 +9,8 @@ React-klienten för ShiftMate - en applikation för skiftplanering och hantering
 - **Tailwind CSS 4** - Utility-first CSS med Neon Dark-tema (`bg-slate-950`, `text-blue-400`)
 - **Axios** - HTTP-klient med JWT-interceptor för automatisk autentisering
 - **React Router v7** - Klientbaserad routing
+- **Vitest + Testing Library + jsdom** - Komponenttester
+- **ESLint + Prettier** - Lint och formatering (kontrolleras i CI)
 
 ## Komma igång
 
@@ -21,6 +23,23 @@ npm ci        # installera exakt de versioner som står i package-lock.json
 npm run dev   # http://localhost:5173 (porten är låst – se root-README)
 npm run build # bygg för produktion
 ```
+
+## Scripts
+
+| Script                 | Gör                                             | Körs i CI |
+| ---------------------- | ----------------------------------------------- | --------- |
+| `npm run dev`          | Startar utvecklingsservern på port 5173         | –         |
+| `npm run lint`         | ESLint – fel stoppar CI, varningar gör det inte | ✅        |
+| `npm run format`       | Formaterar alla filer med Prettier              | –         |
+| `npm run format:check` | Kontrollerar formateringen utan att ändra något | ✅        |
+| `npm test`             | Kör testerna en gång (`vitest run`)             | ✅        |
+| `npm run build`        | Bygger för produktion till `dist/`              | ✅        |
+
+Blir CI rött på formateringen: kör `npm run format` och committa. Mer om arbetsflödet i [CONTRIBUTING.md](../../CONTRIBUTING.md).
+
+## Tester
+
+Testfilen ligger bredvid komponenten och heter `X.test.jsx` – Vitest hittar bara filer med `.test.` eller `.spec.` i namnet. Exempel: `src/components/EmptyState.test.jsx`.
 
 ## Miljövariabler
 
@@ -87,13 +106,16 @@ const MyComponent = () => {
 shiftmate-frontend/
 ├── .env.development          # API-URL för utveckling
 ├── .env.production           # API-URL för produktion
+├── .nvmrc                    # Node-version (22) – används även av CI
+├── .prettierrc               # Prettier-regler (singleQuote, endOfLine: auto)
+├── .prettierignore           # dist och package-lock.json
 ├── eslint.config.js          # ESLint-regler
 ├── index.html                # HTML-ingång
 ├── package.json              # Beroenden och skript
 ├── postcss.config.js         # PostCSS-konfiguration
 ├── tailwind.config.js        # Tailwind CSS-anpassning
 ├── vercel.json               # Vercel-driftsättning
-├── vite.config.js            # Vite-konfiguration
+├── vite.config.js            # Vite-konfiguration (port 5173 + Vitest med jsdom)
 ├── public/
 │   └── vite.svg
 └── src/
@@ -116,6 +138,8 @@ shiftmate-frontend/
     │   └── ToastContext.jsx   # ToastProvider, useToast, useConfirm hooks
     └── components/
         ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
+        ├── EmptyState.jsx    # Tom lista-placeholder
+        ├── EmptyState.test.jsx # Komponenttest (Vitest)
         ├── ManagerPanel.jsx  # Manager-panel (flik-shell, delegerar till manager/)
         ├── manager/
         │   ├── ShiftForm.jsx     # Skapa nytt pass (datum, tid, snabbval, personal)
