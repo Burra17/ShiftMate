@@ -180,7 +180,8 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 ├── .editorconfig                          # Gemensamma formateringsregler (dotnet format + Prettier)
 ├── .github/
 │   ├── workflows/ci.yml                   # CI: backend, frontend och gate-jobbet "CI OK"
-│   └── pull_request_template.md           # Mall som fyller i varje ny PR
+│   ├── pull_request_template.md           # Mall som fyller i varje ny PR
+│   └── dependabot.yml                     # Veckovisa PR:er för beroendeuppdateringar
 ├── AUDIT.md                               # Kodgranskning med prioriterade förbättringar
 ├── CLAUDE.md                              # Arkitekturdokumentation (Source of Truth)
 ├── CONTRIBUTING.md                        # Arbetsflöde, CI och hur man fixar röda kontroller

@@ -1,0 +1,66 @@
+# Dependabot håller beroendena uppdaterade med en PR i veckan per ekosystem.
+# Akuta säkerhetsfixar kommer separat via "Dependabot security updates" (Settings → Advanced Security).
+# Alla PR:er går genom CI och kräver grön "CI OK" precis som vanliga PR:er.
+version: 2
+
+updates:
+  # Frontend – npm
+  - package-ecosystem: npm
+    directory: /ShiftMate/shiftmate-frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Stockholm
+    # minor + patch samlas i en PR (ska enligt semver inte bryta något);
+    # major-versioner får egna PR:er så att de kan granskas och testas för sig
+    groups:
+      npm-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: "chore(deps)"
+    labels: [dependencies]
+
+  # Backend – NuGet
+  - package-ecosystem: nuget
+    directory: /ShiftMate
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Stockholm
+    groups:
+      nuget-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Paket vars major-version följer .NET-versionen – t.ex. EF Core 10 kräver .NET 10.
+      # Byte av .NET-version är ett medvetet beslut och en egen issue, inte en beroendeuppdatering.
+      - dependency-name: "Microsoft.AspNetCore.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.EntityFrameworkCore*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Npgsql.EntityFrameworkCore.PostgreSQL"
+        update-types: ["version-update:semver-major"]
+      # MediatR 13+ kräver en kommersiell licensnyckel – uppgradering är ett licensbeslut
+      - dependency-name: "MediatR"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore(deps)"
+    labels: [dependencies]
+
+  # GitHub Actions – håller t.ex. actions/checkout och den SHA-låsta dorny/paths-filter uppdaterade
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Stockholm
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]
+    commit-message:
+      prefix: "chore(deps)"
+    labels: [dependencies]
