@@ -1,4 +1,5 @@
 using FluentAssertions;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Organizations.Queries.GetOrganizationInviteCode;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Tests.Support;
@@ -39,7 +40,7 @@ public class GetOrganizationInviteCodeQueryHandlerTests
         var handler = new GetOrganizationInviteCodeQueryHandler(context);
 
         await FluentActions.Invoking(() => handler.Handle(new GetOrganizationInviteCodeQuery(Guid.NewGuid()), CancellationToken.None))
-            .Should().ThrowAsync<InvalidOperationException>()
+            .Should().ThrowAsync<NotFoundException>()
             .WithMessage("*hittades inte*");
 
         TestDbContextFactory.Destroy(context);

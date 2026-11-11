@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;
 
@@ -35,11 +36,11 @@ public class UpdateUserRoleCommandHandler : IRequestHandler<UpdateUserRoleComman
 
         var user = await _context.Users.FindAsync(new object[] { request.TargetUserId }, cancellationToken);
         if (user == null)
-            throw new InvalidOperationException("Användaren hittades inte.");
+            throw new NotFoundException("Användaren hittades inte.");
 
         // Validera att användaren tillhör samma organisation
         if (user.OrganizationId != request.OrganizationId)
-            throw new InvalidOperationException("Användaren tillhör inte din organisation.");
+            throw new ForbiddenException("Användaren tillhör inte din organisation.");
 
         user.Role = newRole;
         await _context.SaveChangesAsync(cancellationToken);

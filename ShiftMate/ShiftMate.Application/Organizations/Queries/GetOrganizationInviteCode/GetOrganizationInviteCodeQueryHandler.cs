@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Organizations.Queries.GetOrganizationInviteCode;
@@ -22,7 +23,7 @@ public class GetOrganizationInviteCodeQueryHandler : IRequestHandler<GetOrganiza
 
         if (organization == null)
         {
-            throw new InvalidOperationException("Organisationen hittades inte.");
+            throw new NotFoundException("Organisationen hittades inte.");
         }
 
         return new InviteCodeResult(organization.InviteCode, organization.Name, organization.InviteCodeGeneratedAt);

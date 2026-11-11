@@ -2,6 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Shifts.Commands.DeleteShift;
 using ShiftMate.Application.Shifts.Commands.UpdateShift;
 using ShiftMate.Domain.Entities;
@@ -40,7 +41,7 @@ namespace ShiftMate.Tests
             };
 
             await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
-                .Should().ThrowAsync<InvalidOperationException>()
+                .Should().ThrowAsync<NotFoundException>()
                 .WithMessage("Passet hittades inte.");
 
             TestDbContextFactory.Destroy(context);
@@ -212,7 +213,7 @@ namespace ShiftMate.Tests
             var handler = new DeleteShiftCommandHandler(context);
 
             await FluentActions.Invoking(() => handler.Handle(new DeleteShiftCommand(Guid.NewGuid(), OrgId), CancellationToken.None))
-                .Should().ThrowAsync<InvalidOperationException>()
+                .Should().ThrowAsync<NotFoundException>()
                 .WithMessage("Passet hittades inte.");
 
             TestDbContextFactory.Destroy(context);

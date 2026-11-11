@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.Extensions.Logging;
 using Moq;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Application.Shifts.Commands.CreateShift;
 using ShiftMate.Domain.Entities;
@@ -115,7 +116,7 @@ namespace ShiftMate.Tests
             };
 
             await FluentActions.Invoking(() => handler.Handle(command, CancellationToken.None))
-                .Should().ThrowAsync<InvalidOperationException>()
+                .Should().ThrowAsync<NotFoundException>()
                 .WithMessage("Användaren hittades inte.");
 
             TestDbContextFactory.Destroy(context);

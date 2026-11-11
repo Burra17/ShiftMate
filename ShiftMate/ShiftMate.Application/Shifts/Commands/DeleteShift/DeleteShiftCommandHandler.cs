@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;
 
@@ -23,13 +24,13 @@ public class DeleteShiftCommandHandler : IRequestHandler<DeleteShiftCommand, boo
 
         if (shift == null)
         {
-            throw new InvalidOperationException("Passet hittades inte.");
+            throw new NotFoundException("Passet hittades inte.");
         }
 
         // Validera att passet tillhör samma organisation
         if (shift.OrganizationId != request.OrganizationId)
         {
-            throw new InvalidOperationException("Passet tillhör inte din organisation.");
+            throw new ForbiddenException("Passet tillhör inte din organisation.");
         }
 
         foreach (var swapRequest in shift.SwapRequests.ToList())

@@ -46,6 +46,40 @@ public class ShiftsEndpointsTests : IClassFixture<ShiftMateApiFactory>
     }
 
     [Fact]
+    public async Task DeleteShift_Should_Return_404_When_Shift_Does_Not_Exist()
+    {
+        // Arrange
+        var manager = await _factory.CreateUserAsync(Role.Manager);
+        var client = _factory.CreateAuthenticatedClient(manager);
+
+        // Act
+        var response = await client.DeleteAsync($"/api/shifts/{Guid.NewGuid()}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("message").GetString().Should().Be("Passet hittades inte.");
+    }
+
+    [Fact]
+    public async Task DeleteShift_Should_Return_403_When_Shift_Belongs_To_Another_Organization()
+    {
+        // Arrange
+        var managerInOrgA = await _factory.CreateUserAsync(Role.Manager);
+        var employeeInOrgB = await _factory.CreateUserAsync(Role.Employee);
+        var shiftInOrgB = await _factory.CreateShiftAsync(employeeInOrgB.OrganizationId!.Value);
+        var client = _factory.CreateAuthenticatedClient(managerInOrgA);
+
+        // Act
+        var response = await client.DeleteAsync($"/api/shifts/{shiftInOrgB.Id}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        body.GetProperty("message").GetString().Should().Be("Passet tillhör inte din organisation.");
+    }
+
+    [Fact]
     public async Task AdminCreateShift_Should_Return_400_With_Details_When_EndTime_Is_Before_StartTime()
     {
         // Arrange

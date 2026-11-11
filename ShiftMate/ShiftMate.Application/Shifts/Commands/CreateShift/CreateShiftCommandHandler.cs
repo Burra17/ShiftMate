@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Entities;
 
@@ -48,13 +49,13 @@ public class CreateShiftCommandHandler : IRequestHandler<CreateShiftCommand, Gui
 
             if (assignedUser == null)
             {
-                throw new InvalidOperationException("Användaren hittades inte.");
+                throw new NotFoundException("Användaren hittades inte.");
             }
 
             // Validera att användaren tillhör samma organisation
             if (assignedUser.OrganizationId != request.OrganizationId)
             {
-                throw new InvalidOperationException("Användaren tillhör inte samma organisation.");
+                throw new ForbiddenException("Användaren tillhör inte samma organisation.");
             }
 
             var hasOverlap = await _context.Shifts.AnyAsync(s =>

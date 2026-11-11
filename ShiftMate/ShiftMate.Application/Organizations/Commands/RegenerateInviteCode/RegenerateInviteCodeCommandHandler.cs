@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Organizations.Commands.RegenerateInviteCode;
@@ -21,7 +22,7 @@ public class RegenerateInviteCodeCommandHandler : IRequestHandler<RegenerateInvi
 
         if (organization == null)
         {
-            throw new InvalidOperationException("Organisationen hittades inte.");
+            throw new NotFoundException("Organisationen hittades inte.");
         }
 
         organization.InviteCode = InviteCodeGenerator.GenerateInviteCode();
