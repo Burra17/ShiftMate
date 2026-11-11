@@ -24,11 +24,11 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_CurrentPassword_Is_Empty(string currentPassword)
+        public void Should_Have_Error_When_CurrentPassword_Is_Empty(string? currentPassword)
         {
             var command = new ChangePasswordCommand
             {
-                CurrentPassword = currentPassword,
+                CurrentPassword = currentPassword!,
                 NewPassword = "newpassword123"
             };
 
@@ -41,12 +41,12 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_NewPassword_Is_Empty(string newPassword)
+        public void Should_Have_Error_When_NewPassword_Is_Empty(string? newPassword)
         {
             var command = new ChangePasswordCommand
             {
                 CurrentPassword = "oldpassword",
-                NewPassword = newPassword
+                NewPassword = newPassword!
             };
 
             var result = _validator.TestValidate(command);
