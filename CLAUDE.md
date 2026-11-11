@@ -62,6 +62,7 @@ These principles guide every decision in this project:
 - **Branch protection:** ruleset on `main` — PR required, **`CI OK`** is the only required check, force push and deletion blocked. Never require the backend/frontend jobs directly: a skipped path would leave the check missing and block the PR forever.
 - **Formatting:** `.editorconfig` in repo root (read by `dotnet format` and Prettier). `end_of_line` is deliberately omitted (Windows CRLF checkout would fail locally).
 - **PR template:** `.github/pull_request_template.md` — fill it in, use `Fixes #N` (English keyword).
+- **Dependabot:** `.github/dependabot.yml` — weekly (Monday) PRs for npm, NuGet and GitHub Actions; minor+patch grouped per ecosystem, majors separate. Major updates ignored for packages tied to the .NET version (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`) and `MediatR` (13+ is commercially licensed). Commit prefix `chore(deps)`, label `dependencies`.
 - **Contributor guide:** `CONTRIBUTING.md` — workflow, CI and how to fix red checks locally.
 
 ### Deployment
@@ -236,6 +237,7 @@ if (userId == null) return Unauthorized();
 .editorconfig                                    # Shared formatting rules (dotnet format + Prettier)
 .github/workflows/ci.yml                         # CI: changes → backend / frontend → ci-ok ("CI OK")
 .github/pull_request_template.md                 # PR template
+.github/dependabot.yml                           # Weekly dependency update PRs
 AUDIT.md                                         # Code review baseline + follow-up
 CONTRIBUTING.md                                  # Workflow, CI, fixing red checks
 ```

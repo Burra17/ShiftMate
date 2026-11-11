@@ -67,6 +67,15 @@ npm test
 npm run build
 ```
 
+## Beroenden (Dependabot)
+
+[`.github/dependabot.yml`](.github/dependabot.yml) skapar PR:er varje måndag för npm, NuGet och GitHub Actions. Akuta säkerhetsfixar kommer direkt via *Dependabot security updates*.
+
+- **minor + patch** samlas i en PR per ekosystem – granska att CI är grönt och merga
+- **major-versioner** kommer som egna PR:er – läs ändringsloggen och testa manuellt innan merge
+- Major-uppdateringar ignoreras för paket som följer .NET-versionen (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`) och för `MediatR` (13+ kräver licensnyckel). Att byta .NET-version är en egen issue.
+- PR:erna har prefixet `chore(deps)` och etiketten `dependencies`
+
 ## Kodstil och formatering
 
 - **`.editorconfig`** (repots rot) – gemensamma regler för indentering och whitespace. `dotnet format` och Prettier läser den. `end_of_line` är medvetet utelämnad: på Windows med `core.autocrlf=true` checkas filerna ut med CRLF, och regeln hade gjort formateringskontrollen röd lokalt.
