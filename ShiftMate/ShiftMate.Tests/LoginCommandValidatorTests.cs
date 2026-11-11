@@ -24,11 +24,11 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Email_Is_Empty(string email)
+        public void Should_Have_Error_When_Email_Is_Empty(string? email)
         {
             var command = new LoginCommand
             {
-                Email = email,
+                Email = email!,
                 Password = "password123"
             };
 
@@ -56,12 +56,12 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Password_Is_Empty(string password)
+        public void Should_Have_Error_When_Password_Is_Empty(string? password)
         {
             var command = new LoginCommand
             {
                 Email = "user@test.com",
-                Password = password
+                Password = password!
             };
 
             var result = _validator.TestValidate(command);

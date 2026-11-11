@@ -21,10 +21,10 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_FirstName_Is_Empty(string firstName)
+        public void Should_Have_Error_When_FirstName_Is_Empty(string? firstName)
         {
             var command = new RegisterUserCommand(
-                firstName, "Svensson", "anna@test.com", "password123", "ABC12345");
+                firstName!, "Svensson", "anna@test.com", "password123", "ABC12345");
 
             var result = _validator.TestValidate(command);
 
@@ -35,10 +35,10 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_LastName_Is_Empty(string lastName)
+        public void Should_Have_Error_When_LastName_Is_Empty(string? lastName)
         {
             var command = new RegisterUserCommand(
-                "Anna", lastName, "anna@test.com", "password123", "ABC12345");
+                "Anna", lastName!, "anna@test.com", "password123", "ABC12345");
 
             var result = _validator.TestValidate(command);
 
@@ -49,10 +49,10 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Email_Is_Empty(string email)
+        public void Should_Have_Error_When_Email_Is_Empty(string? email)
         {
             var command = new RegisterUserCommand(
-                "Anna", "Svensson", email, "password123", "ABC12345");
+                "Anna", "Svensson", email!, "password123", "ABC12345");
 
             var result = _validator.TestValidate(command);
 
@@ -75,10 +75,10 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Password_Is_Empty(string password)
+        public void Should_Have_Error_When_Password_Is_Empty(string? password)
         {
             var command = new RegisterUserCommand(
-                "Anna", "Svensson", "anna@test.com", password, "ABC12345");
+                "Anna", "Svensson", "anna@test.com", password!, "ABC12345");
 
             var result = _validator.TestValidate(command);
 
@@ -101,10 +101,10 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_InviteCode_Is_Empty(string inviteCode)
+        public void Should_Have_Error_When_InviteCode_Is_Empty(string? inviteCode)
         {
             var command = new RegisterUserCommand(
-                "Anna", "Svensson", "anna@test.com", "password123", inviteCode);
+                "Anna", "Svensson", "anna@test.com", "password123", inviteCode!);
 
             var result = _validator.TestValidate(command);
 

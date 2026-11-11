@@ -25,11 +25,11 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Token_Is_Empty(string token)
+        public void Should_Have_Error_When_Token_Is_Empty(string? token)
         {
             var command = new ResetPasswordCommand
             {
-                Token = token,
+                Token = token!,
                 Email = "user@test.com",
                 NewPassword = "newpassword123"
             };
@@ -43,12 +43,12 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Email_Is_Empty(string email)
+        public void Should_Have_Error_When_Email_Is_Empty(string? email)
         {
             var command = new ResetPasswordCommand
             {
                 Token = "valid-token",
-                Email = email,
+                Email = email!,
                 NewPassword = "newpassword123"
             };
 
@@ -77,13 +77,13 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_NewPassword_Is_Empty(string password)
+        public void Should_Have_Error_When_NewPassword_Is_Empty(string? password)
         {
             var command = new ResetPasswordCommand
             {
                 Token = "valid-token",
                 Email = "user@test.com",
-                NewPassword = password
+                NewPassword = password!
             };
 
             var result = _validator.TestValidate(command);
