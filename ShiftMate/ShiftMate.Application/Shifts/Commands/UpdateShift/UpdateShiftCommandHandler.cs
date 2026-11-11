@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 
 namespace ShiftMate.Application.Shifts.Commands.UpdateShift;
@@ -35,13 +36,13 @@ public class UpdateShiftCommandHandler : IRequestHandler<UpdateShiftCommand, boo
 
         if (shift == null)
         {
-            throw new InvalidOperationException("Passet hittades inte.");
+            throw new NotFoundException("Passet hittades inte.");
         }
 
         // Validera att passet tillhör samma organisation
         if (shift.OrganizationId != request.OrganizationId)
         {
-            throw new InvalidOperationException("Passet tillhör inte din organisation.");
+            throw new ForbiddenException("Passet tillhör inte din organisation.");
         }
 
         // 3. KROCK-KONTROLL (om passet tilldelas en användare)
@@ -52,13 +53,13 @@ public class UpdateShiftCommandHandler : IRequestHandler<UpdateShiftCommand, boo
 
             if (user == null)
             {
-                throw new InvalidOperationException("Användaren hittades inte.");
+                throw new NotFoundException("Användaren hittades inte.");
             }
 
             // Validera att användaren tillhör samma organisation
             if (user.OrganizationId != request.OrganizationId)
             {
-                throw new InvalidOperationException("Användaren tillhör inte samma organisation.");
+                throw new ForbiddenException("Användaren tillhör inte samma organisation.");
             }
 
             var hasOverlap = await _context.Shifts.AnyAsync(s =>

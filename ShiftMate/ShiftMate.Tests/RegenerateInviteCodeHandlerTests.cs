@@ -1,4 +1,5 @@
 using FluentAssertions;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Organizations.Commands.RegenerateInviteCode;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Tests.Support;
@@ -42,7 +43,7 @@ public class RegenerateInviteCodeCommandHandlerTests
         var handler = new RegenerateInviteCodeCommandHandler(context);
 
         await FluentActions.Invoking(() => handler.Handle(new RegenerateInviteCodeCommand(Guid.NewGuid()), CancellationToken.None))
-            .Should().ThrowAsync<InvalidOperationException>()
+            .Should().ThrowAsync<NotFoundException>()
             .WithMessage("*hittades inte*");
 
         TestDbContextFactory.Destroy(context);

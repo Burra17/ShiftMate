@@ -2,6 +2,7 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Moq;
+using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Users.Commands.DeleteUser;
 using ShiftMate.Application.Users.Commands.UpdateUserRole;
 using ShiftMate.Domain.Entities;
@@ -141,7 +142,7 @@ public class UserManagementHandlerTests
             new DeleteUserCommand { TargetUserId = nonExistentId, RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should().ThrowAsync<NotFoundException>()
             .WithMessage("*hittades inte*");
 
         TestDbContextFactory.Destroy(context);
@@ -167,7 +168,7 @@ public class UserManagementHandlerTests
             new DeleteUserCommand { TargetUserId = targetId, RequestingUserId = managerId, OrganizationId = OrgId },
             CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        await act.Should().ThrowAsync<ForbiddenException>()
             .WithMessage("*tillhör inte*");
 
         TestDbContextFactory.Destroy(context);

@@ -203,7 +203,7 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
     │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
     │   └── Extensions/                    # ClaimsPrincipalExtensions
     │
-    ├── ShiftMate.Tests/                   # Enhets- och integrationstester (207 tester)
+    ├── ShiftMate.Tests/                   # Enhets- och integrationstester (209 tester)
     │
     └── shiftmate-frontend/                # React-applikation
         ├── src/
