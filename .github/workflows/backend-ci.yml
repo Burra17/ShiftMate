@@ -2,11 +2,23 @@ name: Backend CI
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "ShiftMate/**"
+      - "!ShiftMate/shiftmate-frontend/**"
+      - ".github/workflows/backend-ci.yml"
   push:
     branches: [main]
+    paths:
+      - "ShiftMate/**"
+      - "!ShiftMate/shiftmate-frontend/**"
+      - ".github/workflows/backend-ci.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
