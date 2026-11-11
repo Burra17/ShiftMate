@@ -50,6 +50,19 @@ These principles guide every decision in this project:
 - **State/Network:** Axios with JWT interceptor, React Hooks (`useState`, `useEffect`)
 - **Routing:** React Router v7
 - **Notifications:** Toast system via `ToastContext` (success, error, info, warning)
+- **Testing:** Vitest + Testing Library + jsdom (`npm test` = `vitest run`)
+- **Lint/Format:** ESLint + Prettier (`.prettierrc`: `singleQuote: true`, `endOfLine: "auto"`)
+
+### CI & Code Quality
+
+- **CI:** GitHub Actions — single workflow `.github/workflows/ci.yml` on PRs and pushes to `main`
+  - `changes` (dorny/paths-filter, pinned to commit SHA) → `backend` / `frontend` (skipped via `if:` when their part is unchanged) → `ci-ok` ("CI OK", `if: always()`, fails if any job failed or was cancelled)
+  - Backend job: `dotnet restore` → `dotnet format --verify-no-changes` → build → test
+  - Frontend job: `npm ci` → lint → `format:check` → test → build (Node version from `.nvmrc`)
+- **Branch protection:** ruleset on `main` — PR required, **`CI OK`** is the only required check, force push and deletion blocked. Never require the backend/frontend jobs directly: a skipped path would leave the check missing and block the PR forever.
+- **Formatting:** `.editorconfig` in repo root (read by `dotnet format` and Prettier). `end_of_line` is deliberately omitted (Windows CRLF checkout would fail locally).
+- **PR template:** `.github/pull_request_template.md` — fill it in, use `Fixes #N` (English keyword).
+- **Contributor guide:** `CONTRIBUTING.md` — workflow, CI and how to fix red checks locally.
 
 ### Deployment
 
@@ -144,6 +157,9 @@ if (userId == null) return Unauthorized();
 7. Use `Promise.all()` when loading multiple independent data sources in `useEffect`.
 8. Loading states: global `loading` for initial data fetch, `actionLoading` (with ID) for per-item button actions.
 9. Role checks via `getUserRole()` from `api.js` — conditionally render Manager-only UI.
+10. **ESLint errors fail CI, warnings do not.** Six `react-hooks/exhaustive-deps` warnings remain deliberately — adding effect dependencies can change behavior and needs manual testing per component. Don't "fix" them as a side effect of unrelated work.
+11. `contexts/ToastContext.jsx` has `eslint-disable-next-line react-refresh/only-export-components` on `useToast`/`useConfirm` — hooks live next to the provider on purpose (standard context pattern); the rule only affects dev hot reload.
+12. Don't call `setState` synchronously inside `useEffect` to derive state from props (`react-hooks/set-state-in-effect`). Set initial state directly, or compare with the previous prop during render (see `DatePicker.jsx`, `TimePicker.jsx`).
 
 ### Frontend State Management
 
@@ -193,6 +209,8 @@ if (userId == null) return Unauthorized();
 | Test method | `[Method]_Should_[Behavior]_When_[Condition]` | `Handle_Should_Throw_When_User_Not_Found` |
 | Structure | Arrange → Act → Assert (AAA) | Always follow this order |
 | Tools | xUnit `[Fact]`, FluentAssertions, Moq | `result.Should().NotBeEmpty()` |
+| Frontend test file | `[Component].test.jsx` next to the component (Vitest only finds `.test.`/`.spec.`) | `components/EmptyState.test.jsx` |
+| Frontend tools | Vitest (`describe`/`it`/`expect`), Testing Library (`render`, `screen`), jsdom | `screen.getByText('...')` |
 
 ---
 
@@ -202,14 +220,25 @@ if (userId == null) return Unauthorized();
 
 - **Main branch:** `main` (production-ready code)
 - **Every change MUST be developed in a new branch** before merging to main.
-- **Branch naming:** `feature/<name>`, `fix/<name>`, `refactor/<name>`
+- **Branch naming:** `feature/<name>`, `fix/<name>`, `refactor/<name>` (CI changes: `ci/<name>`)
 - **Examples:** `feature/password-reset`, `fix/swap-validation`, `refactor/shift-components`
-- Always create a PR to merge back into `main`.
-- Keep commits focused and descriptive, in **English**.
+- Always create a PR to merge back into `main` — direct pushes are blocked by the ruleset.
+- Keep commits focused and descriptive, in **English**, using Conventional Commits (`feat:`, `fix:`, `test:`, `docs:`, `style:`, `ci:`, `chore:`). Subject line under 72 characters (GitHub truncates longer PR titles).
+- Commit formatting-only changes separately (`style: ...`) so reviewers can skip them.
 
 ---
 
 ## PROJECT STRUCTURE
+
+### Repo root
+
+```
+.editorconfig                                    # Shared formatting rules (dotnet format + Prettier)
+.github/workflows/ci.yml                         # CI: changes → backend / frontend → ci-ok ("CI OK")
+.github/pull_request_template.md                 # PR template
+AUDIT.md                                         # Code review baseline + follow-up
+CONTRIBUTING.md                                  # Workflow, CI, fixing red checks
+```
 
 ### Backend
 
@@ -399,10 +428,13 @@ Follow these steps **in order** for every implementation task:
 2. **Create a new branch** — `feature/`, `fix/`, or `refactor/` before making any changes.
 3. **Analyze relevant files** — Read existing code to understand patterns. Check that the feature doesn't already exist. Don't duplicate logic (DRY).
 4. **Implement** — Write code following the rules above. Match existing patterns exactly. Keep it simple (KISS). Don't add what's not needed (YAGNI).
-5. **Build & test** — Run `dotnet build`, `dotnet test`, and frontend `npm run build`. All must pass.
+5. **Build & test** — Run the same checks as CI. All must pass.
+   - Backend (in `ShiftMate/`): `dotnet format --verify-no-changes`, `dotnet build`, `dotnet test`
+   - Frontend (in `ShiftMate/shiftmate-frontend/`): `npm run lint`, `npm run format:check`, `npm test`, `npm run build`
+   - If formatting fails, run `dotnet format` / `npm run format` and commit that separately.
 6. **Let the user test** — Wait for the user to verify in the browser. Fix issues if needed.
-7. **Update ALL documentation** — Before committing, always review and update: CLAUDE.md (new endpoints, structure, patterns), README.md (test counts, features, file structure), and frontend README.md if frontend changes were made. Every `.md` file that references changed areas must be updated.
+7. **Update ALL documentation** — Before committing, always review and update: CLAUDE.md (new endpoints, structure, patterns), README.md (test counts, features, file structure), CONTRIBUTING.md (workflow/CI changes), and frontend README.md if frontend changes were made. Every `.md` file that references changed areas must be updated.
 8. **Commit & push** — Descriptive commit message in English. Push branch to GitHub.
-9. **Create PR** — Use the commit message as title.
+9. **Create PR** — Use the commit message as title. Fill in the PR template (what/why, `Fixes #N`, trade-offs, how it was tested, checklist). Wait for **CI OK** to be green.
 10. **Merge to main** — Only after user approval.
 11. **Clean up** — Checkout main, pull latest, delete branch locally and on GitHub.

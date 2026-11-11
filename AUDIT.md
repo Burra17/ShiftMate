@@ -76,3 +76,51 @@ Prioriterade efter vad som stoppar en ny kollega eller skapar risk, i den ordnin
 - **Frontendtester:** Vitest + React Testing Library för de viktigaste komponenterna.
 - **Död kod:** `SmtpEmailService` och `EmailSettings` används inte längre (ersatta av Resend).
 - **Upprepade kontroller:** `if (userId == null) return Unauthorized();` i nästan varje controller-action.
+
+---
+
+## Uppföljning vecka 1
+
+Poängen ovan är **startpunkten** och lämnas orörda. Här är vad som hänt sedan granskningen.
+
+### De fem prioriterade förbättringarna
+
+| # | Förbättring | Issue | PR | Status |
+|---|---|---|---|---|
+| 1 | Säkerhet: seed-data bara i dev, ingen privat data | [#99](https://github.com/Burra17/ShiftMate/issues/99) | [#105](https://github.com/Burra17/ShiftMate/pull/105) | ✅ Klar |
+| 2 | Onboarding: README från tom klon, låst Node-version | [#100](https://github.com/Burra17/ShiftMate/issues/100) | [#106](https://github.com/Burra17/ShiftMate/pull/106) | ✅ Klar |
+| 3 | Formatering: `.editorconfig`, `dotnet format`, Prettier | [#101](https://github.com/Burra17/ShiftMate/issues/101) | [#111](https://github.com/Burra17/ShiftMate/pull/111), [#112](https://github.com/Burra17/ShiftMate/pull/112) | ✅ Klar |
+| 4 | CI: ESLint-fel åtgärdade, lint/format i CI | [#102](https://github.com/Burra17/ShiftMate/issues/102) | [#112](https://github.com/Burra17/ShiftMate/pull/112) | ✅ Klar |
+| 5 | Tester: integrationstester för API-lagret | [#103](https://github.com/Burra17/ShiftMate/issues/103) | [#108](https://github.com/Burra17/ShiftMate/pull/108) | ✅ Klar |
+
+### Nya fynd under veckan
+
+| Fynd | Issue | Status |
+|---|---|---|
+| Seeden körde i produktion och raderade alla pass vid varje start (hittat när #99 analyserades) | [#99](https://github.com/Burra17/ShiftMate/issues/99) | ✅ Klar |
+| 7 handlers gav 400 istället för 404/403 – hittat av integrationstesterna i #103 | [#107](https://github.com/Burra17/ShiftMate/issues/107) | ✅ Klar ([#118](https://github.com/Burra17/ShiftMate/pull/118)) |
+| CI, formatering och frontendtester var odokumenterade | [#113](https://github.com/Burra17/ShiftMate/issues/113) | ✅ Klar (denna PR) |
+| Frontend ligger inuti backendens mapp – Render deployar om backend vid frontend-ändringar | [#114](https://github.com/Burra17/ShiftMate/issues/114) | ⏳ Planerad |
+| 21 sårbarheter i npm-beroenden (bl.a. `axios`) | – | ⏳ Planerad |
+
+### CI-pipeline (GitHub Actions-övningarna)
+
+| Steg | PR |
+|---|---|
+| Backend-CI: restore, build, test | [#110](https://github.com/Burra17/ShiftMate/pull/110) |
+| Formatering som vakt (`dotnet format --verify-no-changes`) | [#111](https://github.com/Burra17/ShiftMate/pull/111) |
+| Frontend-CI: lint, Prettier, Vitest, build | [#112](https://github.com/Burra17/ShiftMate/pull/112) |
+| `paths` och `concurrency` | [#115](https://github.com/Burra17/ShiftMate/pull/115) |
+| PR-mall | [#117](https://github.com/Burra17/ShiftMate/pull/117) |
+| En workflow med gate-jobbet `CI OK` – löste fällan mellan `paths` och obligatoriska kontroller | [#119](https://github.com/Burra17/ShiftMate/pull/119) |
+| Skyddad `main`: PR krävs, `CI OK` krävs, force push och radering blockerade | Ruleset |
+
+### Checklistan idag
+
+| Punkt | Då | Nu | Varför |
+|---|:---:|:---:|---|
+| Tester, ett kommando | 1 | 2 | Enhets- och integrationstester i backend, Vitest i frontend, allt körs i CI |
+| README räcker för att starta | 1 | 2 | Verifierad genom test från tom klon med tömda user-secrets |
+| Lösenord/nycklar | 1 | 1 | Koden är ren och JWT-nyckeln bytt, men den gamla nyckeln finns kvar i historiken (medvetet ej omskriven) |
+| Formatering | 0 | 2 | `.editorconfig`, `dotnet format` och Prettier – kontrolleras i varje PR |
+| Frontend-struktur | 1 | 1 | Oförändrad – sidor i `pages/` och uppdelning av stora filer ligger kvar under "Övriga förbättringar" |
