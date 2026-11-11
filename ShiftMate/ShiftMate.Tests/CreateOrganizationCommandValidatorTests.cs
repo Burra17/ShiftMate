@@ -20,9 +20,9 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Name_Is_Empty(string name)
+        public void Should_Have_Error_When_Name_Is_Empty(string? name)
         {
-            var command = new CreateOrganizationCommand(name);
+            var command = new CreateOrganizationCommand(name!);
 
             var result = _validator.TestValidate(command);
 

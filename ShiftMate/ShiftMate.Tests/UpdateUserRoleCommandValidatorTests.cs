@@ -45,12 +45,12 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_NewRole_Is_Empty(string role)
+        public void Should_Have_Error_When_NewRole_Is_Empty(string? role)
         {
             var command = new UpdateUserRoleCommand
             {
                 TargetUserId = Guid.NewGuid(),
-                NewRole = role,
+                NewRole = role!,
                 RequestingUserId = Guid.NewGuid(),
                 OrganizationId = Guid.NewGuid()
             };

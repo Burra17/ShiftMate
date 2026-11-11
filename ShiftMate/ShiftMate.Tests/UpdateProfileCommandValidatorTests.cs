@@ -26,11 +26,11 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_FirstName_Is_Empty(string firstName)
+        public void Should_Have_Error_When_FirstName_Is_Empty(string? firstName)
         {
             var command = new UpdateProfileCommand
             {
-                FirstName = firstName,
+                FirstName = firstName!,
                 LastName = "Svensson",
                 Email = "anna@test.com"
             };
@@ -60,12 +60,12 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_LastName_Is_Empty(string lastName)
+        public void Should_Have_Error_When_LastName_Is_Empty(string? lastName)
         {
             var command = new UpdateProfileCommand
             {
                 FirstName = "Anna",
-                LastName = lastName,
+                LastName = lastName!,
                 Email = "anna@test.com"
             };
 
@@ -94,13 +94,13 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Email_Is_Empty(string email)
+        public void Should_Have_Error_When_Email_Is_Empty(string? email)
         {
             var command = new UpdateProfileCommand
             {
                 FirstName = "Anna",
                 LastName = "Svensson",
-                Email = email
+                Email = email!
             };
 
             var result = _validator.TestValidate(command);
