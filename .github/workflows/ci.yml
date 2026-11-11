@@ -1,0 +1,114 @@
+name: CI
+
+# Körs på alla PR:er och pushar mot main – utan paths-filter på workflow-nivå.
+# Filtreringen sker istället per jobb (se "changes"), så att jobb som inte behövs
+# blir "Skipped" (räknas som godkänt) istället för att aldrig starta (räknas som saknat).
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# Minsta möjliga behörighet: roboten får bara läsa koden
+permissions:
+  contents: read
+
+# En ny push avbryter en körning som redan pågår på samma gren/PR
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # 1. Tar reda på VILKA delar av repot som ändrats
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read # paths-filter läser PR:ens ändrade filer via GitHubs API
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: actions/checkout@v7 # behövs för push-händelser, där paths-filter jämför med git
+      # Tredjepartskod – låst till en exakt commit (v4.0.3) så att ingen kan byta ut koden bakom en tagg
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          # "!"-mönster fungerar som undantag (annars matchar backend även frontend-filer)
+          predicate-quantifier: some-with-excludes
+          filters: |
+            backend:
+              - 'ShiftMate/**'
+              - '!ShiftMate/shiftmate-frontend/**'
+              - '.github/workflows/ci.yml'
+            frontend:
+              - 'ShiftMate/shiftmate-frontend/**'
+              - '.github/workflows/ci.yml'
+
+  # 2. Backend – körs bara om backend (eller denna workflow) ändrats, annars "Skipped"
+  backend:
+    name: Backend (build and test)
+    needs: changes
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ShiftMate
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet restore
+      - name: Check formatting
+        run: dotnet format --verify-no-changes
+      - run: dotnet build --no-restore
+      - run: dotnet test --no-build
+
+  # 3. Frontend – körs bara om frontend (eller denna workflow) ändrats, annars "Skipped"
+  frontend:
+    name: Frontend (lint, format, test, build)
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ShiftMate/shiftmate-frontend
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node (version from .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: ShiftMate/shiftmate-frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: ShiftMate/shiftmate-frontend/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Test
+        run: npm run test
+
+      - name: Build
+        run: npm run build
+
+  # 4. Samlar ihop resultatet – det ENDA jobbet som main-regeln kräver.
+  # Körs alltid, även när andra jobb failat eller hoppats över.
+  ci-ok:
+    name: CI OK
+    needs: [changes, backend, frontend]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stoppa om något jobb misslyckades eller avbröts
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
+      - run: echo "Alla jobb är gröna eller överhoppade"
