@@ -20,9 +20,9 @@ namespace ShiftMate.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void Should_Have_Error_When_Email_Is_Empty(string email)
+        public void Should_Have_Error_When_Email_Is_Empty(string? email)
         {
-            var command = new ForgotPasswordCommand { Email = email };
+            var command = new ForgotPasswordCommand { Email = email! };
 
             var result = _validator.TestValidate(command);
 
