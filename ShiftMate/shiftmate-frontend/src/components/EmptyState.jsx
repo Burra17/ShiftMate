@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 
 /**
  * EmptyState — Delad komponent för tomma listor.
- * Visar ikon, meddelande och valfri länk!!
+ * Visar ikon, meddelande och valfri länk!!!
  */
 const EmptyState = ({ icon = '📋', message, linkTo, linkText }) => {
   return (
