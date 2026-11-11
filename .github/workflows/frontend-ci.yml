@@ -2,11 +2,21 @@ name: Frontend CI
 on:
   pull_request:
     branches: [main]
+    paths:
+      - "ShiftMate/shiftmate-frontend/**"
+      - ".github/workflows/frontend-ci.yml"
   push:
     branches: [main]
+    paths:
+      - "ShiftMate/shiftmate-frontend/**"
+      - ".github/workflows/frontend-ci.yml"
 
 permissions:
   contents: read
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   frontend:
