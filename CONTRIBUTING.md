@@ -75,6 +75,8 @@ npm run build
 - **major-versioner** kommer som egna PR:er – läs ändringsloggen och testa manuellt innan merge
 - Major-uppdateringar ignoreras för paket som följer .NET-versionen (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`) och för `MediatR` (13+ kräver licensnyckel). Att byta .NET-version är en egen issue.
 - PR:erna har prefixet `chore(deps)` och etiketten `dependencies`
+- **Uppdateringar som kräver kodändringar** (t.ex. paket som måste uppgraderas tillsammans) blir en issue, och versionen ignoreras med en **tillfällig regel i `dependabot.yml`** märkt med issue-numret. Regeln tas bort i samma PR som löser issuen. Använd inte `@dependabot ignore`-kommentarer – de syns inte i repot.
+- **Uppdatera en Dependabot-PR** med kommentaren `@dependabot rebase` om den ska ligga kvar. Knappen *Update branch* är okej bara om du mergar direkt efteråt – annars slutar Dependabot sköta PR:en.
 
 ## Kodstil och formatering
 
