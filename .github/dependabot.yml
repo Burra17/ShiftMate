@@ -17,6 +17,21 @@ updates:
     groups:
       npm-minor-and-patch:
         update-types: [minor, patch]
+    # TILLFÄLLIGA regler – varje regel tas bort i samma PR som löser sin issue
+    ignore:
+      # Vite 8 och plugin-react 6 kräver varandra och måste uppgraderas tillsammans (#132)
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
+      # ESLint 10 och @eslint/js 10 kräver varandra och måste uppgraderas tillsammans (#133)
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@eslint/js"
+        update-types: ["version-update:semver-major"]
+      # 7.1+ har nya React Compiler-regler som hittar lint-fel i koden (#131)
+      - dependency-name: "eslint-plugin-react-hooks"
+        update-types: ["version-update:semver-minor"]
     commit-message:
       prefix: "chore(deps)"
     labels: [dependencies]
@@ -45,6 +60,9 @@ updates:
         update-types: ["version-update:semver-major"]
       # MediatR 13+ kräver en kommersiell licensnyckel – uppgradering är ett licensbeslut
       - dependency-name: "MediatR"
+        update-types: ["version-update:semver-major"]
+      # TILLFÄLLIG: Swashbuckle 10+ kräver omskriven Swagger-konfiguration (OpenAPI.NET v3) (#140)
+      - dependency-name: "Swashbuckle.AspNetCore"
         update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "chore(deps)"
