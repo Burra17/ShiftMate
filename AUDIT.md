@@ -99,9 +99,9 @@ Poängen ovan är **startpunkten** och lämnas orörda. Här är vad som hänt s
 |---|---|---|
 | Seeden körde i produktion och raderade alla pass vid varje start (hittat när #99 analyserades) | [#99](https://github.com/Burra17/ShiftMate/issues/99) | ✅ Klar |
 | 7 handlers gav 400 istället för 404/403 – hittat av integrationstesterna i #103 | [#107](https://github.com/Burra17/ShiftMate/issues/107) | ✅ Klar ([#118](https://github.com/Burra17/ShiftMate/pull/118)) |
-| CI, formatering och frontendtester var odokumenterade | [#113](https://github.com/Burra17/ShiftMate/issues/113) | ✅ Klar (denna PR) |
+| CI, formatering och frontendtester var odokumenterade | [#113](https://github.com/Burra17/ShiftMate/issues/113) | ✅ Klar ([#120](https://github.com/Burra17/ShiftMate/pull/120)) |
 | Frontend ligger inuti backendens mapp – Render deployar om backend vid frontend-ändringar | [#114](https://github.com/Burra17/ShiftMate/issues/114) | ⏳ Planerad |
-| 21 sårbarheter i npm-beroenden (bl.a. `axios`) | – | ⏳ Planerad |
+| 21 sårbarheter i npm-beroenden (bl.a. `axios`) | – | ✅ Klar ([#122](https://github.com/Burra17/ShiftMate/pull/122)) – `npm audit`: 0 sårbarheter, Dependabot håller dem borta |
 
 ### CI-pipeline (GitHub Actions-övningarna)
 
@@ -114,6 +114,8 @@ Poängen ovan är **startpunkten** och lämnas orörda. Här är vad som hänt s
 | PR-mall | [#117](https://github.com/Burra17/ShiftMate/pull/117) |
 | En workflow med gate-jobbet `CI OK` – löste fällan mellan `paths` och obligatoriska kontroller | [#119](https://github.com/Burra17/ShiftMate/pull/119) |
 | Skyddad `main`: PR krävs, `CI OK` krävs, force push och radering blockerade | Ruleset |
+| Dependabot: veckovisa PR:er för npm, NuGet och GitHub Actions | [#123](https://github.com/Burra17/ShiftMate/pull/123) |
+| Tillfälliga ignore-regler i `dependabot.yml` för uppdateringar som kräver kodändringar (#131, #132, #133, #140) | [#141](https://github.com/Burra17/ShiftMate/pull/141) |
 
 ### Beslut: ingen NuGet-cache i CI
 
