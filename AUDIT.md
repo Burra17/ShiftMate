@@ -115,6 +115,23 @@ Poängen ovan är **startpunkten** och lämnas orörda. Här är vad som hänt s
 | En workflow med gate-jobbet `CI OK` – löste fällan mellan `paths` och obligatoriska kontroller | [#119](https://github.com/Burra17/ShiftMate/pull/119) |
 | Skyddad `main`: PR krävs, `CI OK` krävs, force push och radering blockerade | Ruleset |
 
+### Beslut: ingen NuGet-cache i CI
+
+Frontend-jobbet cachar npm-paketen (`cache: npm`). För backend mättes först om en NuGet-cache skulle löna sig – backend-jobbet i tre körningar den 12 november 2026:
+
+| Steg | Tid |
+|---|---|
+| `setup-dotnet` | 8 s |
+| **`dotnet restore`** – det enda steget cachen påverkar | **4–8 s** |
+| `dotnet format --verify-no-changes` | 15–20 s |
+| `dotnet build` | 8 s |
+| `dotnet test` | 6–9 s |
+| **Hela jobbet** | **ca 45 s** |
+
+**Slutsats: inte värt det nu.** Cachen kan spara högst några sekunder – att ladda ner själva cachen tar också tid – men kräver `RestorePackagesWithLockFile` och en `packages.lock.json` i alla fem projekten, som måste hållas uppdaterade vid varje paketändring. Det långsammaste steget är formateringskontrollen, inte restore.
+
+Tas upp igen om backend-jobbet blir märkbart långsammare, eller om vi vill ha lockfiler av ett annat skäl: att alla garanterat bygger med exakt samma paketversioner.
+
 ### Checklistan idag
 
 | Punkt | Då | Nu | Varför |
