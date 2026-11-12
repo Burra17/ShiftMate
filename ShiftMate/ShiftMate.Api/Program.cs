@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using ShiftMate.Api.Middleware;
 using ShiftMate.Application;
 using ShiftMate.Application.Interfaces;
@@ -64,20 +64,10 @@ builder.Services.AddSwaggerGen(c =>
         Scheme = "Bearer"
     });
 
-    // Kräv säkerhet globalt
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // Kräv säkerhet globalt – referensen till "Bearer" skapas mot dokumentet (OpenAPI.NET v2)
+    c.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            new string[] {}
-        }
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = []
     });
 });
 

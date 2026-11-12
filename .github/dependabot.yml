@@ -58,11 +58,11 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "Npgsql.EntityFrameworkCore.PostgreSQL"
         update-types: ["version-update:semver-major"]
+      # Swashbuckle 11+ stöder bara .NET 10+ (10.x är sista för .NET 8) – Dependabot kontrollerar inte målramverket (#140)
+      - dependency-name: "Swashbuckle.AspNetCore"
+        update-types: ["version-update:semver-major"]
       # MediatR 13+ kräver en kommersiell licensnyckel – uppgradering är ett licensbeslut
       - dependency-name: "MediatR"
-        update-types: ["version-update:semver-major"]
-      # TILLFÄLLIG: Swashbuckle 10+ kräver omskriven Swagger-konfiguration (OpenAPI.NET v3) (#140)
-      - dependency-name: "Swashbuckle.AspNetCore"
         update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "chore(deps)"
