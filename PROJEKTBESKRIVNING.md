@@ -61,7 +61,7 @@ Systemet stödjer **flera organisationer** med fullständig dataisolering:
 | Teknologi | Användning |
 |-----------|------------|
 | React 19 | UI-bibliotek, enbart funktionella komponenter |
-| Vite 7.2 | Byggverktyg med HMR |
+| Vite 8 | Byggverktyg med HMR |
 | React Router v7 | SPA-routing med skyddade routes |
 | Axios | HTTP-klient med JWT-interceptor och centraliserade API-anrop |
 | Tailwind CSS 4.1 | Utility-first styling med neon dark-tema |

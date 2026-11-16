@@ -5,7 +5,7 @@ React-klienten för ShiftMate - en applikation för skiftplanering och hantering
 ## Teknikstack
 
 - **React 19** - Funktionella komponenter med Hooks
-- **Vite 7** - Byggverktyg med HMR (Hot Module Replacement)
+- **Vite 8** - Byggverktyg med HMR (Hot Module Replacement) och Rolldown som byggmotor
 - **Tailwind CSS 4** - Utility-first CSS med Neon Dark-tema (`bg-slate-950`, `text-blue-400`)
 - **Axios** - HTTP-klient med JWT-interceptor för automatisk autentisering
 - **React Router v7** - Klientbaserad routing
