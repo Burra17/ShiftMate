@@ -1,4 +1,4 @@
-// shiftmate-frontend/src/api.js
+// frontend/src/api.js
 import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_API_URL;

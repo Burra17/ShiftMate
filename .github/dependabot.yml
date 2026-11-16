@@ -6,7 +6,7 @@ version: 2
 updates:
   # Frontend – npm
   - package-ecosystem: npm
-    directory: /ShiftMate/shiftmate-frontend
+    directory: /frontend
     schedule:
       interval: weekly
       day: monday
@@ -32,7 +32,7 @@ updates:
 
   # Backend – NuGet
   - package-ecosystem: nuget
-    directory: /ShiftMate
+    directory: /backend
     schedule:
       interval: weekly
       day: monday

@@ -1,0 +1,10 @@
+# Filer som inte skickas med till Docker-bygget (build-kontexten).
+# Bilden bygger bara API:et – lokala byggresultat, editor-filer och testprojektet behövs inte.
+**/bin/
+**/obj/
+.vs/
+.vscode/
+**/*.user
+ShiftMate.Tests/
+Dockerfile
+.dockerignore
