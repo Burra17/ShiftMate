@@ -14,6 +14,10 @@ import { useToast } from './contexts/ToastContext';
 import LoadingSpinner from './components/LoadingSpinner';
 import EmptyState from './components/EmptyState';
 
+// Sortera pass kronologiskt (närmaste först)
+const sortByStartTime = (shifts) =>
+  [...shifts].sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
+
 const ShiftList = () => {
   // --- HOOKS ---
   const toast = useToast();
@@ -37,13 +41,11 @@ const ShiftList = () => {
 
   // --- DATAHÄMTNING ---
 
-  // Hämtar pass som tillhör den inloggade användaren
+  // Hämtar om användarens pass efter ett accepterat byte
   const fetchShifts = async () => {
     try {
       const data = await fetchMyShifts();
-      // Sortera pass kronologiskt (närmaste först)
-      data.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));
-      setShifts(data);
+      setShifts(sortByStartTime(data));
     } catch (err) {
       console.error('Kunde inte hämta pass:', err);
       setError('Kunde inte ladda dina pass just nu.');
@@ -52,23 +54,24 @@ const ShiftList = () => {
     }
   };
 
-  // Hämtar bytesförfrågningar som skickats TILL användaren
-  const fetchReceivedRequests = async () => {
-    try {
-      setRequestsLoading(true);
-      const data = await fetchReceivedSwapRequests();
-      setPendingRequests(data);
-    } catch (err) {
-      console.error('Kunde inte hämta inkommande förfrågningar:', err);
-    } finally {
-      setRequestsLoading(false);
-    }
-  };
-
-  // Körs vid sidladdning
+  // Körs vid sidladdning – hämtningen sker direkt i effekten och setState i .then,
+  // så att ingen setState körs synkront i effekten
   useEffect(() => {
-    fetchShifts();
-    fetchReceivedRequests();
+    fetchMyShifts()
+      .then((data) => setShifts(sortByStartTime(data)))
+      .catch((err) => {
+        console.error('Kunde inte hämta pass:', err);
+        setError('Kunde inte ladda dina pass just nu.');
+      })
+      .finally(() => setLoading(false));
+
+    // Bytesförfrågningar som skickats TILL användaren
+    fetchReceivedSwapRequests()
+      .then(setPendingRequests)
+      .catch((err) =>
+        console.error('Kunde inte hämta inkommande förfrågningar:', err),
+      )
+      .finally(() => setRequestsLoading(false));
   }, []);
 
   // --- HANDLERS FÖR FÖRFRÅGNINGAR ---

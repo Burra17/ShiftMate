@@ -29,9 +29,6 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@eslint/js"
         update-types: ["version-update:semver-major"]
-      # 7.1+ har nya React Compiler-regler som hittar lint-fel i koden (#131)
-      - dependency-name: "eslint-plugin-react-hooks"
-        update-types: ["version-update:semver-minor"]
     commit-message:
       prefix: "chore(deps)"
     labels: [dependencies]

@@ -233,6 +233,9 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
         │   ├── Schedule.jsx
         │   ├── Profile.jsx
         │   ├── AdminPanel.jsx
+        │   ├── contexts/
+        │   │   ├── ToastContext.jsx
+        │   │   └── ToastContext.test.jsx
         │   └── components/
         │       ├── AuthLayout.jsx
         │       ├── EmptyState.jsx

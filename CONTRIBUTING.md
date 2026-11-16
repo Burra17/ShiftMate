@@ -83,7 +83,7 @@ npm run build
 
 - **`.editorconfig`** (repots rot) – gemensamma regler för indentering och whitespace. `dotnet format` och Prettier läser den. `end_of_line` är medvetet utelämnad: på Windows med `core.autocrlf=true` checkas filerna ut med CRLF, och regeln hade gjort formateringskontrollen röd lokalt.
 - **Prettier** (frontend) – `.prettierrc` med `singleQuote: true` (som koden redan var skriven) och `endOfLine: "auto"` (samma Windows-skäl). `package-lock.json` och `dist` ignoreras.
-- **ESLint** (frontend) – fel stoppar CI, varningar gör det inte. Sex `react-hooks/exhaustive-deps`-varningar finns kvar medvetet: att lägga till beroenden i `useEffect` kan ändra beteendet och kräver manuell test per komponent.
+- **ESLint** (frontend) – fel stoppar CI, varningar gör det inte. Tre `react-hooks/exhaustive-deps`-varningar (i `App.jsx` och `InviteCode.jsx`) finns kvar medvetet: att lägga till beroenden i `useEffect` kan ändra beteendet och kräver manuell test per komponent.
 
 ## Tester
 
