@@ -67,8 +67,8 @@ These principles guide every decision in this project:
 
 ### Deployment
 
-- **Backend:** Render (health check at `/health`)
-- **Frontend:** Vercel
+- **Backend:** Render (health check at `/health`) — Root Directory `backend`, Dockerfile Path `backend/./Dockerfile`, Docker Build Context `backend/.`. Render only redeploys on changes inside `backend/`.
+- **Frontend:** Vercel — Root Directory `frontend`
 - **Containerization:** Docker (multi-stage build)
 
 ---
@@ -240,9 +240,11 @@ if (userId == null) return Unauthorized();
 .github/dependabot.yml                           # Weekly dependency update PRs
 AUDIT.md                                         # Code review baseline + follow-up
 CONTRIBUTING.md                                  # Workflow, CI, fixing red checks
+backend/                                         # .NET solution (ShiftMate.sln, Dockerfile, .dockerignore) — Render root
+frontend/                                        # React app — Vercel root
 ```
 
-### Backend
+### Backend (`backend/`)
 
 ```
 ShiftMate.Domain/                                # Entities + enums. No dependencies.
@@ -285,7 +287,7 @@ ShiftMate.Tests/                                 # Unit + integration tests (xUn
   Integration/[Controller]EndpointsTests.cs      # HTTP tests: auth, roles, error mapping, multi-tenancy
 ```
 
-### Frontend (`shiftmate-frontend/src/`)
+### Frontend (`frontend/src/`)
 
 ```
 main.jsx                        # React entrypoint
@@ -433,8 +435,8 @@ Follow these steps **in order** for every implementation task:
 3. **Analyze relevant files** — Read existing code to understand patterns. Check that the feature doesn't already exist. Don't duplicate logic (DRY).
 4. **Implement** — Write code following the rules above. Match existing patterns exactly. Keep it simple (KISS). Don't add what's not needed (YAGNI).
 5. **Build & test** — Run the same checks as CI. All must pass.
-   - Backend (in `ShiftMate/`): `dotnet format --verify-no-changes`, `dotnet build`, `dotnet test`
-   - Frontend (in `ShiftMate/shiftmate-frontend/`): `npm run lint`, `npm run format:check`, `npm test`, `npm run build`
+   - Backend (in `backend/`): `dotnet format --verify-no-changes`, `dotnet build`, `dotnet test`
+   - Frontend (in `frontend/`): `npm run lint`, `npm run format:check`, `npm test`, `npm run build`
    - If formatting fails, run `dotnet format` / `npm run format` and commit that separately.
 6. **Let the user test** — Wait for the user to verify in the browser. Fix issues if needed.
 7. **Update ALL documentation** — Before committing, always review and update: CLAUDE.md (new endpoints, structure, patterns), README.md (test counts, features, file structure), CONTRIBUTING.md (workflow/CI changes), and frontend README.md if frontend changes were made. Every `.md` file that references changed areas must be updated.

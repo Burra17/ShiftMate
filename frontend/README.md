@@ -14,7 +14,7 @@ React-klienten för ShiftMate - en applikation för skiftplanering och hantering
 
 ## Komma igång
 
-Se [README i roten](../../README.md#komma-igång-utveckling) för hur hela projektet (backend + frontend) startas.
+Se [README i roten](../README.md#komma-igång-utveckling) för hur hela projektet (backend + frontend) startas.
 
 Kortversion för frontend, när backend redan körs:
 
@@ -35,7 +35,7 @@ npm run build # bygg för produktion
 | `npm test`             | Kör testerna en gång (`vitest run`)             | ✅        |
 | `npm run build`        | Bygger för produktion till `dist/`              | ✅        |
 
-Blir CI rött på formateringen: kör `npm run format` och committa. Mer om arbetsflödet i [CONTRIBUTING.md](../../CONTRIBUTING.md).
+Blir CI rött på formateringen: kör `npm run format` och committa. Mer om arbetsflödet i [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Tester
 
@@ -103,7 +103,7 @@ const MyComponent = () => {
 ## Filstruktur
 
 ```
-shiftmate-frontend/
+frontend/
 ├── .env.development          # API-URL för utveckling
 ├── .env.production           # API-URL för produktion
 ├── .nvmrc                    # Node-version (22) – används även av CI

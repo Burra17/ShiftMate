@@ -331,7 +331,7 @@ Frontend deployas automatiskt via Vercel:
 # Backend (från ShiftMate.Api/)
 dotnet run
 
-# Frontend (från shiftmate-frontend/)
+# Frontend (från frontend/)
 npm install
 npm run dev
 ```

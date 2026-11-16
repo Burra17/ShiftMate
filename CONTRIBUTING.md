@@ -41,11 +41,11 @@ En ny push till samma PR avbryter en körning som redan pågår.
 
 | Rött steg | Fixa lokalt | I mappen |
 |---|---|---|
-| `dotnet format --verify-no-changes` | `dotnet format` | `ShiftMate/` |
-| `dotnet build` / `dotnet test` | `dotnet build` / `dotnet test` och åtgärda felet | `ShiftMate/` |
-| `npm run lint` | `npm run lint` och åtgärda felen (varningar stoppar inte CI) | `ShiftMate/shiftmate-frontend/` |
-| `npm run format:check` | `npm run format` | `ShiftMate/shiftmate-frontend/` |
-| `npm test` / `npm run build` | `npm test` / `npm run build` och åtgärda felet | `ShiftMate/shiftmate-frontend/` |
+| `dotnet format --verify-no-changes` | `dotnet format` | `backend/` |
+| `dotnet build` / `dotnet test` | `dotnet build` / `dotnet test` och åtgärda felet | `backend/` |
+| `npm run lint` | `npm run lint` och åtgärda felen (varningar stoppar inte CI) | `frontend/` |
+| `npm run format:check` | `npm run format` | `frontend/` |
+| `npm test` / `npm run build` | `npm test` / `npm run build` och åtgärda felet | `frontend/` |
 
 Committa formateringsändringar för sig (t.ex. `style: apply formatting`) så att de inte blandas med logikändringar.
 
@@ -54,13 +54,13 @@ Committa formateringsändringar för sig (t.ex. `style: apply formatting`) så a
 Samma kontroller som CI kör – kör de som berör din ändring:
 
 ```bash
-# Backend (i ShiftMate/)
+# Backend (i backend/)
 dotnet format --verify-no-changes
 dotnet test
 ```
 
 ```bash
-# Frontend (i ShiftMate/shiftmate-frontend/)
+# Frontend (i frontend/)
 npm run lint
 npm run format:check
 npm test

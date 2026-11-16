@@ -22,12 +22,12 @@ Fixes #
 
 <!-- Samma kontroller som CI kör – bocka av innan du pushar. Stryk de rader som inte berörs (~~text~~). -->
 
-**Backend** (i `ShiftMate/`)
+**Backend** (i `backend/`)
 
 - [ ] `dotnet format --verify-no-changes`
 - [ ] `dotnet test`
 
-**Frontend** (i `ShiftMate/shiftmate-frontend/`)
+**Frontend** (i `frontend/`)
 
 - [ ] `npm run lint`
 - [ ] `npm run format:check`
