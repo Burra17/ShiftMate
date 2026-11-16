@@ -44,7 +44,7 @@ These principles guide every decision in this project:
 ### Frontend (React 19 + Vite)
 
 - **Core:** React 19, JavaScript (ES6+), functional components only
-- **Build:** Vite 7.2.4
+- **Build:** Vite 8 (Rolldown) + `@vitejs/plugin-react` 6
 - **Styling:** Tailwind CSS 4.1.18 (Theme: Neon Dark — `bg-slate-950`, `text-blue-400`)
 - **Typography:** Plus Jakarta Sans (headings/bold), DM Sans (body) via Google Fonts
 - **State/Network:** Axios with JWT interceptor, React Hooks (`useState`, `useEffect`)
@@ -62,7 +62,7 @@ These principles guide every decision in this project:
 - **Branch protection:** ruleset on `main` — PR required, **`CI OK`** is the only required check, force push and deletion blocked. Never require the backend/frontend jobs directly: a skipped path would leave the check missing and block the PR forever.
 - **Formatting:** `.editorconfig` in repo root (read by `dotnet format` and Prettier). `end_of_line` is deliberately omitted (Windows CRLF checkout would fail locally).
 - **PR template:** `.github/pull_request_template.md` — fill it in, use `Fixes #N` (English keyword).
-- **Dependabot:** `.github/dependabot.yml` — weekly (Monday) PRs for npm, NuGet and GitHub Actions; minor+patch grouped per ecosystem, majors separate — except packages that require each other's major version, which get a major group so they arrive in one PR (`eslint-major`: `eslint` + `@eslint/js`). Major updates ignored for packages tied to the .NET version (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`, `Swashbuckle.AspNetCore` — 11+ targets .NET 10+ only, 10.x is the last for .NET 8) and `MediatR` (13+ is commercially licensed). Dependabot does not check target frameworks — check a major's supported frameworks on NuGet before migrating. Commit prefix `chore(deps)`, label `dependencies`. Updates that need code changes get an issue plus a **temporary ignore rule in `dependabot.yml`** tagged with the issue number (currently #132 Vite 8 + plugin-react 6) — remove the rule in the PR that fixes the issue. Never use `@dependabot ignore` comments (invisible in the repo).
+- **Dependabot:** `.github/dependabot.yml` — weekly (Monday) PRs for npm, NuGet and GitHub Actions; minor+patch grouped per ecosystem, majors separate — except packages that require each other's major version, which get a major group so they arrive in one PR (`eslint-major`: `eslint` + `@eslint/js`; `vite-major`: `vite` + `@vitejs/plugin-react`). Major updates ignored for packages tied to the .NET version (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`, `Swashbuckle.AspNetCore` — 11+ targets .NET 10+ only, 10.x is the last for .NET 8) and `MediatR` (13+ is commercially licensed). Dependabot does not check target frameworks — check a major's supported frameworks on NuGet before migrating. Commit prefix `chore(deps)`, label `dependencies`. Updates that need code changes get an issue plus a **temporary ignore rule in `dependabot.yml`** tagged with the issue number (currently none) — remove the rule in the PR that fixes the issue. Never use `@dependabot ignore` comments (invisible in the repo).
 - **Contributor guide:** `CONTRIBUTING.md` — workflow, CI and how to fix red checks locally.
 
 ### Deployment

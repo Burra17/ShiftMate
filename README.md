@@ -31,7 +31,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 ### Frontend (React 19 + Vite)
 
 - **Core:** React 19, JavaScript (ES6+)
-- **Byggverktyg:** Vite 7
+- **Byggverktyg:** Vite 8
 - **Styling:** Tailwind CSS (Neon Dark-tema)
 - **HTTP-klient:** Axios med JWT-interceptor
 - **Routing:** React Router v7

@@ -72,7 +72,7 @@ npm run build
 [`.github/dependabot.yml`](.github/dependabot.yml) skapar PR:er varje måndag för npm, NuGet och GitHub Actions. Akuta säkerhetsfixar kommer direkt via *Dependabot security updates*.
 
 - **minor + patch** samlas i en PR per ekosystem – granska att CI är grönt och merga
-- **major-versioner** kommer som egna PR:er – läs ändringsloggen och testa manuellt innan merge. Undantag: paket som kräver varandras major-version samlas i en egen grupp så att de kommer i samma PR (`eslint-major`: `eslint` + `@eslint/js`). Annars blir PR:en röd med `ERESOLVE`, eftersom Dependabot bara uppgraderar ett paket i taget (se #133).
+- **major-versioner** kommer som egna PR:er – läs ändringsloggen och testa manuellt innan merge. Undantag: paket som kräver varandras major-version samlas i en egen grupp så att de kommer i samma PR (`eslint-major`: `eslint` + `@eslint/js`; `vite-major`: `vite` + `@vitejs/plugin-react`). Annars blir PR:en röd med `ERESOLVE`, eftersom Dependabot bara uppgraderar ett paket i taget (se #132 och #133).
 - Major-uppdateringar ignoreras för paket som följer .NET-versionen (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`, `Swashbuckle.AspNetCore`) och för `MediatR` (13+ kräver licensnyckel). Att byta .NET-version är en egen issue.
 - **Dependabot kontrollerar inte målramverket.** Den kan föreslå en major-version som inte stöder .NET 8 (som Swashbuckle 11, se #140). Kolla paketets målramverk på nuget.org (fliken *Frameworks*) innan du börjar migrera.
 - PR:erna har prefixet `chore(deps)` och etiketten `dependencies`
