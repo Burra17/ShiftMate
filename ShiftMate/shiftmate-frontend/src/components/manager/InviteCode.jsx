@@ -32,7 +32,8 @@ const InviteCode = () => {
       }
     };
     loadCode();
-  }, []);
+    // toast är stabilt (memoiserat i ToastContext), så effekten körs bara en gång
+  }, [toast]);
 
   const handleRegenerate = async () => {
     const confirmed = await confirm({
