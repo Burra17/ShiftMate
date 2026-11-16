@@ -62,7 +62,7 @@ These principles guide every decision in this project:
 - **Branch protection:** ruleset on `main` — PR required, **`CI OK`** is the only required check, force push and deletion blocked. Never require the backend/frontend jobs directly: a skipped path would leave the check missing and block the PR forever.
 - **Formatting:** `.editorconfig` in repo root (read by `dotnet format` and Prettier). `end_of_line` is deliberately omitted (Windows CRLF checkout would fail locally).
 - **PR template:** `.github/pull_request_template.md` — fill it in, use `Fixes #N` (English keyword).
-- **Dependabot:** `.github/dependabot.yml` — weekly (Monday) PRs for npm, NuGet and GitHub Actions; minor+patch grouped per ecosystem, majors separate. Major updates ignored for packages tied to the .NET version (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`, `Swashbuckle.AspNetCore` — 11+ targets .NET 10+ only, 10.x is the last for .NET 8) and `MediatR` (13+ is commercially licensed). Dependabot does not check target frameworks — check a major's supported frameworks on NuGet before migrating. Commit prefix `chore(deps)`, label `dependencies`. Updates that need code changes get an issue plus a **temporary ignore rule in `dependabot.yml`** tagged with the issue number (currently #131 react-hooks 7.1, #132 Vite 8 + plugin-react 6, #133 ESLint 10) — remove the rule in the PR that fixes the issue. Never use `@dependabot ignore` comments (invisible in the repo).
+- **Dependabot:** `.github/dependabot.yml` — weekly (Monday) PRs for npm, NuGet and GitHub Actions; minor+patch grouped per ecosystem, majors separate. Major updates ignored for packages tied to the .NET version (`Microsoft.AspNetCore.*`, `Microsoft.EntityFrameworkCore*`, `Microsoft.Extensions.*`, `Npgsql.EntityFrameworkCore.PostgreSQL`, `Swashbuckle.AspNetCore` — 11+ targets .NET 10+ only, 10.x is the last for .NET 8) and `MediatR` (13+ is commercially licensed). Dependabot does not check target frameworks — check a major's supported frameworks on NuGet before migrating. Commit prefix `chore(deps)`, label `dependencies`. Updates that need code changes get an issue plus a **temporary ignore rule in `dependabot.yml`** tagged with the issue number (currently #132 Vite 8 + plugin-react 6, #133 ESLint 10) — remove the rule in the PR that fixes the issue. Never use `@dependabot ignore` comments (invisible in the repo).
 - **Contributor guide:** `CONTRIBUTING.md` — workflow, CI and how to fix red checks locally.
 
 ### Deployment
@@ -155,12 +155,12 @@ if (userId == null) return Unauthorized();
 4. Follow the existing neon dark theme (`bg-slate-950`, `text-blue-400`, `border-blue-500/30`).
 5. Time formatting uses Swedish locale (`sv-SE`).
 6. Use `useToast()` and `useConfirm()` from `ToastContext` for user feedback — never `alert()` or `window.confirm()`.
-7. Use `Promise.all()` when loading multiple independent data sources in `useEffect`.
+7. Use `Promise.all()` when loading multiple independent data sources in `useEffect`. Exception: sources with their own loading flag and error handling may load as separate chains, so one failure doesn't block the other (`ShiftList.jsx`).
 8. Loading states: global `loading` for initial data fetch, `actionLoading` (with ID) for per-item button actions.
 9. Role checks via `getUserRole()` from `api.js` — conditionally render Manager-only UI.
-10. **ESLint errors fail CI, warnings do not.** Six `react-hooks/exhaustive-deps` warnings remain deliberately — adding effect dependencies can change behavior and needs manual testing per component. Don't "fix" them as a side effect of unrelated work.
+10. **ESLint errors fail CI, warnings do not.** Three `react-hooks/exhaustive-deps` warnings remain deliberately (`App.jsx` ×2, `components/manager/InviteCode.jsx`) — adding effect dependencies can change behavior and needs manual testing per component. Don't "fix" them as a side effect of unrelated work. The `toast` object from `useToast()` is memoized and stable, so it is safe in a dependency array — the `InviteCode.jsx` warning is therefore a one-line fix, left for its own PR so the component can be tested on its own.
 11. `contexts/ToastContext.jsx` has `eslint-disable-next-line react-refresh/only-export-components` on `useToast`/`useConfirm` — hooks live next to the provider on purpose (standard context pattern); the rule only affects dev hot reload.
-12. Don't call `setState` synchronously inside `useEffect` to derive state from props (`react-hooks/set-state-in-effect`). Set initial state directly, or compare with the previous prop during render (see `DatePicker.jsx`, `TimePicker.jsx`).
+12. Don't call `setState` synchronously inside `useEffect` (`react-hooks/set-state-in-effect`). Derive from props/token via initial state (`useState(readUserFromToken)` in `Profile.jsx`) or by comparing with the previous prop during render (`DatePicker.jsx`, `TimePicker.jsx`). Set state caused by an event in the event handler (`goToPage` in `ShiftListTab.jsx`). **Fetching:** the rule can't see into helper functions — calling a component-level loader that sets state is flagged even if `setState` comes after `await`. Fetch directly in the effect and set state in `.then` (`AdminPanel.jsx`, `ShiftList.jsx`); keep the loader for reloads from handlers. Effects that refetch on a changing dependency use an `ignore` flag in the cleanup (`ShiftListTab.jsx`).
 
 ### Frontend State Management
 
@@ -307,11 +307,13 @@ Schedule.jsx                    # "Schema" — full schedule grouped by date
 Profile.jsx                     # User profile & stats
 contexts/
   ToastContext.jsx              # Toast notifications + confirm dialog (useToast, useConfirm)
+  ToastContext.test.jsx         # Vitest: toast auto-dismiss + stable toast object
 components/
   AuthLayout.jsx                # Shared auth page layout (login/register)
   ManagerPanel.jsx              # Manager tab shell (delegates to manager/ sub-components)
   NotificationDropdown.jsx      # Bell icon with swap request notifications
   EmptyState.jsx                # Reusable empty state placeholder
+  EmptyState.test.jsx           # Vitest: message and optional link
   LoadingSpinner.jsx            # Reusable loading spinner
   ErrorBoundary.jsx             # Catches render errors, shows fallback (only class component — see Frontend Rules)
   manager/

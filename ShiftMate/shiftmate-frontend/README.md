@@ -39,7 +39,7 @@ Blir CI rött på formateringen: kör `npm run format` och committa. Mer om arbe
 
 ## Tester
 
-Testfilen ligger bredvid komponenten och heter `X.test.jsx` – Vitest hittar bara filer med `.test.` eller `.spec.` i namnet. Exempel: `src/components/EmptyState.test.jsx`.
+Testfilen ligger bredvid komponenten och heter `X.test.jsx` – Vitest hittar bara filer med `.test.` eller `.spec.` i namnet. Exempel: `src/components/EmptyState.test.jsx` och `src/contexts/ToastContext.test.jsx` (som använder falska timers, `vi.useFakeTimers()`, för att testa att en toast försvinner efter 4 sekunder utan att vänta på riktigt).
 
 ## Miljövariabler
 
@@ -135,7 +135,8 @@ shiftmate-frontend/
     ├── assets/
     │   └── react.svg
     ├── contexts/
-    │   └── ToastContext.jsx   # ToastProvider, useToast, useConfirm hooks
+    │   ├── ToastContext.jsx   # ToastProvider, useToast, useConfirm hooks
+    │   └── ToastContext.test.jsx # Test: auto-dismiss och stabilt toast-objekt
     └── components/
         ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
         ├── EmptyState.jsx    # Tom lista-placeholder
