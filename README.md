@@ -47,7 +47,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 ### Förkrav
 
 - [.NET SDK 8.0](https://dotnet.microsoft.com/download/dotnet/8.0)
-- [Node.js 22 eller senare](https://nodejs.org/en/download/) (versionen står i `ShiftMate/shiftmate-frontend/.nvmrc` – använder du nvm räcker `nvm use`)
+- [Node.js 22 eller senare](https://nodejs.org/en/download/) (versionen står i `frontend/.nvmrc` – använder du nvm räcker `nvm use`)
 - Ett gratis [Supabase](https://supabase.com/)-projekt som din lokala PostgreSQL-databas
 - Git
 
@@ -55,10 +55,10 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 
 ```bash
 git clone https://github.com/Burra17/ShiftMate.git
-cd ShiftMate/ShiftMate
+cd ShiftMate/backend
 ```
 
-Solution-filen `ShiftMate.sln` ligger i undermappen `ShiftMate/` – alla kommandon nedan körs därifrån.
+Repot har två appar bredvid varandra: `backend/` (.NET-solution med `ShiftMate.sln`) och `frontend/` (React). Backend-kommandona nedan körs i `backend/`.
 
 ### 2. Lita på utvecklingscertifikatet (en gång per dator)
 
@@ -120,17 +120,17 @@ API:et startar på `https://localhost:7215` (Swagger på `/swagger`). Vid först
 
 ### 6. Starta frontend
 
-I en ny terminal:
+I en ny terminal, från repots rot:
 
 ```bash
-cd shiftmate-frontend
+cd frontend
 npm ci
 npm run dev
 ```
 
 Frontend startar på `http://localhost:5173`. Använd `npm ci` (inte `npm install`) så att `package-lock.json` inte skrivs om. Porten är låst – är 5173 upptagen avbryts starten, eftersom API:ets CORS bara tillåter den porten. Stäng i så fall den andra Vite-servern.
 
-API-adressen läses från `VITE_API_URL` i `shiftmate-frontend/.env.development` (standard: `https://localhost:7215/api`).
+API-adressen läses från `VITE_API_URL` i `frontend/.env.development` (standard: `https://localhost:7215/api`).
 
 ### 7. Logga in med testkonton
 
@@ -155,7 +155,7 @@ dotnet test
 
 Kör både enhetstester (handlers med InMemory-databas) och integrationstester i `Integration/`, som startar hela API:et i minnet via `WebApplicationFactory` och testar riktiga HTTP-anrop (autentisering, roller, felmappning, organisationsfiltrering). Ingen databas eller nyckel behövs.
 
-Frontendtesterna (Vitest) körs i `shiftmate-frontend/`:
+Frontendtesterna (Vitest) körs i `frontend/`:
 
 ```bash
 npm test
@@ -188,64 +188,65 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 ├── PROJEKTBESKRIVNING.md                  # Projektbeskrivning
 ├── README.md                              # Denna fil
 │
-└── ShiftMate/                             # Solution-mapp
-    ├── ShiftMate.sln
-    ├── Dockerfile
-    │
-    ├── ShiftMate.Domain/                  # Domänlager - Entiteter & enums (inga beroenden)
-    │   ├── Entities/                      # User, Shift, SwapRequest, Organization
-    │   └── Enums/                         # Role, SwapRequestStatus
-    │
-    ├── ShiftMate.Application/             # Applikationslager - Affärslogik (CQRS)
-    │   ├── DependencyInjection.cs
-    │   ├── Common/                        # PagedResult + Exceptions/ (NotFound, Forbidden, etc.)
-    │   ├── DTOs/
-    │   ├── Interfaces/
-    │   ├── Services/                      # EmailTemplateService
-    │   ├── Shifts/Commands/[X]/ & Queries/[X]/        # Mapp per command/query
-    │   ├── SwapRequests/Commands/[X]/ & Queries/[X]/
-    │   ├── Users/Commands/[X]/ & Queries/[X]/
-    │   └── Organizations/Commands/[X]/ & Queries/[X]/
-    │
-    ├── ShiftMate.Infrastructure/          # Infrastrukturlager - Dataåtkomst
-    │   ├── AppDbContext.cs
-    │   ├── DbInitializer.cs
-    │   ├── Services/                      # ResendEmailService, ConsoleEmailService (dev)
-    │   └── Migrations/
-    │
-    ├── ShiftMate.Api/                     # API-lager - HTTP
-    │   ├── Program.cs
-    │   ├── Controllers/                   # Tunna controllers (ingen try/catch)
-    │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
-    │   └── Extensions/                    # ClaimsPrincipalExtensions
-    │
-    ├── ShiftMate.Tests/                   # Enhets- och integrationstester (209 tester)
-    │
-    └── shiftmate-frontend/                # React-applikation
-        ├── .nvmrc                         # Node-version (används även av CI)
-        ├── .prettierrc                    # Prettier-regler
-        ├── src/
-        │   ├── App.jsx
-        │   ├── api.js
-        │   ├── Dashboard.jsx
-        │   ├── ShiftList.jsx
-        │   ├── MarketPlace.jsx
-        │   ├── Schedule.jsx
-        │   ├── Profile.jsx
-        │   ├── AdminPanel.jsx
-        │   ├── contexts/
-        │   │   ├── ToastContext.jsx
-        │   │   └── ToastContext.test.jsx
-        │   └── components/
-        │       ├── AuthLayout.jsx
-        │       ├── EmptyState.jsx
-        │       ├── EmptyState.test.jsx    # Frontendtester ligger bredvid komponenten
-        │       └── ManagerPanel.jsx
-        └── README.md
+├── backend/                               # .NET-solution (Render bygger härifrån)
+│   ├── ShiftMate.sln
+│   ├── Dockerfile
+│   ├── .dockerignore                      # Håller bin/, obj/ och testprojektet utanför Docker-bygget
+│   │
+│   ├── ShiftMate.Domain/                  # Domänlager - Entiteter & enums (inga beroenden)
+│   │   ├── Entities/                      # User, Shift, SwapRequest, Organization
+│   │   └── Enums/                         # Role, SwapRequestStatus
+│   │
+│   ├── ShiftMate.Application/             # Applikationslager - Affärslogik (CQRS)
+│   │   ├── DependencyInjection.cs
+│   │   ├── Common/                        # PagedResult + Exceptions/ (NotFound, Forbidden, etc.)
+│   │   ├── DTOs/
+│   │   ├── Interfaces/
+│   │   ├── Services/                      # EmailTemplateService
+│   │   ├── Shifts/Commands/[X]/ & Queries/[X]/        # Mapp per command/query
+│   │   ├── SwapRequests/Commands/[X]/ & Queries/[X]/
+│   │   ├── Users/Commands/[X]/ & Queries/[X]/
+│   │   └── Organizations/Commands/[X]/ & Queries/[X]/
+│   │
+│   ├── ShiftMate.Infrastructure/          # Infrastrukturlager - Dataåtkomst
+│   │   ├── AppDbContext.cs
+│   │   ├── DbInitializer.cs
+│   │   ├── Services/                      # ResendEmailService, ConsoleEmailService (dev)
+│   │   └── Migrations/
+│   │
+│   ├── ShiftMate.Api/                     # API-lager - HTTP
+│   │   ├── Program.cs
+│   │   ├── Controllers/                   # Tunna controllers (ingen try/catch)
+│   │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
+│   │   └── Extensions/                    # ClaimsPrincipalExtensions
+│   │
+│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (209 tester)
+│
+└── frontend/                              # React-applikation (Vercel bygger härifrån)
+    ├── .nvmrc                             # Node-version (används även av CI)
+    ├── .prettierrc                        # Prettier-regler
+    ├── src/
+    │   ├── App.jsx
+    │   ├── api.js
+    │   ├── Dashboard.jsx
+    │   ├── ShiftList.jsx
+    │   ├── MarketPlace.jsx
+    │   ├── Schedule.jsx
+    │   ├── Profile.jsx
+    │   ├── AdminPanel.jsx
+    │   ├── contexts/
+    │   │   ├── ToastContext.jsx
+    │   │   └── ToastContext.test.jsx
+    │   └── components/
+    │       ├── AuthLayout.jsx
+    │       ├── EmptyState.jsx
+    │       ├── EmptyState.test.jsx        # Frontendtester ligger bredvid komponenten
+    │       └── ManagerPanel.jsx
+    └── README.md
 ```
 
 ## Mer information
 
 - **Arbetsflöde och CI:** Se [CONTRIBUTING.md](CONTRIBUTING.md).
 - **Arkitekturdokumentation:** Se [CLAUDE.md](CLAUDE.md) för detaljerade kodregler, mönster och konventioner.
-- **Frontend-specifik information:** Se [shiftmate-frontend/README.md](ShiftMate/shiftmate-frontend/README.md).
+- **Frontend-specifik information:** Se [frontend/README.md](frontend/README.md).

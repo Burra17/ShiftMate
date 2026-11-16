@@ -100,7 +100,7 @@ Poängen ovan är **startpunkten** och lämnas orörda. Här är vad som hänt s
 | Seeden körde i produktion och raderade alla pass vid varje start (hittat när #99 analyserades) | [#99](https://github.com/Burra17/ShiftMate/issues/99) | ✅ Klar |
 | 7 handlers gav 400 istället för 404/403 – hittat av integrationstesterna i #103 | [#107](https://github.com/Burra17/ShiftMate/issues/107) | ✅ Klar ([#118](https://github.com/Burra17/ShiftMate/pull/118)) |
 | CI, formatering och frontendtester var odokumenterade | [#113](https://github.com/Burra17/ShiftMate/issues/113) | ✅ Klar ([#120](https://github.com/Burra17/ShiftMate/pull/120)) |
-| Frontend ligger inuti backendens mapp – Render deployar om backend vid frontend-ändringar | [#114](https://github.com/Burra17/ShiftMate/issues/114) | ⏳ Planerad |
+| Frontend ligger inuti backendens mapp – Render deployar om backend vid frontend-ändringar | [#114](https://github.com/Burra17/ShiftMate/issues/114) | ✅ Klar – `backend/` och `frontend/` på toppnivå |
 | 21 sårbarheter i npm-beroenden (bl.a. `axios`) | – | ✅ Klar ([#122](https://github.com/Burra17/ShiftMate/pull/122)) – `npm audit`: 0 sårbarheter, Dependabot håller dem borta |
 | Dependabot föreslog Swashbuckle 11, som bara stöder .NET 10+ – uppgraderat till 10.x (sista för .NET 8) och majors ignoreras som för övriga .NET-bundna paket | [#140](https://github.com/Burra17/ShiftMate/issues/140) | ✅ Klar |
 
