@@ -39,7 +39,7 @@ const ShiftListTab = ({ users }) => {
   const pageSize = 20;
 
   const [allShifts, setAllShifts] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -55,7 +55,8 @@ const ShiftListTab = ({ users }) => {
   const [editLoading, setEditLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(null);
 
-  const loadShifts = async (p = 1) => {
+  // Laddar om aktuell sida efter redigering eller radering
+  const loadShifts = async (p) => {
     setLoading(true);
     try {
       const data = await fetchShiftsPaginated({ page: p, pageSize });
@@ -70,9 +71,38 @@ const ShiftListTab = ({ users }) => {
     }
   };
 
+  // Sidbyte är en händelse – därför sätts loading här och inte i effekten
+  const goToPage = (newPage) => {
+    if (newPage === page) return;
+    setLoading(true);
+    setPage(newPage);
+  };
+
+  // Hämtar sidan när page ändras. ignore-flaggan gör att ett svar som kommer
+  // för sent (användaren har redan bytt sida igen) inte skriver över den nya sidan.
   useEffect(() => {
-    loadShifts(page);
-  }, [page]);
+    let ignore = false;
+
+    fetchShiftsPaginated({ page, pageSize })
+      .then((data) => {
+        if (ignore) return;
+        setAllShifts(data.items);
+        setTotalPages(data.totalPages);
+        setTotalCount(data.totalCount);
+      })
+      .catch((err) => {
+        if (ignore) return;
+        console.error('Kunde inte hämta pass:', err);
+        toast.error('Kunde inte hämta pass.');
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [page, pageSize, toast]);
 
   // Öppna redigering för ett pass
   const handleEditClick = (shift) => {
@@ -421,7 +451,7 @@ const ShiftListTab = ({ users }) => {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4">
           <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => goToPage(Math.max(1, page - 1))}
             disabled={page <= 1}
             className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >
@@ -431,7 +461,7 @@ const ShiftListTab = ({ users }) => {
             Sida {page} av {totalPages}
           </span>
           <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => goToPage(Math.min(totalPages, page + 1))}
             disabled={page >= totalPages}
             className="px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
           >

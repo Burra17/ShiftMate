@@ -3,6 +3,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useMemo,
   useRef,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -21,21 +22,7 @@ export const ToastProvider = ({ children }) => {
 
   // --- Toast-hantering ---
 
-  const addToast = useCallback((type, message) => {
-    const id = ++toastIdCounter;
-
-    setToasts((prev) => {
-      // Max 5 toasts synliga samtidigt
-      const updated = [...prev, { id, type, message, exiting: false }];
-      return updated.length > 5 ? updated.slice(updated.length - 5) : updated;
-    });
-
-    // Auto-dismiss efter 4 sekunder
-    setTimeout(() => dismissToast(id), 4000);
-
-    return id;
-  }, []);
-
+  // Deklareras före addToast, som använder den
   const dismissToast = useCallback((id) => {
     // Markera som exiting för att trigga ut-animation
     setToasts((prev) =>
@@ -48,12 +35,35 @@ export const ToastProvider = ({ children }) => {
     }, 300);
   }, []);
 
-  const toast = {
-    success: (message) => addToast('success', message),
-    error: (message) => addToast('error', message),
-    info: (message) => addToast('info', message),
-    warning: (message) => addToast('warning', message),
-  };
+  const addToast = useCallback(
+    (type, message) => {
+      const id = ++toastIdCounter;
+
+      setToasts((prev) => {
+        // Max 5 toasts synliga samtidigt
+        const updated = [...prev, { id, type, message, exiting: false }];
+        return updated.length > 5 ? updated.slice(updated.length - 5) : updated;
+      });
+
+      // Auto-dismiss efter 4 sekunder
+      setTimeout(() => dismissToast(id), 4000);
+
+      return id;
+    },
+    [dismissToast],
+  );
+
+  // useMemo gör objektet stabilt mellan renderingar, så att toast kan ligga
+  // i beroendelistan för en useEffect utan att effekten körs om vid varje rendering
+  const toast = useMemo(
+    () => ({
+      success: (message) => addToast('success', message),
+      error: (message) => addToast('error', message),
+      info: (message) => addToast('info', message),
+      warning: (message) => addToast('warning', message),
+    }),
+    [addToast],
+  );
 
   // --- Confirm-hantering (Promise-baserad) ---
 

@@ -16,19 +16,61 @@ const roleLabels = {
   Employee: 'Anställd',
 };
 
+const emptyUserData = {
+  firstName: '',
+  lastName: '',
+  fullName: '',
+  initials: '',
+  email: '',
+  role: '',
+  orgName: '',
+};
+
+// Läser namn, e-post, roll och organisation från token.
+// Token finns redan vid första renderingen, så den används som startvärde – ingen effekt behövs.
+const readUserFromToken = () => {
+  const payload = decodeToken();
+  if (!payload) return emptyUserData;
+
+  try {
+    const firstName = payload.FirstName || '';
+    const lastName = payload.LastName || '';
+    const email =
+      payload.email ||
+      payload[
+        'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
+      ] ||
+      'Användare';
+
+    let fullName = email.split('@')[0];
+    let initials = fullName.substring(0, 2).toUpperCase();
+
+    if (firstName && lastName) {
+      fullName = `${firstName} ${lastName}`;
+      initials = (firstName[0] + lastName[0]).toUpperCase();
+    }
+
+    return {
+      firstName,
+      lastName,
+      fullName,
+      initials,
+      email,
+      role: getUserRole() || '',
+      orgName: getOrganizationName() || '',
+    };
+  } catch (e) {
+    console.error('Kunde inte läsa token', e);
+    return emptyUserData;
+  }
+};
+
 const Profile = ({ onLogout }) => {
   const toast = useToast();
   const profileCardRef = useRef(null);
   const [stats, setStats] = useState({ totalShifts: 0, totalHours: 0 });
-  const [userData, setUserData] = useState({
-    firstName: '',
-    lastName: '',
-    fullName: '',
-    initials: '',
-    email: '',
-    role: '',
-    orgName: '',
-  });
+  // Funktionen (inte dess resultat) skickas in, så att token bara läses vid första renderingen
+  const [userData, setUserData] = useState(readUserFromToken);
   const [loading, setLoading] = useState(true);
 
   // Redigeringsläge
@@ -46,44 +88,7 @@ const Profile = ({ onLogout }) => {
   const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
-    // 1. LÄS NAMN OCH ROLL FRÅN TOKEN
-    const payload = decodeToken();
-    const role = getUserRole() || '';
-    const orgName = getOrganizationName() || '';
-    if (payload) {
-      try {
-        const firstName = payload.FirstName || '';
-        const lastName = payload.LastName || '';
-        const email =
-          payload.email ||
-          payload[
-            'http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'
-          ] ||
-          'Användare';
-
-        let fullName = email.split('@')[0];
-        let initials = fullName.substring(0, 2).toUpperCase();
-
-        if (firstName && lastName) {
-          fullName = `${firstName} ${lastName}`;
-          initials = (firstName[0] + lastName[0]).toUpperCase();
-        }
-
-        setUserData({
-          firstName,
-          lastName,
-          fullName,
-          initials,
-          email,
-          role,
-          orgName,
-        });
-      } catch (e) {
-        console.error('Kunde inte läsa token', e);
-      }
-    }
-
-    // 2. Hämta statistik
+    // Hämta statistik
     const fetchStats = async () => {
       try {
         const shiftsData = await fetchMyShifts();

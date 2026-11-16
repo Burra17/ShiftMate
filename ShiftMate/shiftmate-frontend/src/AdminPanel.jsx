@@ -34,9 +34,14 @@ const AdminPanel = () => {
     }
   };
 
+  // Första hämtningen sker direkt i effekten – setState i .then räknas inte som
+  // synkron setState. loadOrganizations används för att ladda om efter ändringar.
   useEffect(() => {
-    loadOrganizations();
-  }, []);
+    fetchOrganizationsDetail()
+      .then(setOrganizations)
+      .catch(() => toast.error('Kunde inte hämta organisationer.'))
+      .finally(() => setLoading(false));
+  }, [toast]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
