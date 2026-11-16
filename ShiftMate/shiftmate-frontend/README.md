@@ -10,7 +10,7 @@ React-klienten för ShiftMate - en applikation för skiftplanering och hantering
 - **Axios** - HTTP-klient med JWT-interceptor för automatisk autentisering
 - **React Router v7** - Klientbaserad routing
 - **Vitest + Testing Library + jsdom** - Komponenttester
-- **ESLint + Prettier** - Lint och formatering (kontrolleras i CI)
+- **ESLint 10 + Prettier** - Lint (flat config i `eslint.config.js`) och formatering (kontrolleras i CI)
 
 ## Komma igång
 
