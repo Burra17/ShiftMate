@@ -98,14 +98,22 @@ builder.Services.AddApplication();
 
 // Registrera e-posttjänsten. Lokalt utan Resend-nyckel loggas mejlen i terminalen istället.
 // I alla andra fall används Resend, som kraschar direkt om nyckeln saknas (fail fast i produktion).
-if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(builder.Configuration["Resend:ApiKey"]))
+var useConsoleEmail = builder.Environment.IsDevelopment() && string.IsNullOrEmpty(builder.Configuration["Resend:ApiKey"]);
+if (useConsoleEmail)
 {
-    builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+    builder.Services.AddScoped<ConsoleEmailService>();
 }
 else
 {
-    builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
+    builder.Services.AddHttpClient<ResendEmailService>();
 }
+
+// IEmailService är alltid DemoSafeEmailService runt den riktiga tjänsten – mejl till demo-användare skickas aldrig
+builder.Services.AddScoped<IEmailService>(provider => new DemoSafeEmailService(
+    useConsoleEmail
+        ? provider.GetRequiredService<ConsoleEmailService>()
+        : provider.GetRequiredService<ResendEmailService>(),
+    provider.GetRequiredService<ILogger<DemoSafeEmailService>>()));
 
 // Sätt FrontendUrl för email-templates (localhost i dev, Vercel i prod)
 ShiftMate.Application.Services.EmailTemplateService.FrontendUrl =
