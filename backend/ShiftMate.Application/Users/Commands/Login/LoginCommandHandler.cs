@@ -1,11 +1,6 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Enums;
@@ -13,17 +8,17 @@ using ShiftMate.Domain.Enums;
 namespace ShiftMate.Application.Users.Commands.Login;
 
 // Handlern för inloggning.
-// Den validerar användarens e-post och lösenord, kontrollerar kontostatus och e-postverifiering, och genererar en JWT-token med relevant information som frontend behöver.
+// Den validerar användarens e-post och lösenord, kontrollerar kontostatus och e-postverifiering, och låter IJwtTokenGenerator skapa token.
 public class LoginCommandHandler : IRequestHandler<LoginCommand, string>
 {
     private readonly IAppDbContext _context;
-    private readonly IConfiguration _configuration;
+    private readonly IJwtTokenGenerator _tokenGenerator;
     private readonly IValidator<LoginCommand> _validator;
 
-    public LoginCommandHandler(IAppDbContext context, IConfiguration configuration, IValidator<LoginCommand> validator)
+    public LoginCommandHandler(IAppDbContext context, IJwtTokenGenerator tokenGenerator, IValidator<LoginCommand> validator)
     {
         _context = context;
-        _configuration = configuration;
+        _tokenGenerator = tokenGenerator;
         _validator = validator;
     }
 
@@ -59,38 +54,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, string>
             throw new EmailNotVerifiedException("E-postadressen är inte verifierad. Kontrollera din inkorg för verifieringslänken.");
         }
 
-        // C. Skapa Token (Nyckeln) 🔑
-        // Här lägger vi in informationen som frontend behöver!
-        var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.ToString()),
-                new Claim("FirstName", user.FirstName),
-                new Claim("LastName", user.LastName)
-            };
-
-        // SuperAdmin har ingen organisation
-        if (user.OrganizationId.HasValue)
-        {
-            claims.Add(new Claim("OrganizationId", user.OrganizationId.Value.ToString()));
-            claims.Add(new Claim("OrganizationName", user.Organization?.Name ?? ""));
-        }
-
-        // Hämta hemlig nyckel
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        // Skapa själva token-objektet
-        var token = new JwtSecurityToken(
-            issuer: _configuration["Jwt:Issuer"],
-            audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddHours(1),
-            signingCredentials: creds
-        );
-
-        // Returnera som textsträng
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        // D. Skapa token (användaren är laddad med Organization ovan)
+        return _tokenGenerator.GenerateToken(user);
     }
 }
