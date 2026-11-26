@@ -54,6 +54,23 @@ public class JwtTokenGeneratorTests
     }
 
     [Fact]
+    public void GenerateToken_Should_Include_IsDemo_Claim_Only_When_Organization_Is_Demo()
+    {
+        // Arrange
+        var demoUser = CreateUser(Role.Employee, new Organization { Id = Guid.NewGuid(), Name = "Demo", IsDemo = true });
+        var realUser = CreateUser(Role.Employee, new Organization { Id = Guid.NewGuid(), Name = "Riktig" });
+        var generator = CreateGenerator();
+
+        // Act
+        var demoClaims = new JwtSecurityTokenHandler().ReadJwtToken(generator.GenerateToken(demoUser)).Claims;
+        var realClaims = new JwtSecurityTokenHandler().ReadJwtToken(generator.GenerateToken(realUser)).Claims;
+
+        // Assert
+        demoClaims.Should().Contain(c => c.Type == "IsDemo" && c.Value == "true");
+        realClaims.Should().NotContain(c => c.Type == "IsDemo");
+    }
+
+    [Fact]
     public void GenerateToken_Should_Create_Token_That_Validates_And_Expires_In_One_Hour()
     {
         // Arrange

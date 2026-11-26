@@ -38,6 +38,12 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             claims.Add(new Claim("OrganizationName", user.Organization?.Name ?? ""));
         }
 
+        // Demo-sandlåda – frontend visar en banner om att ändringar raderas
+        if (user.Organization?.IsDemo == true)
+        {
+            claims.Add(new Claim("IsDemo", "true"));
+        }
+
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]!));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
