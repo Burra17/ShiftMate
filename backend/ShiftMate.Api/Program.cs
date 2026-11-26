@@ -78,6 +78,18 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registrera interfacet IAppDbContext
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
+// Databaskontroll för /health/db. Kör en riktig liten fråga (räknas som aktivitet, så att
+// Supabase inte pausar databasen). Svaret spelar ingen roll – bara att frågan går igenom,
+// så en tom tabell ger inte "Unhealthy".
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>(
+        name: "database",
+        customTestQuery: async (db, cancellationToken) =>
+        {
+            await db.Users.AnyAsync(cancellationToken);
+            return true;
+        });
+
 // Koppla in Application-lagret (MediatR)
 builder.Services.AddApplication();
 
@@ -154,10 +166,15 @@ app.UseAuthorization();  // <--- Kollar VAD du får göra (Får du komma in?)
 
 app.MapControllers();
 
-// --- HEALTH CHECK (För UptimeRobot) ---
-// En enkel endpoint som bara svarar 200 OK.
-// Används för att hålla Render-servern vaken.
+// --- HEALTH CHECKS ---
+// /health – liveness: "processen lever". Render använder den för att avgöra om appen ska startas om,
+// och UptimeRobot pingar den var 5:e minut så att Render inte somnar. Rör ALDRIG databasen här –
+// annars startar Render om API:et varje gång databasen har problem.
 app.MapGet("/health", () => Results.Ok("ShiftMate is alive! 🤖"));
+
+// /health/db – readiness: "appen når databasen". 200 Healthy / 503 Unhealthy.
+// UptimeRobot pingar den varje timme så att Supabase (gratisnivån) inte pausar databasen.
+app.MapHealthChecks("/health/db");
 
 app.Run();
 
