@@ -301,12 +301,14 @@ ShiftMate.Tests/                                 # Unit + integration tests (xUn
 ```
 main.jsx                        # React entrypoint
 App.jsx                         # Main routing, auth check, sidebar navigation
-api.js                          # Axios config + JWT interceptor + API helper functions (lowercase endpoint paths)
+api.js                          # Axios config + JWT interceptor + API helper functions (lowercase endpoint paths);
+                                # startDemo(role) and isDemo() for the demo sandbox
 index.css                       # Global Tailwind styles + animations
 utils/
   dateUtils.js                  # Swedish-locale date/time formatting helpers (formatDate, formatTime)
 Dashboard.jsx                   # Landing page with overview & quick stats
-Login.jsx                       # Login page
+Login.jsx                       # Login page + demo buttons ("Testa som chef/anställd", cold-start message)
+Login.test.jsx                  # Vitest: demo buttons (api.js mocked with vi.mock)
 Register.jsx                    # Registration page
 ForgotPassword.jsx              # Forgot password — request reset email
 ResetPassword.jsx               # Reset password with token from email
@@ -325,6 +327,8 @@ components/
   NotificationDropdown.jsx      # Bell icon with swap request notifications
   EmptyState.jsx                # Reusable empty state placeholder
   EmptyState.test.jsx           # Vitest: message and optional link
+  DemoBanner.jsx                # "Du testar en demo" banner — only when token has IsDemo
+  DemoBanner.test.jsx           # Vitest: shown only for demo tokens
   LoadingSpinner.jsx            # Reusable loading spinner
   ErrorBoundary.jsx             # Catches render errors, shows fallback (only class component — see Frontend Rules)
   manager/

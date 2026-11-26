@@ -1,5 +1,7 @@
 # ShiftMate
 
+**[Prova demon →](https://shiftmate-ruby.vercel.app)** – klicka på *Testa som chef* eller *Testa som anställd* på inloggningssidan. Du får en egen sandlåda med testdata, inget konto behövs.
+
 ShiftMate är en fullstack-applikation for skiftplanering och hantering av skiftbyten mellan anställda. Applikationen gör det enkelt för medarbetare att byta pass med varandra, ta lediga pass och för administratörer att skapa och tilldela skift.
 
 ## Funktioner
@@ -146,6 +148,8 @@ API-adressen läses från `VITE_API_URL` i `frontend/.env.development` (standard
 
 ### 7. Logga in med testkonton
 
+> **Testkontona finns bara lokalt** – de seedas när API:et startar i Development. I produktion finns de inte; där provar man appen med demo-knapparna på inloggningssidan.
+
 I Development seedas två organisationer och följande konton:
 
 | Roll | E-post | Lösenord | Organisation |
@@ -251,6 +255,8 @@ Klistra in connection string direkt i terminalen – spara den aldrig i en fil. 
     │   ├── App.jsx
     │   ├── api.js
     │   ├── Dashboard.jsx
+    │   ├── Login.jsx                      # Inloggning + demo-knappar
+    │   ├── Login.test.jsx
     │   ├── ShiftList.jsx
     │   ├── MarketPlace.jsx
     │   ├── Schedule.jsx
@@ -261,6 +267,8 @@ Klistra in connection string direkt i terminalen – spara den aldrig i en fil. 
     │   │   └── ToastContext.test.jsx
     │   └── components/
     │       ├── AuthLayout.jsx
+    │       ├── DemoBanner.jsx             # Banner för demo-användare
+    │       ├── DemoBanner.test.jsx
     │       ├── EmptyState.jsx
     │       ├── EmptyState.test.jsx        # Frontendtester ligger bredvid komponenten
     │       └── ManagerPanel.jsx
