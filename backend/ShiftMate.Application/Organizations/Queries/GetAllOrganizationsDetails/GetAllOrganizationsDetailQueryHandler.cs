@@ -19,6 +19,7 @@ public class GetAllOrganizationsDetailQueryHandler : IRequestHandler<GetAllOrgan
     {
         return await _context.Organizations
             .AsNoTracking()
+            .Where(o => !o.IsDemo) // Demo-sandlådor visas inte för SuperAdmin
             .OrderBy(o => o.Name)
             .Select(o => new OrganizationDetailDto
             {
