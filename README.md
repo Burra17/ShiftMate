@@ -42,6 +42,17 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 - **Frontend:** Vercel
 - **Container:** Docker (multi-stage build)
 
+### Hålla produktionen vaken
+
+Både Render och Supabase somnar på gratisnivån. UptimeRobot pingar två endpoints, med e-postlarm om någon slutar svara:
+
+| Endpoint | Intervall | Kontrollerar | Håller vaken |
+|---|---|---|---|
+| `GET /health` | 5 min | att API:et lever (*liveness*) – rör inte databasen | Render (somnar efter 15 min) |
+| `GET /health/db` | 1 h | att API:et når databasen (*readiness*) – `200 Healthy` / `503 Unhealthy` | Supabase (pausar efter 7 dagar) |
+
+`/health` får aldrig bero på databasen: Render använder den för att avgöra om API:et ska startas om.
+
 ## Komma igång (Utveckling)
 
 ### Förkrav
@@ -220,7 +231,7 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 │   │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
 │   │   └── Extensions/                    # ClaimsPrincipalExtensions
 │   │
-│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (209 tester)
+│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (212 tester)
 │
 └── frontend/                              # React-applikation (Vercel bygger härifrån)
     ├── .nvmrc                             # Node-version (används även av CI)
