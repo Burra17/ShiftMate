@@ -100,6 +100,7 @@ throw new ValidationException(validationResult.Errors);    // FluentValidation �
 throw new NotFoundException("Passet hittades inte.");      // → 404
 throw new ForbiddenException("Du har inte behörighet.");   // → 403
 throw new ConflictException("E-posten finns redan.");      // → 409
+throw new TooManyRequestsException("Demon är full...");    // → 429
 throw new EmailNotVerifiedException("...");                // → 400 + Code: "EMAIL_NOT_VERIFIED"
 throw new InvalidOperationException("Business rule msg."); // → 400 (generic business rule)
 
@@ -256,7 +257,8 @@ ShiftMate.Application/                           # Business logic layer (CQRS)
   Common/
     PagedResult.cs                               # Generic pagination wrapper
     Exceptions/                                  # NotFoundException, ForbiddenException,
-                                                 # ConflictException, EmailNotVerifiedException
+                                                 # ConflictException, EmailNotVerifiedException,
+                                                 # TooManyRequestsException (429)
   DTOs/                                          # ShiftDto, UserDto, SwapRequestDto, OrganizationDto
   Interfaces/                                    # IAppDbContext, IEmailService, IJwtTokenGenerator
   Services/                                      # EmailTemplateService (static helper)
@@ -268,13 +270,18 @@ ShiftMate.Application/                           # Business logic layer (CQRS)
                                                  #   - {Name}Query.cs
                                                  #   - {Name}QueryHandler.cs
   Organizations/InviteCodeGenerator.cs           # Feature-local static helper
+  Organizations/OrganizationRemover.cs           # Deletes orgs + all data in FK order (DeleteOrganization + demo cleanup)
+  Demo/DemoConstants.cs                          # Demo rules: .invalid email domain, 2 h lifetime, max 100 sandboxes
+  Demo/DemoSandboxBuilder.cs                     # Builds a sandbox: org, 5 users, 14 days of shifts, swap requests
+  Demo/Commands/StartDemo/                       # Cleanup expired → cap check → build → token for chosen role
   DependencyInjection.cs                         # MediatR + FluentValidation registration
 
 ShiftMate.Infrastructure/                        # Data access & external services
   AppDbContext.cs                                # EF Core DbContext with relationships
   DbInitializer.cs                               # Dev-only seed data (2 orgs, test users & shifts) — never deletes data
   Services/                                      # ResendEmailService, ConsoleEmailService (dev without Resend key),
-                                                 # JwtTokenGenerator (the only place JWTs are created)
+                                                 # JwtTokenGenerator (the only place JWTs are created),
+                                                 # DemoSafeEmailService (decorator: never emails .invalid addresses)
   Migrations/                                    # EF Core migrations
 
 ShiftMate.Api/                                   # HTTP layer
@@ -344,7 +351,7 @@ components/
 
 ## DATA MODEL (PostgreSQL)
 
-- **Organization:** `Id` (Guid), `Name` (string, unique), `InviteCode` (string, max 8, unique), `InviteCodeGeneratedAt` (DateTime), `CreatedAt` (DateTime)
+- **Organization:** `Id` (Guid), `Name` (string, unique), `InviteCode` (string, max 8, unique), `InviteCodeGeneratedAt` (DateTime), `CreatedAt` (DateTime), `IsDemo` (bool, default false — visitor sandbox)
 - **User:** `Id` (Guid), `Email` (unique, case-insensitive), `FirstName`, `LastName`, `Role` (Employee/Manager/SuperAdmin), `PasswordHash`, `IsEmailVerified` (bool), `EmailVerificationTokenHash`, `EmailVerificationTokenExpiresAt`, `ResetTokenHash`, `ResetTokenExpiresAt`, `IsActive` (bool, default true), `DeactivatedAt` (DateTime?), `OrganizationId` (FK → Organization)
 - **Shift:** `Id`, `StartTime`, `EndTime`, `UserId` (nullable FK → User), `IsUpForSwap` (bool), `OrganizationId` (FK → Organization)
 - **SwapRequest:** `Id`, `ShiftId` (FK), `RequestingUserId` (FK), `TargetUserId` (nullable FK), `TargetShiftId` (nullable FK), `Status` (SwapRequestStatus enum: Pending/Accepted/Declined/Cancelled, stored as string), `CreatedAt`
@@ -359,6 +366,7 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 
 ### Public (No Auth)
 - `POST /api/users/login` — Login → returns JWT token
+- `POST /api/demo/start` — `{ "role": "Manager" | "Employee" }` → creates a demo sandbox and returns a JWT (rate limited: 20/min globally, max 100 active sandboxes → 429)
 - `POST /api/users/register` — Register (requires InviteCode) → returns UserDto
 - `POST /api/users/forgot-password` — Request password reset email
 - `POST /api/users/reset-password` — Reset password with token
@@ -423,9 +431,11 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - Always validate user ownership before mutations (e.g., user can only cancel their own swap).
 - Use `[Authorize(Roles = "Manager")]` for manager-only endpoints — never check roles in handlers.
 - Hash passwords with BCrypt — never store plaintext.
-- JWT tokens include `UserId`, `Email`, `Role`, `FirstName`, `LastName`, `OrganizationId`, and `OrganizationName` as claims. They are created **only** by `IJwtTokenGenerator` (`Infrastructure/Services/JwtTokenGenerator.cs`) — never build tokens elsewhere. Integration tests get their tokens from the same generator via `ShiftMateApiFactory.CreateAuthenticatedClient`.
+- JWT tokens include `UserId`, `Email`, `Role`, `FirstName`, `LastName`, `OrganizationId`, and `OrganizationName` as claims, plus `IsDemo` = `true` for users in a demo sandbox. They are created **only** by `IJwtTokenGenerator` (`Infrastructure/Services/JwtTokenGenerator.cs`) — never build tokens elsewhere. Integration tests get their tokens from the same generator via `ShiftMateApiFactory.CreateAuthenticatedClient`.
 - Sanitize all user input via FluentValidation before processing.
 - Frontend: never trust client-side role checks alone — backend enforces authorization.
+- **Demo sandboxes** (`Organization.IsDemo`): cleanup must only ever delete `IsDemo` organizations; demo users get `@demo.shiftmate.invalid` emails and `DemoSafeEmailService` (registered around the real `IEmailService` in `Program.cs`) never sends to `.invalid`; demo orgs are hidden from organization lists; no SuperAdmin in demos.
+- **Production database:** migrations are never applied automatically there — run `dotnet ef database update --connection` before merging a PR with a migration (README). Never run the API in Development against production (the seed creates accounts whose passwords are public in the README).
 
 ---
 

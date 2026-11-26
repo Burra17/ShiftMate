@@ -67,6 +67,10 @@ npm test
 npm run build
 ```
 
+## Ändringar i datamodellen
+
+En PR med en ny migrering kräver ett manuellt steg: migreringen körs mot produktionsdatabasen **innan merge** (se [README – Köra en migrering mot produktion](README.md#köra-en-migrering-mot-produktion)). Annars kraschar den nya koden i produktion när den letar efter en kolumn som inte finns. Lägg till kolumner med standardvärden, så att koden som redan körs i produktion fortsätter att fungera tills PR:en är mergad.
+
 ## Beroenden (Dependabot)
 
 [`.github/dependabot.yml`](.github/dependabot.yml) skapar PR:er varje måndag för npm, NuGet och GitHub Actions. Akuta säkerhetsfixar kommer direkt via *Dependabot security updates*.

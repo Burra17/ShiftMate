@@ -14,6 +14,7 @@ ShiftMate är en fullstack-applikation for skiftplanering och hantering av skift
 - **Admin-panel** - SuperAdmin kan hantera alla organisationer (skapa, redigera, ta bort)
 - **Inbjudningskod** - Managers delar inbjudningskod, anställda anger den vid registrering
 - **Rollbaserad navigation** - Manager/SuperAdmin-funktioner visas bara för rätt roll
+- **Demo utan konto** - Besökare kan prova appen som chef eller anställd i en egen sandlåda med testdata, som raderas automatiskt efter 2 timmar
 
 ## Teknikstack
 
@@ -185,6 +186,16 @@ dotnet tool install --global dotnet-ef
 dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-project ShiftMate.Api
 ```
 
+### Köra en migrering mot produktion
+
+Lokalt körs migreringarna automatiskt när API:et startar i Development. **I produktion körs de aldrig automatiskt** – kör dem manuellt från `backend/`, **innan** koden som använder den nya modellen mergas (lägg till kolumner med standardvärden, så att koden som redan körs i produktion inte påverkas):
+
+```bash
+dotnet ef database update --project ShiftMate.Infrastructure --startup-project ShiftMate.Api --connection "<produktionens connection string>"
+```
+
+Klistra in connection string direkt i terminalen – spara den aldrig i en fil. **Starta aldrig API:et i Development mot produktionsdatabasen:** då körs seeden, som skapar testkontona med lösenorden i den här README:n.
+
 ## Projektets filstruktur
 
 ```
@@ -231,7 +242,7 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 │   │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
 │   │   └── Extensions/                    # ClaimsPrincipalExtensions
 │   │
-│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (215 tester)
+│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (228 tester)
 │
 └── frontend/                              # React-applikation (Vercel bygger härifrån)
     ├── .nvmrc                             # Node-version (används även av CI)
