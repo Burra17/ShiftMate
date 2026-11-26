@@ -1,13 +1,9 @@
-using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
-using System.Security.Claims;
-using System.Text;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.IdentityModel.Tokens;
 using ShiftMate.Application.Interfaces;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
@@ -98,30 +94,14 @@ public class ShiftMateApiFactory : WebApplicationFactory<Program>
         return shift;
     }
 
-    // HTTP-klient med en JWT som har samma claims som LoginCommandHandler utfärdar
+    // HTTP-klient med en JWT från appens riktiga IJwtTokenGenerator – samma token som inloggningen ger
     public HttpClient CreateAuthenticatedClient(User user)
     {
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.Role, user.Role.ToString()),
-            new("FirstName", user.FirstName),
-            new("LastName", user.LastName)
-        };
-        if (user.OrganizationId.HasValue)
-        {
-            claims.Add(new Claim("OrganizationId", user.OrganizationId.Value.ToString()));
-        }
-
-        var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey)), SecurityAlgorithms.HmacSha256);
-        var token = new JwtSecurityToken(JwtIssuer, JwtAudience, claims,
-            expires: DateTime.UtcNow.AddHours(1), signingCredentials: credentials);
+        using var scope = Services.CreateScope();
+        var token = scope.ServiceProvider.GetRequiredService<IJwtTokenGenerator>().GenerateToken(user);
 
         var client = CreateClient();
-        client.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", new JwtSecurityTokenHandler().WriteToken(token));
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
 

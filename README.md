@@ -222,7 +222,7 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 │   ├── ShiftMate.Infrastructure/          # Infrastrukturlager - Dataåtkomst
 │   │   ├── AppDbContext.cs
 │   │   ├── DbInitializer.cs
-│   │   ├── Services/                      # ResendEmailService, ConsoleEmailService (dev)
+│   │   ├── Services/                      # ResendEmailService, ConsoleEmailService (dev), JwtTokenGenerator
 │   │   └── Migrations/
 │   │
 │   ├── ShiftMate.Api/                     # API-lager - HTTP
@@ -231,7 +231,7 @@ dotnet ef migrations add <Namn> --project ShiftMate.Infrastructure --startup-pro
 │   │   ├── Middleware/                    # ExceptionHandlingMiddleware (global felmappning)
 │   │   └── Extensions/                    # ClaimsPrincipalExtensions
 │   │
-│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (212 tester)
+│   └── ShiftMate.Tests/                   # Enhets- och integrationstester (215 tester)
 │
 └── frontend/                              # React-applikation (Vercel bygger härifrån)
     ├── .nvmrc                             # Node-version (används även av CI)

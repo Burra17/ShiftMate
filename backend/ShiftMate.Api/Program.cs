@@ -78,6 +78,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Registrera interfacet IAppDbContext
 builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
+// JWT-token skapas på ett enda ställe (inloggning och, senare, demo-sandlådan)
+builder.Services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
 // Databaskontroll för /health/db. Kör en riktig liten fråga (räknas som aktivitet, så att
 // Supabase inte pausar databasen). Svaret spelar ingen roll – bara att frågan går igenom,
 // så en tom tabell ger inte "Unhealthy".

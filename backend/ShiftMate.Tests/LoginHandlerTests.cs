@@ -7,6 +7,7 @@ using ShiftMate.Application.Common.Exceptions;
 using ShiftMate.Application.Users.Commands.Login;
 using ShiftMate.Domain.Entities;
 using ShiftMate.Domain.Enums;
+using ShiftMate.Infrastructure.Services;
 using ShiftMate.Tests.Support;
 
 namespace ShiftMate.Tests;
@@ -208,7 +209,8 @@ public class LoginHandlerTests
         var validatorMock = new Mock<IValidator<LoginCommand>>();
         validatorMock.Setup(v => v.ValidateAsync(It.IsAny<LoginCommand>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ValidationResult());
-        return new LoginCommandHandler(context, CreateConfiguration(), validatorMock.Object);
+        // Riktig generator (inte mock), så att testerna kontrollerar vad som faktiskt står i token
+        return new LoginCommandHandler(context, new JwtTokenGenerator(CreateConfiguration()), validatorMock.Object);
     }
 
     private static IConfiguration CreateConfiguration()
