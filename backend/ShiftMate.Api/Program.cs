@@ -1,9 +1,11 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using ShiftMate.Api.Controllers;
 using ShiftMate.Api.Middleware;
 using ShiftMate.Application;
 using ShiftMate.Application.Interfaces;
@@ -131,6 +133,26 @@ builder.Services.AddCors(options =>
         .AllowAnyHeader());
 });
 
+// --- RATE LIMIT: demo-sandlådor ---
+// Globalt tak (inte per IP – bakom Renders proxy är klientens IP opålitlig och kan förfalskas).
+// Antalet kan sänkas i tester via Demo:StartsPerMinute.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { Error = true, Message = "För många demo-starter just nu – försök igen om en minut." },
+            cancellationToken);
+    };
+    options.AddFixedWindowLimiter(DemoController.RateLimitPolicy, limiter =>
+    {
+        limiter.PermitLimit = builder.Configuration.GetValue("Demo:StartsPerMinute", 20);
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
+});
+
 // ---------------------------------------------------------
 // 2. BYGG APPLIKATIONEN & KÖR SEEDER
 // ---------------------------------------------------------
@@ -170,6 +192,9 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseCors("AllowReactApp"); // <--- Denna måste ligga här!
+
+// Efter CORS, så att även 429-svar får CORS-headers och kan läsas av frontend
+app.UseRateLimiter();
 
 // --- VIKTIGT: Authentication måste ligga FÖRE Authorization ---
 app.UseAuthentication(); // <--- Kollar VEM du är (Har du biljett?)
