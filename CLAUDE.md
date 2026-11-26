@@ -258,7 +258,7 @@ ShiftMate.Application/                           # Business logic layer (CQRS)
     Exceptions/                                  # NotFoundException, ForbiddenException,
                                                  # ConflictException, EmailNotVerifiedException
   DTOs/                                          # ShiftDto, UserDto, SwapRequestDto, OrganizationDto
-  Interfaces/                                    # IAppDbContext, IEmailService
+  Interfaces/                                    # IAppDbContext, IEmailService, IJwtTokenGenerator
   Services/                                      # EmailTemplateService (static helper)
   [Feature]/Commands/[VerbEntity]/               # One folder per command — contains:
                                                  #   - {Name}Command.cs
@@ -273,7 +273,8 @@ ShiftMate.Application/                           # Business logic layer (CQRS)
 ShiftMate.Infrastructure/                        # Data access & external services
   AppDbContext.cs                                # EF Core DbContext with relationships
   DbInitializer.cs                               # Dev-only seed data (2 orgs, test users & shifts) — never deletes data
-  Services/                                      # ResendEmailService, ConsoleEmailService (dev without Resend key)
+  Services/                                      # ResendEmailService, ConsoleEmailService (dev without Resend key),
+                                                 # JwtTokenGenerator (the only place JWTs are created)
   Migrations/                                    # EF Core migrations
 
 ShiftMate.Api/                                   # HTTP layer
@@ -422,7 +423,7 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - Always validate user ownership before mutations (e.g., user can only cancel their own swap).
 - Use `[Authorize(Roles = "Manager")]` for manager-only endpoints — never check roles in handlers.
 - Hash passwords with BCrypt — never store plaintext.
-- JWT tokens include `UserId`, `Email`, `Role`, `OrganizationId`, and `OrganizationName` as claims.
+- JWT tokens include `UserId`, `Email`, `Role`, `FirstName`, `LastName`, `OrganizationId`, and `OrganizationName` as claims. They are created **only** by `IJwtTokenGenerator` (`Infrastructure/Services/JwtTokenGenerator.cs`) — never build tokens elsewhere. Integration tests get their tokens from the same generator via `ShiftMateApiFactory.CreateAuthenticatedClient`.
 - Sanitize all user input via FluentValidation before processing.
 - Frontend: never trust client-side role checks alone — backend enforces authorization.
 
