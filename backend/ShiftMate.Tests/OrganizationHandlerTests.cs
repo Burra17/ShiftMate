@@ -156,6 +156,25 @@ public class OrganizationHandlerTests
         TestDbContextFactory.Destroy(context);
     }
 
+    [Fact]
+    public async Task GetAllDetail_Should_Not_Return_Demo_Organizations()
+    {
+        // Arrange
+        var context = TestDbContextFactory.Create();
+        context.Organizations.Add(new Organization { Id = Guid.NewGuid(), Name = "Riktig", CreatedAt = DateTime.UtcNow });
+        context.Organizations.Add(new Organization { Id = Guid.NewGuid(), Name = "Demo · abc123", CreatedAt = DateTime.UtcNow, IsDemo = true });
+        await context.SaveChangesAsync(CancellationToken.None);
+        var handler = new GetAllOrganizationsDetailQueryHandler(context);
+
+        // Act
+        var result = await handler.Handle(new GetAllOrganizationsDetailQuery(), CancellationToken.None);
+
+        // Assert
+        result.Should().ContainSingle().Which.Name.Should().Be("Riktig");
+
+        TestDbContextFactory.Destroy(context);
+    }
+
     // ================================================
     // DeleteOrganizationHandler
     // ================================================

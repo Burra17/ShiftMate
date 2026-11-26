@@ -1,9 +1,11 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using ShiftMate.Api.Controllers;
 using ShiftMate.Api.Middleware;
 using ShiftMate.Application;
 using ShiftMate.Application.Interfaces;
@@ -98,14 +100,22 @@ builder.Services.AddApplication();
 
 // Registrera e-posttjänsten. Lokalt utan Resend-nyckel loggas mejlen i terminalen istället.
 // I alla andra fall används Resend, som kraschar direkt om nyckeln saknas (fail fast i produktion).
-if (builder.Environment.IsDevelopment() && string.IsNullOrEmpty(builder.Configuration["Resend:ApiKey"]))
+var useConsoleEmail = builder.Environment.IsDevelopment() && string.IsNullOrEmpty(builder.Configuration["Resend:ApiKey"]);
+if (useConsoleEmail)
 {
-    builder.Services.AddScoped<IEmailService, ConsoleEmailService>();
+    builder.Services.AddScoped<ConsoleEmailService>();
 }
 else
 {
-    builder.Services.AddHttpClient<IEmailService, ResendEmailService>();
+    builder.Services.AddHttpClient<ResendEmailService>();
 }
+
+// IEmailService är alltid DemoSafeEmailService runt den riktiga tjänsten – mejl till demo-användare skickas aldrig
+builder.Services.AddScoped<IEmailService>(provider => new DemoSafeEmailService(
+    useConsoleEmail
+        ? provider.GetRequiredService<ConsoleEmailService>()
+        : provider.GetRequiredService<ResendEmailService>(),
+    provider.GetRequiredService<ILogger<DemoSafeEmailService>>()));
 
 // Sätt FrontendUrl för email-templates (localhost i dev, Vercel i prod)
 ShiftMate.Application.Services.EmailTemplateService.FrontendUrl =
@@ -121,6 +131,26 @@ builder.Services.AddCors(options =>
         )
         .AllowAnyMethod()
         .AllowAnyHeader());
+});
+
+// --- RATE LIMIT: demo-sandlådor ---
+// Globalt tak (inte per IP – bakom Renders proxy är klientens IP opålitlig och kan förfalskas).
+// Antalet kan sänkas i tester via Demo:StartsPerMinute.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        await context.HttpContext.Response.WriteAsJsonAsync(
+            new { Error = true, Message = "För många demo-starter just nu – försök igen om en minut." },
+            cancellationToken);
+    };
+    options.AddFixedWindowLimiter(DemoController.RateLimitPolicy, limiter =>
+    {
+        limiter.PermitLimit = builder.Configuration.GetValue("Demo:StartsPerMinute", 20);
+        limiter.Window = TimeSpan.FromMinutes(1);
+        limiter.QueueLimit = 0;
+    });
 });
 
 // ---------------------------------------------------------
@@ -162,6 +192,9 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseCors("AllowReactApp"); // <--- Denna måste ligga här!
+
+// Efter CORS, så att även 429-svar får CORS-headers och kan läsas av frontend
+app.UseRateLimiter();
 
 // --- VIKTIGT: Authentication måste ligga FÖRE Authorization ---
 app.UseAuthentication(); // <--- Kollar VEM du är (Har du biljett?)

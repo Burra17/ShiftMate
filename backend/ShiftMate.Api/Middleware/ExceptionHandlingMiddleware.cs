@@ -81,6 +81,10 @@ public class ExceptionHandlingMiddleware
             StatusCodes.Status409Conflict,
             new { Error = true, Message = ce.Message }),
 
+        TooManyRequestsException tmre => (
+            StatusCodes.Status429TooManyRequests,
+            new { Error = true, Message = tmre.Message }),
+
         InvalidOperationException ioe => (
             StatusCodes.Status400BadRequest,
             new { Error = true, Message = ioe.Message }),
