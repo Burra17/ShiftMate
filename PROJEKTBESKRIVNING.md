@@ -298,7 +298,8 @@ ENTRYPOINT ["dotnet", "ShiftMate.Api.dll"]
 
 **Render-konfiguration:**
 - Automatisk deploy vid push till `main`
-- Health check endpoint: `GET /health` (håller instansen vaken)
+- Health check endpoint: `GET /health` (liveness – håller instansen vaken)
+- Databaskontroll: `GET /health/db` (readiness – håller Supabase-databasen vaken)
 - Miljövariabler för alla hemligheter (connection strings, JWT, Resend API-nyckel)
 - URL: `https://shiftmate-vow0.onrender.com`
 

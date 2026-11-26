@@ -69,6 +69,7 @@ These principles guide every decision in this project:
 
 - **Backend:** Render (health check at `/health`) — Root Directory `backend`, Dockerfile Path `backend/./Dockerfile`, Docker Build Context `backend/.`. Render only redeploys on changes inside `backend/`.
 - **Frontend:** Vercel — Root Directory `frontend`
+- **Health checks:** `/health` is *liveness* (process is up — used by Render; must never touch the database, or Render restarts the API when the database has problems). `/health/db` is *readiness* (ASP.NET Core Health Checks with `AddDbContextCheck` running `Users.AnyAsync()` — 200 `Healthy` / 503 `Unhealthy`). UptimeRobot pings `/health` every 5 min (keeps Render awake) and `/health/db` every hour (keeps Supabase free tier from pausing after 7 idle days), both with email alerts.
 - **Containerization:** Docker (multi-stage build)
 
 ---
@@ -362,7 +363,8 @@ All data is scoped by Organization. Query handlers filter with `.Where(x => x.Or
 - `POST /api/users/reset-password` — Reset password with token
 - `POST /api/users/verify-email` — Verify email with token
 - `POST /api/users/resend-verification` — Resend verification email
-- `GET /health` — Health check
+- `GET /health` — Liveness check (always 200, no database)
+- `GET /health/db` — Readiness check (200 `Healthy` / 503 `Unhealthy` depending on database)
 
 ### Authenticated (Any Role)
 - `GET /api/users` — Get all users (?page=1&pageSize=20 for pagination)
