@@ -51,7 +51,7 @@ Testfilen ligger bredvid komponenten och heter `X.test.jsx` – Vitest hittar ba
 | Sida          | Fil                           | Beskrivning                                                                                |
 | ------------- | ----------------------------- | ------------------------------------------------------------------------------------------ |
 | Dashboard     | `Dashboard.jsx`               | Startsida med översikt, snabbkort och kommande pass                                        |
-| Inloggning    | `Login.jsx`                   | Inloggning med e-post och lösenord                                                         |
+| Inloggning    | `Login.jsx`                   | Inloggning med e-post och lösenord, plus demo-knappar (chef/anställd) utan konto           |
 | Registrering  | `Register.jsx`                | Skapa nytt konto med inbjudningskod                                                        |
 | Mina Pass     | `ShiftList.jsx`               | Användarens skift och inkommande bytesförfrågningar                                        |
 | Lediga Pass   | `MarketPlace.jsx`             | Otilldelade och erbjudna skift att ta                                                      |
@@ -125,7 +125,8 @@ frontend/
     ├── index.css             # Globala Tailwind-stilar + toast-animationer
     ├── App.css               # Komponentspecifika stilar
     ├── Dashboard.jsx         # Dashboard med översikt och snabbkort
-    ├── Login.jsx             # Inloggningssida
+    ├── Login.jsx             # Inloggningssida + demo-knappar
+    ├── Login.test.jsx        # Test: demo-knapparna (API mockat med vi.mock)
     ├── Register.jsx          # Registreringssida (med inbjudningskod)
     ├── AdminPanel.jsx        # SuperAdmin: organisationshantering
     ├── ShiftList.jsx         # Mina pass + bytesförfrågningar
@@ -139,6 +140,8 @@ frontend/
     │   └── ToastContext.test.jsx # Test: auto-dismiss och stabilt toast-objekt
     └── components/
         ├── AuthLayout.jsx    # Delad layout för inloggning/registrering
+        ├── DemoBanner.jsx    # Banner "Du testar en demo" (bara när token har IsDemo)
+        ├── DemoBanner.test.jsx # Test: visas bara för demo-token
         ├── EmptyState.jsx    # Tom lista-placeholder
         ├── EmptyState.test.jsx # Komponenttest (Vitest)
         ├── ManagerPanel.jsx  # Manager-panel (flik-shell, delegerar till manager/)

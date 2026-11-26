@@ -232,6 +232,23 @@ export const getOrganizationId = () => {
 };
 
 /**
+ * Är den inloggade användaren i en demo-sandlåda? (claim IsDemo i JWT-tokenet)
+ */
+export const isDemo = () => {
+  const payload = decodeToken();
+  return payload?.IsDemo === 'true';
+};
+
+/**
+ * Starta en demo-sandlåda (ingen inloggning krävs) och returnera token.
+ * role: 'Manager' eller 'Employee'.
+ */
+export const startDemo = async (role) => {
+  const res = await axiosInstance.post('/demo/start', { role });
+  return res.data.token;
+};
+
+/**
  * Hämta den inloggade användarens organisationsnamn från JWT-tokenet.
  */
 export const getOrganizationName = () => {

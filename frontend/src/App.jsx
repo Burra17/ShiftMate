@@ -28,6 +28,7 @@ import Profile from './Profile';
 import ManagerPanel from './components/ManagerPanel'; // Managerpanelen för privilegierade användare
 import AdminPanel from './AdminPanel'; // SuperAdmin: hantera organisationer
 import Dashboard from './Dashboard';
+import DemoBanner from './components/DemoBanner'; // Visas bara för demo-användare
 
 // Huvudkomponent för applikationen när en användare är inloggad.
 const MainApp = ({ onLogout }) => {
@@ -191,6 +192,7 @@ const MainApp = ({ onLogout }) => {
 
       {/* Huvudinnehåll */}
       <main ref={mainRef} className="flex-1 overflow-y-auto relative h-screen">
+        <DemoBanner />
         <div
           key={activeTab}
           className="p-6 md:p-12 max-w-5xl mx-auto pb-28 md:pb-12 animate-fade-in"

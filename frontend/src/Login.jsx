@@ -1,8 +1,17 @@
 ﻿// importera nödvändiga funktioner och komponenter
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from './api'; // Api-instans för att göra anrop till backend
+import api, { startDemo } from './api'; // Api-instans för att göra anrop till backend
 import AuthLayout from './components/AuthLayout'; // Gemensam layout för autentiseringssidor
+
+// Demo-knapparna – varje klick skapar en egen sandlåda med testdata i backend
+const DEMO_OPTIONS = [
+  { role: 'Manager', label: 'Testa som chef' },
+  { role: 'Employee', label: 'Testa som anställd' },
+];
+
+// Efter så här lång tid visas meddelandet om att servern startar (Render-gratisnivån kan somna)
+const SLOW_START_MS = 3000;
 
 // Komponent för inloggningssidan.
 // Tar emot onLoginSuccess som en prop, vilken anropas vid lyckad inloggning.
@@ -20,6 +29,40 @@ const Login = ({ onLoginSuccess }) => {
   const [error, setError] = useState('');
   const [emailNotVerified, setEmailNotVerified] = useState(false);
   const [resending, setResending] = useState(false);
+
+  // Demo: vilken roll som startar just nu (null = ingen) och om det tar lång tid
+  const [demoRole, setDemoRole] = useState(null);
+  const [slowStart, setSlowStart] = useState(false);
+  const busy = loading || demoRole !== null;
+
+  // Startar en demo-sandlåda och loggar in på samma sätt som vanlig inloggning
+  const handleDemo = async (role) => {
+    setDemoRole(role);
+    setError('');
+    setEmailNotVerified(false);
+    const slowTimer = setTimeout(() => setSlowStart(true), SLOW_START_MS);
+
+    try {
+      const token = await startDemo(role);
+      localStorage.setItem('token', token);
+      onLoginSuccess();
+    } catch (err) {
+      console.error('Demofel:', err.response || err);
+      if (err.code === 'ERR_NETWORK') {
+        setError('Kunde inte nå servern. Försök igen om en stund.');
+      } else {
+        // T.ex. 429 – "Demon är full just nu…" eller "För många demo-starter…"
+        setError(
+          err.response?.data?.message ||
+            'Kunde inte starta demon. Försök igen.',
+        );
+      }
+    } finally {
+      clearTimeout(slowTimer);
+      setDemoRole(null);
+      setSlowStart(false);
+    }
+  };
 
   // Funktion som hanterar formulärinskickning.
   const handleSubmit = async (e) => {
@@ -193,7 +236,7 @@ const Login = ({ onLoginSuccess }) => {
         {/* Inloggningsknapp. Inaktiveras när laddningsstatus är true. */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={busy}
           className="w-full py-4 mt-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black rounded-xl shadow-lg shadow-blue-900/40 transition-all hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 tracking-wide uppercase text-sm"
         >
           {loading ? (
@@ -206,6 +249,48 @@ const Login = ({ onLoginSuccess }) => {
           )}
         </button>
       </form>
+
+      {/* Demo – för besökare (t.ex. från portfolion) som vill prova utan konto */}
+      <div className="mt-8">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-slate-800" />
+          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            eller
+          </span>
+          <div className="flex-1 h-px bg-slate-800" />
+        </div>
+        <p className="text-center text-xs text-slate-400 font-medium mb-3">
+          Utforska utan konto
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {DEMO_OPTIONS.map(({ role, label }) => (
+            <button
+              key={role}
+              type="button"
+              onClick={() => handleDemo(role)}
+              disabled={busy}
+              className="py-3 px-4 border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400 rounded-xl text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50"
+            >
+              {demoRole === role ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="w-3.5 h-3.5 border-2 border-blue-400/30 border-t-blue-400 rounded-full animate-spin" />
+                  Startar demo...
+                </span>
+              ) : (
+                label
+              )}
+            </button>
+          ))}
+        </div>
+        {slowStart && (
+          <p
+            role="status"
+            className="mt-3 text-center text-xs text-slate-400 font-medium"
+          >
+            Startar servern – kan ta upp till en minut första gången…
+          </p>
+        )}
+      </div>
 
       {/* Länk till registreringssidan för nya användare. */}
       <div className="mt-8 pt-6 border-t border-slate-800 text-center">
